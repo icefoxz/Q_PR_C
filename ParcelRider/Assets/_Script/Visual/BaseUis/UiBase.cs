@@ -19,9 +19,9 @@ public abstract class UiBase : IUiBase
         GameObject.SetActive(display);
     }
 
-    public void Show() => GameObject.SetActive(true);
+    public virtual void Show() => GameObject.SetActive(true);
 
-    public void Hide() => GameObject.SetActive(false);
+    public virtual void Hide() => GameObject.SetActive(false);
 
     public virtual void ResetUi() { }
 

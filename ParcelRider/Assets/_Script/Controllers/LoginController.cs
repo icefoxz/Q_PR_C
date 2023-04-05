@@ -1,5 +1,6 @@
 ﻿using System;
 using Core;
+using UnityEngine;
 
 namespace Controllers
 {
@@ -30,6 +31,15 @@ namespace Controllers
             var isSuccess = true;
             var message = string.Empty;
             onCallbackAction?.Invoke((isSuccess, message));
+        }
+
+        public string GetAccountName() => "Test";
+
+        public Sprite GetUserAvatar() => null;
+
+        public async void CheckLoginStatus(Action<bool> onLoginAction)
+        {
+            onLoginAction?.Invoke(true);//暂时都是success
         }
     }
 }

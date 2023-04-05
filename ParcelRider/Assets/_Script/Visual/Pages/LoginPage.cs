@@ -8,14 +8,13 @@ using Views;
 public class LoginPage : PageUiBase
 {
     private View_loginSect view_loginSect { get; }
-    private View_RegSect viewRegSect { get; }
+    private View_RegSect view_regSect { get; }
     private LoginController LoginController => App.GetController<LoginController>();
-    public LoginPage(IView v,UiManager uiManager) : base(v,uiManager)
+
+    public LoginPage(IView v, UiManager uiManager) : base(v, uiManager)
     {
-        viewRegSect = new View_RegSect(v.GetObject<View>("view_regSect"),
-            () => LoginController.RequestRegister(OnRegisterCallback),
-            username => { },
-            phone => { }
+        view_regSect = new View_RegSect(v.GetObject<View>("view_regSect"),
+            () => LoginController.RequestRegister(OnRegisterCallback)
         );
         view_loginSect = new View_loginSect(v.GetObject<View>("view_loginSect"), arg =>
             {
@@ -24,23 +23,48 @@ public class LoginPage : PageUiBase
             },
             () => LoginController.RequestGoogle(OnThirdPartyAuthCallback),
             () => LoginController.RequestFacebook(OnThirdPartyAuthCallback),
-            () => viewRegSect.Show());
+            () => view_regSect.Show());
     }
 
+    //register
     private void OnRegisterCallback((bool isSuccess, string message) obj)
     {
         var (isSuccess, message) = obj;
+        if (isSuccess)
+        {
+            OnLoggedIn();
+            return;
+        }
+        view_regSect.SetErrorMessage(message);
     }
 
+    //login invocation
+    private void OnLoggedIn()
+    {
+        Hide();
+        UiManager.LoginInit();
+    }
+
+    //3rd party login
     private void OnThirdPartyAuthCallback(bool isSuccess)
     {
-        
+        if (isSuccess)
+        {
+            OnLoggedIn();
+            return;
+        }
+        view_loginSect.SetMessage("Login failed");
     }
-
+    //login
     private void OnLoginCallback((bool isSuccess, string message) obj)
     {
         var (isSuccess, message) = obj;
-
+        if (isSuccess)
+        {
+            OnLoggedIn();
+            return;
+        }
+        view_loginSect.SetMessage(message);
     }
 
     private class View_loginSect : UiBase
@@ -112,9 +136,7 @@ public class LoginPage : PageUiBase
 
         private Element_input[] Elements { get; }
 
-        public View_RegSect(IView v,Action onRegisterAction,
-            Action<string> onUsernameUpdate,
-            Action<string> onPhoneUpdate) : base(v, false)
+        public View_RegSect(IView v,Action onRegisterAction) : base(v, false)
         {
             element_input_username = new Element_input(v.GetObject<View>("element_input_username"), value => OnValueChange(value,Inputs.Username));
             element_input_phone = new Element_input(v.GetObject<View>("element_input_phone"), value => OnValueChange(value,Inputs.Phone));

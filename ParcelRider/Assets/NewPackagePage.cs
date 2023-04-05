@@ -1,10 +1,9 @@
 using System;
 using DataModel;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using Views;
 
-public class NewPackagePage : UiBase
+public class NewPackagePage : PageUiBase
 {
     private static Random Random { get; } = new Random();
     private Button Btn_submit { get; }
@@ -13,20 +12,17 @@ public class NewPackagePage : UiBase
     private InputField Input_kg { get; }
     private Element_Form Element_to { get; }
     private Element_Form Element_from { get; }
-    private event Func<float> GetCost;
-    private event UnityAction<int> OnKmChanged;
 
-    public NewPackagePage(IView v, 
-        UnityAction<float> onKgChanged,
-        UnityAction<int> onKmChanged,
-        Func<float> getCost) : base(v)
+    private DoVolume CurrentDo { get; set; }
+
+    public NewPackagePage(IView v, Action onSubmit,UiManager uiManager) : base(v,uiManager)
     {
-        GetCost = getCost;
-        OnKmChanged = onKmChanged;
+        CurrentDo = new DoVolume();
         Btn_submit = v.GetObject<Button>("btn_submit");
         Text_cost = v.GetObject<Text>("text_cost");
         Text_km = v.GetObject<Text>("text_km");
         Input_kg = v.GetObject<InputField>("input_kg");
+        Input_kg.interactable = false;
         Element_to = new Element_Form(v.GetObject<View>("element_to"),
             "Luak Esplanade, 98000 Miri, Sarawak",
             OnValueChanged, OnAddressTriggered);
@@ -40,11 +36,19 @@ public class NewPackagePage : UiBase
                 value = 0;
                 Input_kg.text = value.ToString();
             }
-            onKgChanged?.Invoke(value);
+
+            CurrentDo.Kg = value;
             OnValueChanged();
         });
         Btn_submit.interactable = false;
-        //Btn_submit.OnClickAdd(onSubmit);
+        Btn_submit.OnClickAdd(onSubmit);
+    }
+
+    public void Set(float kg, float meter)
+    {
+        ResetUi();
+        Input_kg.text = kg.ToString();
+        Show();
     }
 
     public DeliveryOrder GenerateOrder()
@@ -66,16 +70,14 @@ public class NewPackagePage : UiBase
         {
             km = Random.Next(5, 80);
         }
-        OnKmChanged?.Invoke(km);
+        CurrentDo.Km = km;
         Text_km.text = km.ToString();
     }
 
     private void OnValueChanged()
     {
-        var kg = 0f;
-        float.TryParse(Input_kg.text, out kg);
-        var isKgGotValue = kg > 0;
-        if (isKgGotValue) Text_cost.text = $"{GetCost?.Invoke()}";
+        var isKgGotValue = CurrentDo.Kg > 0;
+        if (isKgGotValue) Text_cost.text = $"{CurrentDo.GetCost()}";
         var isFromReady = Element_from.IsReady;
         var isToReady = Element_to.IsReady;
         Btn_submit.interactable = isFromReady && isToReady && isKgGotValue;
@@ -130,5 +132,4 @@ public class NewPackagePage : UiBase
             Input_phone.text = string.Empty;
         }
     }
-
 }

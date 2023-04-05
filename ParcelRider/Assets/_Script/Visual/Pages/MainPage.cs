@@ -1,8 +1,8 @@
-using DataModel;
 using System;
 using System.Collections;
 using System.Linq;
-using Unity.VisualScripting;
+using Controllers;
+using DataModel;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -17,6 +17,7 @@ public class MainPage : PageUiBase
         OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
         view_packagePlayer = new View_packagePlayer(v.GetObject<View>("view_packagePlayer"),
             uiManager, a => UiManager.SetPackageConfirm(a.point, a.kg, a.volume));
+        Hide();//listView代码会导致view active,所以这里要隐藏
     }
 
     public void SetOrders(DeliveryOrder[] orders)
@@ -69,22 +70,23 @@ public class MainPage : PageUiBase
             Btn_order.OnClickAdd(() => onBtnClick?.Invoke(SelectedOrderId));
         }
 
-        public void Set(DeliveryOrder deliveryOrder)
+        public void Set(DeliveryOrder doVolume)
         {
-            SelectedOrderId = deliveryOrder.Id;
-            var state = (States)deliveryOrder.Status;
+            SelectedOrderId = doVolume.Id;
+            var state = (States)doVolume.Status;
             SetState(state);
-            Text_orderId.text = deliveryOrder.Id.ToString();
-            Text_from.text = ConvertText("from: ", deliveryOrder.StartPoint, 15);
-            Text_to.text = ConvertText("to: ", deliveryOrder.EndPoint, 15);
-            Text_cost.text = deliveryOrder.Price.ToString("F");
-            Text_km.text = deliveryOrder.Distance.ToString();
+            Text_orderId.text = doVolume.Id.ToString();
+            Text_from.text = ConvertText("from: ", doVolume.StartPoint, 15);
+            Text_to.text = ConvertText("to: ", doVolume.EndPoint, 15);
+            Text_cost.text = doVolume.Price.ToString("F");
+            Text_km.text = doVolume.Distance.ToString();
         }
 
         private string ConvertText(string prefix, string text, int maxChars)
         {
             var t = prefix + text;
-            return t[..maxChars] + "...";
+            if(t.Length > maxChars) return t[..maxChars] + "...";
+            return t;
         }
 
         private void SetState(States state)
@@ -99,8 +101,6 @@ public class MainPage : PageUiBase
 
     private class View_packagePlayer : UiBase
     {
-        public const float KgToPounds = 2.2046226218f;
-        public const float MeterToFeet = 3.280839895f;
         private View_sizeSwitch view_sizeSwitch { get; }
         private Element_input element_input_height { get; }
         private Element_input element_input_width { get; }
@@ -162,7 +162,7 @@ public class MainPage : PageUiBase
             {
                 View_weightSwitch.Weights.Kilogram => weight,
                 View_weightSwitch.Weights.Gram => weight / 1000f,
-                View_weightSwitch.Weights.Pound => weight / KgToPounds,
+                View_weightSwitch.Weights.Pound => weight / PackageController.KgToPounds,
                 _ => throw new ArgumentOutOfRangeException()
             };
             view_info.SetKg(kg);
@@ -170,15 +170,19 @@ public class MainPage : PageUiBase
 
         private void UpdateSize()
         {
-            var value = CountSize(element_input_width.Value, element_input_height.Value, element_input_length.Value);
+            var width = element_input_width.Value;
+            var height = element_input_height.Value;
+            var length = element_input_length.Value;
+            var value = CountSize(width, height, length);
             var size = view_sizeSwitch.Current switch
             {
                 View_sizeSwitch.Sizes.Meter => value * 100,
-                View_sizeSwitch.Sizes.Feet => value / MeterToFeet * 100,
+                View_sizeSwitch.Sizes.Feet => value / PackageController.MeterToFeet * 100,
                 View_sizeSwitch.Sizes.Centimeter => value,
                 _ => throw new ArgumentOutOfRangeException()
             };
             view_info.SetCentimeter(size);
+            view_cubePlayer.SetObjectSize(width, height, length);
         }
 
         private float CountSize(float width, float height, float length) => 
@@ -381,7 +385,7 @@ public class MainPage : PageUiBase
                     var value = array[i];
                     final[i] = value / max * 100;
                 }
-                obj_cube.transform.localScale.Set(final[0], final[1], final[2]);
+                obj_cube.transform.localScale = new Vector3(final[0], final[1], final[2]);
             }
 
             public IEnumerator PlayCubeSpin()

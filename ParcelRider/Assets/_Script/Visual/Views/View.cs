@@ -84,7 +84,11 @@ namespace Views
 
         public T GetObject<T>(int index) => CheckNull(_components[index].GetComponent<T>());
         void OnDisable() => OnDisableEvent?.Invoke();
-
+        #region ForDebug
+        //void OnEnable()
+        //{
+        //}
+        #endregion        
         public void StartCo(IEnumerator enumerator) => StartCoroutine(enumerator);
         public void StopCo(IEnumerator enumerator) => StopCoroutine(enumerator);
         public void StopAllCo() => StopAllCoroutines();

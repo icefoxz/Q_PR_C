@@ -22,12 +22,22 @@ namespace Core
                 throw new NotImplementedException("App is running!");
             IsRunning = true;
             Res = res;
+            ControllerReg();
+            UiInit(canvas, uiManager);
+        }
+
+        private static void UiInit(Canvas canvas, UiManager uiManager)
+        {
             UiBuilder = new UiBuilder(canvas, Res);
             UiManager = uiManager;
             UiManager.Init();
-            ServiceContainer = new ControllerServiceContainer();
-            ServiceContainer.Reg(new LoginController());
         }
 
+        private static void ControllerReg()
+        {
+            ServiceContainer = new ControllerServiceContainer();
+            ServiceContainer.Reg(new LoginController());
+            ServiceContainer.Reg(new PackageController());
+        }
     }
 }
