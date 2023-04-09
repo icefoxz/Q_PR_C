@@ -15,13 +15,15 @@ namespace Core
         public static Res Res { get; private set; }
         public static UiBuilder UiBuilder { get; private set; }
         public static UiManager UiManager { get; private set; }
+        public static MonoService MonoService { get; private set; }
 
-        public static void Run(Res res, Canvas canvas, UiManager uiManager)
+        public static void Run(Res res, Canvas canvas, UiManager uiManager, MonoService monoService)
         {
             if (IsRunning)
                 throw new NotImplementedException("App is running!");
             IsRunning = true;
             Res = res;
+            MonoService = monoService;
             ControllerReg();
             UiInit(canvas, uiManager);
         }

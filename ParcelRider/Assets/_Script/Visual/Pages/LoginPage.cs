@@ -133,6 +133,7 @@ public class LoginPage : PageUiBase
         private Element_input element_input_rePassword { get; }
         private Text text_errMessage { get; }
         private Button btn_register { get; }
+        private Button btn_x { get; }
 
         private Element_input[] Elements { get; }
 
@@ -146,7 +147,9 @@ public class LoginPage : PageUiBase
             element_input_rePassword = new Element_input(v.GetObject<View>("element_input_rePassword"), value => OnValueChange(value, Inputs.RePassword));
             text_errMessage = v.GetObject<Text>("text_errMessage");
             btn_register = v.GetObject<Button>("btn_register");
+            btn_x = v.GetObject<Button>("btn_x");
             btn_register.onClick.AddAction(onRegisterAction);
+            btn_x.onClick.AddAction(Hide);
 
             Elements = new[]
             {
