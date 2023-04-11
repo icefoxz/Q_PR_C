@@ -6,6 +6,7 @@ namespace Core
 {
     public static class App
     {
+        private static MonoService _monoService;
         private static bool IsRunning { get; set; }
         private static ControllerServiceContainer ServiceContainer { get; set; }
 
@@ -15,7 +16,17 @@ namespace Core
         public static Res Res { get; private set; }
         public static UiBuilder UiBuilder { get; private set; }
         public static UiManager UiManager { get; private set; }
-        public static MonoService MonoService { get; private set; }
+
+        public static MonoService MonoService
+        {
+            get
+            {
+                if (_monoService == null)
+                    _monoService = new GameObject("MonoService").AddComponent<MonoService>();
+                return _monoService;
+            }
+            private set => _monoService = value;
+        }
 
         public static void Run(Res res, Canvas canvas, UiManager uiManager, MonoService monoService)
         {

@@ -32,7 +32,7 @@ internal class ListViewUi<T> : UiBase
     private readonly ScrollRect _scrollRect;
     private List<T> _list { get; } = new List<T>();
     public IReadOnlyList<T> List => _list;
-    private View Prefab { get; }
+    public View Prefab { get; }
 
     public ScrollRect ScrollRect
     {
@@ -89,5 +89,19 @@ internal class ListViewUi<T> : UiBase
     public void SetHorizontalScrollPosition(float value)
     {
         ScrollRect.horizontalNormalizedPosition = value;
+    }
+
+    public void ScrollRectSetSize(Vector2 size) => ((RectTransform)_scrollRect.transform).sizeDelta = size;
+
+    public void ScrollRectSetSizeX(float x)
+    {
+        var rect = ((RectTransform)_scrollRect.transform);
+        rect.sizeDelta = new Vector2(x, rect.sizeDelta.y);
+    }
+
+    public void ScrollRectSetSizeY(float y)
+    {
+        var rect = ((RectTransform)_scrollRect.transform);
+        rect.sizeDelta = new Vector2(rect.sizeDelta.x, y);
     }
 }

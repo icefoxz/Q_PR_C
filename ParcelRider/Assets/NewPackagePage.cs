@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using Core;
 using DataModel;
 using UnityEngine.UI;
 using Views;
+using Visual.Sects;
 
 public class NewPackagePage : PageUiBase
 {
@@ -14,6 +17,7 @@ public class NewPackagePage : PageUiBase
     private Element_Form Element_from { get; }
 
     private DoVolume CurrentDo { get; set; }
+    private GoogleAutocompleteAddress AutocompleteAddress => App.GetController<GoogleAutocompleteAddress>();
 
     public NewPackagePage(IView v, Action onSubmit,UiManager uiManager) : base(v,uiManager)
     {
@@ -23,12 +27,16 @@ public class NewPackagePage : PageUiBase
         Text_km = v.GetObject<Text>("text_km");
         Input_kg = v.GetObject<InputField>("input_kg");
         Input_kg.interactable = false;
-        Element_to = new Element_Form(v.GetObject<View>("element_to"),
-            "Luak Esplanade, 98000 Miri, Sarawak",
-            OnValueChanged, OnAddressTriggered);
-        Element_from = new Element_Form(v.GetObject<View>("element_from"),
-            "Riam Institute of Technology Lot 1305, Mile 3.5, Riam Road, 98000 Miri, Sarawak",
-            OnValueChanged, OnAddressTriggered);
+        Element_to = new Element_Form(v.GetObject<View>("element_to"), OnInputChanged, arg =>
+        {
+            ProcessSuggestedAddress(arg,Element_to);
+            OnAddressTriggered(arg);
+        });
+        Element_from = new Element_Form(v.GetObject<View>("element_from"), OnInputChanged, arg=>
+        {
+            ProcessSuggestedAddress(arg, Element_from);
+            OnAddressTriggered(arg);
+        });
         Input_kg.onValueChanged.AddListener(arg =>
         {
             if (!float.TryParse(arg, out var value))
@@ -38,11 +46,13 @@ public class NewPackagePage : PageUiBase
             }
 
             CurrentDo.Kg = value;
-            OnValueChanged();
+            OnInputChanged();
         });
         Btn_submit.interactable = false;
         Btn_submit.OnClickAdd(onSubmit);
     }
+
+    private void ProcessSuggestedAddress(string input,Element_Form form) => AutocompleteAddress.GetAddressSuggestions(input, form.SetSuggestedAddress);
 
     public void Set(float kg, float meter)
     {
@@ -63,7 +73,7 @@ public class NewPackagePage : PageUiBase
         return order;
     }
 
-    private void OnAddressTriggered()
+    private void OnAddressTriggered(string address)
     {
         var km = 0;
         if (Element_from.IsAddressReady && Element_to.IsAddressReady)
@@ -74,7 +84,7 @@ public class NewPackagePage : PageUiBase
         Text_km.text = km.ToString();
     }
 
-    private void OnValueChanged()
+    private void OnInputChanged()
     {
         var isKgGotValue = CurrentDo.Kg > 0;
         if (isKgGotValue) Text_cost.text = $"{CurrentDo.GetCost()}";
@@ -97,38 +107,39 @@ public class NewPackagePage : PageUiBase
     private class Element_Form : UiBase
     {
         private InputField Input_contact { get; }
-        private InputField Input_address { get; }
         private Button Btn_mapPoint { get; }
         private InputField Input_phone { get; }
+        private Sect_Autofil Sect_autofill_address { get; }
 
         public bool IsReady => IsAddressReady &&
                                !string.IsNullOrWhiteSpace(Input_phone.text) &&
                                !string.IsNullOrEmpty(Input_contact.text);
-        public bool IsAddressReady => !string.IsNullOrWhiteSpace(Input_address.text);
+        public bool IsAddressReady => !string.IsNullOrWhiteSpace(Sect_autofill_address.Input);
         public string Contact => Input_contact.text;
-        public string Address => Input_address.text;
+        public string Address => Sect_autofill_address.Input;
         public string Phone => Input_phone.text;
 
-        public Element_Form(IView v,string preserveAddress,Action onInputChanged,Action onAddressTriggered) : base(v)
+        public Element_Form(IView v, Action onInputChanged, Action<string> onAddressTriggered) : base(v)
         {
-            Input_contact = v.GetObject<InputField>("input_contact");
-            Input_address = v.GetObject<InputField>("input_address");
-            Btn_mapPoint = v.GetObject<Button>("btn_mapPoint");
-            Btn_mapPoint.OnClickAdd(() => Input_address.text = preserveAddress);
-            Input_phone = v.GetObject<InputField>("input_phone");
-            Input_address.onValueChanged.AddListener(arg =>
+            Sect_autofill_address = new Sect_Autofil(v.GetObject<View>("sect_autofill_address"), arg =>
             {
+                onAddressTriggered?.Invoke(arg);
                 onInputChanged?.Invoke();
-                onAddressTriggered?.Invoke();
-            });
-            Input_contact.onValueChanged.AddListener(arg=>onInputChanged?.Invoke());
-            Input_phone.onValueChanged.AddListener(arg=>onInputChanged?.Invoke());
+            }, 40, 30, 10);
+            Input_contact = v.GetObject<InputField>("input_contact");
+            //Btn_mapPoint = v.GetObject<Button>("btn_mapPoint");
+            //Btn_mapPoint.OnClickAdd(() => Input_address.text = preserveAddress);
+            Input_phone = v.GetObject<InputField>("input_phone");
+            Input_contact.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
+            Input_phone.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
         }
+
+        public void SetSuggestedAddress(ICollection<string> address) => Sect_autofill_address.Set(address);
 
         public override void ResetUi()
         {
             Input_contact.text = string.Empty;
-            Input_address.text = string.Empty;
+            Sect_autofill_address.ResetUi();
             Input_phone.text = string.Empty;
         }
     }
