@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core;
 using DataModel;
 using UnityEngine.UI;
+using Utls;
 using Views;
 using Visual.Sects;
 
@@ -15,9 +17,12 @@ public class NewPackagePage : PageUiBase
     private InputField Input_kg { get; }
     private Element_Form Element_to { get; }
     private Element_Form Element_from { get; }
+    private Coordinate FromCo { get; set; } = new(0, 0);
+    private Coordinate ToCo { get; set; } = new(0, 0);
 
     private DoVolume CurrentDo { get; set; }
-    private GoogleAutocompleteAddress AutocompleteAddress => App.GetController<GoogleAutocompleteAddress>();
+    private AutofillAddressController AutocompleteAddressController => App.GetController<AutofillAddressController>();
+    private GeocodingController GeocodingController => App.GetController<GeocodingController>();
 
     public NewPackagePage(IView v, Action onSubmit,UiManager uiManager) : base(v,uiManager)
     {
@@ -30,13 +35,11 @@ public class NewPackagePage : PageUiBase
         Element_to = new Element_Form(v.GetObject<View>("element_to"), OnInputChanged, arg =>
         {
             ProcessSuggestedAddress(arg,Element_to);
-            OnAddressTriggered(arg);
-        });
-        Element_from = new Element_Form(v.GetObject<View>("element_from"), OnInputChanged, arg=>
+        }, arg => OnAddressSelected());
+        Element_from = new Element_Form(v.GetObject<View>("element_from"), OnInputChanged, arg =>
         {
             ProcessSuggestedAddress(arg, Element_from);
-            OnAddressTriggered(arg);
-        });
+        }, arg => OnAddressSelected());
         Input_kg.onValueChanged.AddListener(arg =>
         {
             if (!float.TryParse(arg, out var value))
@@ -52,7 +55,7 @@ public class NewPackagePage : PageUiBase
         Btn_submit.OnClickAdd(onSubmit);
     }
 
-    private void ProcessSuggestedAddress(string input,Element_Form form) => AutocompleteAddress.GetAddressSuggestions(input, form.SetSuggestedAddress);
+    private void ProcessSuggestedAddress(string input,Element_Form form) => AutocompleteAddressController.GetAddressSuggestions(input, form.SetSuggestedAddress);
 
     public void Set(float kg, float meter)
     {
@@ -70,18 +73,50 @@ public class NewPackagePage : PageUiBase
         order.StartPoint = Element_from.Address;
         order.EndPoint = Element_to.Address;
         order.Status = 0;
+        order.Distance = CurrentDo.Km;
+        order.Weight = CurrentDo.Kg;
+        order.Price = CurrentDo.GetCost();
         return order;
     }
 
-    private void OnAddressTriggered(string address)
+    private void OnAddressSelected()
     {
-        var km = 0;
         if (Element_from.IsAddressReady && Element_to.IsAddressReady)
         {
-            km = Random.Next(5, 80);
+            if (!FromCo.IsEqual(Element_from))
+                GeocodingController.GetGeocodeFrom(Element_from.Address, r => SetGeo(Element_from, FromCo,r));
+            if (!ToCo.IsEqual(Element_to))
+                GeocodingController.GetGeocodeTo(Element_to.Address, r => SetGeo(Element_to, ToCo, r));
         }
+
+        void SetGeo(Element_Form form, Coordinate co,
+            (bool isSuccess, double lat, double lng, string message) result)
+        {
+            var (isSuccess, lat, lng, message) = result;
+            if (isSuccess)
+            {
+                co.PlaceId = form.PlaceId;
+                form.Lat = co.Lat = lat;
+                form.Lng = co.Lng = lng;
+                UpdateDistance();
+                return;
+            }
+            UpdateDistance();
+        }
+    }
+
+    private void UpdateDistance()
+    {
+        var distance = -1f;
+        if (FromCo.HasCoordinate && ToCo.HasCoordinate)
+            distance = (float)Distance.CalculateDistance(FromCo.Lat, FromCo.Lng, ToCo.Lat, ToCo.Lng);
+        SetDistance(distance);
+    }
+
+    private void SetDistance(float km)
+    {
         CurrentDo.Km = km;
-        Text_km.text = km.ToString();
+        Text_km.text = km < 0 ? "-1" : km.ToString("F");
     }
 
     private void OnInputChanged()
@@ -109,23 +144,30 @@ public class NewPackagePage : PageUiBase
         private InputField Input_contact { get; }
         private Button Btn_mapPoint { get; }
         private InputField Input_phone { get; }
-        private Sect_Autofil Sect_autofill_address { get; }
+        private Sect_Autofill Sect_autofill_address { get; }
 
         public bool IsReady => IsAddressReady &&
                                !string.IsNullOrWhiteSpace(Input_phone.text) &&
                                !string.IsNullOrEmpty(Input_contact.text);
-        public bool IsAddressReady => !string.IsNullOrWhiteSpace(Sect_autofill_address.Input);
+
+        public bool IsAddressReady => !string.IsNullOrWhiteSpace(Sect_autofill_address.Input) &&
+                                      Sect_autofill_address.Input.Length > 10 ||
+                                      !string.IsNullOrWhiteSpace(PlaceId);
+        public string PlaceId => Sect_autofill_address.PlaceId;
         public string Contact => Input_contact.text;
         public string Address => Sect_autofill_address.Input;
         public string Phone => Input_phone.text;
+        public double Lat { get; set; }
+        public double Lng { get; set; }
 
-        public Element_Form(IView v, Action onInputChanged, Action<string> onAddressTriggered) : base(v)
+        public Element_Form(IView v, Action onInputChanged, Action<string> onAddressTriggered,
+            Action<(string placeId, string address)> onAddressSelected) : base(v)
         {
-            Sect_autofill_address = new Sect_Autofil(v.GetObject<View>("sect_autofill_address"), arg =>
+            Sect_autofill_address = new Sect_Autofill(v: v.GetObject<View>("sect_autofill_address"), onAddressInputAction: arg =>
             {
                 onAddressTriggered?.Invoke(arg);
                 onInputChanged?.Invoke();
-            }, 40, 30, 10);
+            },onAddressSelected, charlimit: 40, contentHeight: 30, contentPadding: 5);
             Input_contact = v.GetObject<InputField>("input_contact");
             //Btn_mapPoint = v.GetObject<Button>("btn_mapPoint");
             //Btn_mapPoint.OnClickAdd(() => Input_address.text = preserveAddress);
@@ -134,7 +176,7 @@ public class NewPackagePage : PageUiBase
             Input_phone.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
         }
 
-        public void SetSuggestedAddress(ICollection<string> address) => Sect_autofill_address.Set(address);
+        public void SetSuggestedAddress(ICollection<(string placeId,string address)> arg) => Sect_autofill_address.Set(arg);
 
         public override void ResetUi()
         {
@@ -142,5 +184,17 @@ public class NewPackagePage : PageUiBase
             Sect_autofill_address.ResetUi();
             Input_phone.text = string.Empty;
         }
+    }
+
+    private record Coordinate(double Lat, double Lng, string PlaceId = null)
+    {
+        public string PlaceId { get; set; }
+        public double Lat { get; set; } = Lat;
+        public double Lng { get; set; } = Lng;
+        public bool HasCoordinate => Lat != 0 && Lng != 0;
+
+        public bool IsEqual(Element_Form form) => PlaceId == form.PlaceId && 
+                                                  Math.Abs(Lat - form.Lat) < 0.00001f &&
+                                                  Math.Abs(Lng - form.Lng) < 0.00001f;
     }
 }

@@ -51,6 +51,8 @@ namespace Core
             ServiceContainer = new ControllerServiceContainer();
             ServiceContainer.Reg(new LoginController());
             ServiceContainer.Reg(new PackageController());
+            ServiceContainer.Reg(new AutofillAddressController());
+            ServiceContainer.Reg(new GeocodingController());
         }
     }
 }
