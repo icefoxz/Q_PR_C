@@ -1,18 +1,23 @@
 using System.Collections.Generic;
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
 using Visual.BaseUis;
+using Object = UnityEngine.Object;
 
 public abstract class UiBase : IUiBase
 {
     public GameObject GameObject { get; }
     public Transform Transform { get; }
     public RectTransform RectTransform { get; }
+    private IView _v;
 
     public UiBase(IView v, bool display = true)
     {
+        if (v == null) throw new ArgumentNullException($"{GetType().Name}: view = null!");
+        _v = v;
         GameObject = v.GameObject;
         Transform = v.GameObject.transform;
         RectTransform = v.RectTransform;
@@ -25,7 +30,11 @@ public abstract class UiBase : IUiBase
 
     public virtual void ResetUi() { }
 
-    public void Destroy() => UnityEngine.Object.Destroy(GameObject);
+    public Coroutine StartCoroutine(IEnumerator enumerator) => _v.StartCo(enumerator);
+    public void StopCoroutine(IEnumerator coroutine) => _v.StopCo(coroutine);
+    public void StopAllCoroutines() => _v.StopAllCo();
+
+    public void Destroy() => Object.Destroy(GameObject);
 }
 internal class ListViewUi<T> : UiBase
 {
@@ -72,7 +81,7 @@ internal class ListViewUi<T> : UiBase
         return ui;
     }
     public T Instance(Func<View, T> func) =>
-        Instance(() => UnityEngine.Object.Instantiate(Prefab, _scrollRect.content.transform), func);
+        Instance(() => Object.Instantiate(Prefab, _scrollRect.content.transform), func);
 
     public void ClearList(Action<T> onRemoveFromList)
     {

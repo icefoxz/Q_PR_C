@@ -3,20 +3,23 @@ using System.Collections;
 using System.Linq;
 using Controllers;
 using Core;
-using DataModel;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
+using Visual.Pages.Rider;
 
 public interface IUiManager
 {
     void SetPackageConfirm(float point, float kg, float meter);
     void DisplayWindows(bool display);
-    void ViewOrder(int orderId);
+    void ViewOrder(string orderId);
     void PlayCoroutine(IEnumerator co, bool transparentPanel, Action callback);
     void LoginInit();
+    void RiderMode();
+    void UserMode();
 }
-public class UiManager : MonoBehaviour,IUiManager
+
+public class UiManager : MonoBehaviour, IUiManager
 {
     [SerializeField] private Panel _panel;
     [SerializeField] private Transform _overlapPages;
@@ -26,7 +29,12 @@ public class UiManager : MonoBehaviour,IUiManager
     [SerializeField] private Page _newPackagePage;
     [SerializeField] private Page _orderViewPage;
     [SerializeField] private Page _paymentPage;
+    [SerializeField] private Page _riderPage;
+
+    //windows
     [SerializeField] private Page _win_packageConfirm;
+    [SerializeField] private Page _win_account;
+
     [SerializeField] private View _view_accountSect;
 
     [SerializeField] private Image _windows;
@@ -37,22 +45,28 @@ public class UiManager : MonoBehaviour,IUiManager
     private MainPage MainPage { get; set; }
     private PaymentPage PaymentPage { get; set; }
     private OrderViewPage OrderViewPage { get; set; }
+    private RiderPage RiderPage { get; set; }
     private View_AccountSect View_AccountSect { get; set; }
-    
+
     private NewPackagePage NewPackagePage { get; set; }
     private PackageConfirmWindow PackageConfirmWindow { get; set; }
+    private AccountWindow AccountWindow { get; set; }
 
     private PackageController PackageController => App.GetController<PackageController>();
     private LoginController LoginController => App.GetController<LoginController>();
 
     public void Init()
     {
-        View_AccountSect = new View_AccountSect(_view_accountSect);
+        View_AccountSect = new View_AccountSect(_view_accountSect, 
+            () => AccountWindow.Show(),
+            OnLogoutAction);
         LoginPage = new LoginPage(_loginPage, this);
         MainPage = new MainPage(_mainPage, this);
         PaymentPage = new PaymentPage(_paymentPage, OnPaymentCallback, this);
         PackageConfirmWindow = new PackageConfirmWindow(_win_packageConfirm, this);
+        AccountWindow = new AccountWindow(_win_account, this);
         OrderViewPage = new OrderViewPage(_orderViewPage, this);
+        RiderPage = new RiderPage(_riderPage, this);
         NewPackagePage = new NewPackagePage(v: _newPackagePage, () =>
         {
             PackageController.CreatePackage(NewPackagePage.GenerateOrder());
@@ -61,10 +75,14 @@ public class UiManager : MonoBehaviour,IUiManager
         LoginController.CheckLoginStatus(OnLoginAction);
     }
 
-    public void CloseAllPages(bool includedMainPage)
+    private void OnLogoutAction()
     {
-        if(includedMainPage)
-            MainPage.Hide();
+        CloseAllPages();
+        LoginPage.Show();
+    }
+
+    public void CloseAllPages()
+    {
         foreach (Transform page in OverlapPages) page.gameObject.SetActive(false);
     }
 
@@ -79,18 +97,23 @@ public class UiManager : MonoBehaviour,IUiManager
         }
     }
 
-    public void SetPackageConfirm(float point, float kg, float meter) => PackageConfirmWindow.Set(point, kg, meter,()=> NewPackagePage.Set(kg, meter));
+    public void SetPackageConfirm(float point, float kg, float meter) =>
+        PackageConfirmWindow.Set(point, kg, meter, () => NewPackagePage.Set(kg, meter));
+
     public void DisplayWindows(bool display) => _windows.gameObject.SetActive(display);
-    public void ViewOrder(int orderId)
+
+    public void ViewOrder(string orderId)
     {
         var order = PackageController.GetOrder(orderId);
         OrderViewPage.Set(order);
     }
 
-    public void ShowPanel(bool transparent,bool displayLoadingImage = true) => _panel.Show(transparent,displayLoadingImage);
+    public void ShowPanel(bool transparent, bool displayLoadingImage = true) =>
+        _panel.Show(transparent, displayLoadingImage);
+
     public void HidePanel() => _panel.Hide();
 
-    public void PlayCoroutine(IEnumerator co, bool transparentPanel ,Action callback)
+    public void PlayCoroutine(IEnumerator co, bool transparentPanel, Action callback)
     {
         StartCoroutine(WaitForCo());
 
@@ -109,6 +132,18 @@ public class UiManager : MonoBehaviour,IUiManager
         UpdateAccountInfo();
     }
 
+    public void RiderMode()
+    {
+        CloseAllPages();
+        RiderPage.Show();
+    }
+
+    public void UserMode()
+    {
+        CloseAllPages();
+        MainPage.Show();
+    }
+
     private void OnLoginAction(bool isLoggedIn)
     {
         if (isLoggedIn)
@@ -117,15 +152,23 @@ public class UiManager : MonoBehaviour,IUiManager
             MainPage.Show();
             return;
         }
+
         LoginPage.Show();
     }
 
     //更新账号信息
-     private void UpdateAccountInfo()
+    private void UpdateAccountInfo()
     {
         var userName = LoginController.GetAccountName();
         var userAvatar = LoginController.GetUserAvatar();
         View_AccountSect.Set(userName, userAvatar);
         View_AccountSect.Show();
+    }
+
+    //注册为骑手
+    public void RegisterRider()
+    {
+        PackageConfirmWindow.Hide();
+        RiderPage.RegisterRider();
     }
 }

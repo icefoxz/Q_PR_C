@@ -18,10 +18,11 @@ namespace Views
         GameObject GetObject(string objName);
         T GetObject<T>(string objName);
         T GetObject<T>(int index);
-        void StartCo(IEnumerator enumerator);
+        Coroutine StartCo(IEnumerator enumerator);
         void StopCo(IEnumerator enumerator);
         void StopAllCo();
         event Action OnDisableEvent;
+        event Action OnEnableEvent; 
         string name { get; }
         View GetView();
     }
@@ -39,6 +40,7 @@ namespace Views
         [SerializeField] private GameObject[] _components;
         private RectTransform _rectTransform;
         public event Action OnDisableEvent;
+        public event Action OnEnableEvent;
         public event Action<IView> OnResetUi;
         public RectTransform RectTransform
         {
@@ -84,12 +86,13 @@ namespace Views
 
         public T GetObject<T>(int index) => CheckNull(_components[index].GetComponent<T>());
         void OnDisable() => OnDisableEvent?.Invoke();
+        void OnEnable() => OnEnableEvent?.Invoke();
         #region ForDebug
         //void OnEnable()
         //{
         //}
         #endregion        
-        public void StartCo(IEnumerator enumerator) => StartCoroutine(enumerator);
+        public Coroutine StartCo(IEnumerator enumerator) => StartCoroutine(enumerator);
         public void StopCo(IEnumerator enumerator) => StopCoroutine(enumerator);
         public void StopAllCo() => StopAllCoroutines();
     }

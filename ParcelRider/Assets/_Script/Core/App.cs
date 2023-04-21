@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using Controllers;
+using DataModel;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Core
 {
@@ -36,7 +39,28 @@ namespace Core
             Res = res;
             MonoService = monoService;
             ControllerReg();
+            TestData();
             UiInit(canvas, uiManager);
+        }
+
+        private static void TestData()
+        {
+            var packageController = GetController<PackageController>();
+            //add testing orders
+            var testList = new List<DeliveryOrder>();
+            for (int i = 0; i < 3; i++)
+            {
+                var order = new DeliveryOrder
+                {
+                    Id = i.ToString(),
+                    Status = i == 0 ? 0 : Random.Range(0, 5),
+                    Package = new PackageInfo(1.5f + i, 10f + i, 10f + i, 15f + i),
+                    From = new IdentityInfo($"From {i}", "1234567890", "TestAddress1"),
+                    To = new IdentityInfo($"To {i}", "1234567890", "TestAddress2"),
+                };
+                testList.Add(order);
+            }
+            packageController.AddOrder(testList.ToArray());
         }
 
         private static void UiInit(Canvas canvas, UiManager uiManager)
@@ -53,6 +77,8 @@ namespace Core
             ServiceContainer.Reg(new PackageController());
             ServiceContainer.Reg(new AutofillAddressController());
             ServiceContainer.Reg(new GeocodingController());
+            ServiceContainer.Reg(new RiderController());
+            ServiceContainer.Reg(new PictureController(MonoService));
         }
     }
 }

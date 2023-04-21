@@ -4,6 +4,7 @@ public record DoVolume
 {
     public float Kg { get; set; }
     public float Km { get; set; }
+    public float Size { get; set; }
 
     public float GetCost() => GetCost(Kg, Km);
 

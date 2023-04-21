@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -9,10 +10,16 @@ public class View_AccountSect : UiBase
 {
     private Text text_name { get; }
     private Image img_ico { get; }
-    public View_AccountSect(IView v) : base(v, false)
+    private Button btn_account { get; }
+    private Button btn_logout { get; }
+    public View_AccountSect(IView v, Action onAccountAction,Action logoutAction) : base(v, false)
     {
         text_name = v.GetObject<Text>("text_name");
         img_ico = v.GetObject<Image>("img_ico");
+        btn_account = v.GetObject<Button>("btn_account");
+        btn_logout = v.GetObject<Button>("btn_logout");
+        btn_account.OnClickAdd(onAccountAction);
+        btn_logout.OnClickAdd(logoutAction);
     }
 
     public void Set(string name, Sprite ico = null)

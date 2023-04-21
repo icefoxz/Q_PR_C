@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using Controllers;
+using Core;
 using DataModel;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +12,7 @@ public class MainPage : PageUiBase
 {
     private ListViewUi<Prefab_Order> OrderListView { get; }
     private View_packagePlayer view_packagePlayer { get; }
+    private PackageController PackageController => App.GetController<PackageController>();
 
     public MainPage(IView v, UiManager uiManager) : base(v, uiManager)
     {
@@ -30,17 +32,14 @@ public class MainPage : PageUiBase
         }
     }
 
+    public override void Show()
+    {
+        SetOrders(PackageController.Orders.ToArray());
+        base.Show();
+    }
+
     private class Prefab_Order : UiBase
     {
-        private enum States
-        {
-            WaitToPick,
-            Delivering,
-            Drop,
-            Completed,
-            Err,
-        }
-
         private Image Img_waitState { get; }
         private Image Img_deliverState { get; }
         private Image Img_dropState { get; }
@@ -52,9 +51,9 @@ public class MainPage : PageUiBase
         private Text Text_cost { get; }
         private Text Text_km { get; }
         private Button Btn_order { get; }
-        private int SelectedOrderId { get; set; }
+        private string SelectedOrderId { get; set; }
 
-        public Prefab_Order(IView v, Action<int> onBtnClick) : base(v)
+        public Prefab_Order(IView v, Action<string> onBtnClick) : base(v)
         {
             Img_waitState = v.GetObject<Image>("img_waitState");
             Img_deliverState = v.GetObject<Image>("img_deliveryState");
@@ -70,16 +69,16 @@ public class MainPage : PageUiBase
             Btn_order.OnClickAdd(() => onBtnClick?.Invoke(SelectedOrderId));
         }
 
-        public void Set(DeliveryOrder doVolume)
+        public void Set(DeliveryOrder o)
         {
-            SelectedOrderId = doVolume.Id;
-            var state = (States)doVolume.Status;
+            SelectedOrderId = o.Id;
+            var state = (DeliveryOrder.States)o.Status;
             SetState(state);
-            Text_orderId.text = doVolume.Id.ToString();
-            Text_from.text = ConvertText("from: ", doVolume.StartPoint, 15);
-            Text_to.text = ConvertText("to: ", doVolume.EndPoint, 15);
-            Text_cost.text = doVolume.Price.ToString("F");
-            Text_km.text = doVolume.Distance.ToString();
+            Text_orderId.text = o.Id;
+            Text_from.text = ConvertText("from: ", o.From.Address, 15);
+            Text_to.text = ConvertText("to: ", o.To.Address, 15);
+            Text_cost.text = o.Package.Price.ToString("F");
+            Text_km.text = o.Package.Distance.ToString("F");
         }
 
         private string ConvertText(string prefix, string text, int maxChars)
@@ -89,13 +88,13 @@ public class MainPage : PageUiBase
             return t;
         }
 
-        private void SetState(States state)
+        private void SetState(DeliveryOrder.States state)
         {
-            Img_waitState.gameObject.SetActive(state == States.WaitToPick);
-            Img_deliverState.gameObject.SetActive(state == States.Delivering);
-            Img_dropState.gameObject.SetActive(state == States.Drop);
-            Img_errState.gameObject.SetActive(state == States.Err);
-            Img_completedState.gameObject.SetActive(state == States.Completed);
+            Img_waitState.gameObject.SetActive(state == DeliveryOrder.States.Wait);
+            Img_deliverState.gameObject.SetActive(state == DeliveryOrder.States.Delivering);
+            Img_dropState.gameObject.SetActive(state == DeliveryOrder.States.Collection);
+            Img_errState.gameObject.SetActive(state == DeliveryOrder.States.Exception);
+            Img_completedState.gameObject.SetActive(state == DeliveryOrder.States.Complete);
         }
     }
 

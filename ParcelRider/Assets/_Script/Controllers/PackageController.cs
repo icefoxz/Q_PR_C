@@ -18,7 +18,7 @@ namespace Controllers
         public void AddCurrentOrder()
         {
             if (Current == null)
-                throw new NullReferenceException($"Current order is null!");
+                throw new NullReferenceException("Current order is null!");
             OrderList.Add(Current);
             Current = null;
         }
@@ -27,6 +27,6 @@ namespace Controllers
         public void RemoveOrder(DeliveryOrder order) => OrderList.Remove(order);
         public void ClearOrders() => OrderList.Clear();
 
-        public DeliveryOrder GetOrder(int orderId) => OrderList.FirstOrDefault(o => o.Id == orderId);
+        public DeliveryOrder GetOrder(string orderId) => OrderList.FirstOrDefault(o => o.Id == orderId);
     }
 }

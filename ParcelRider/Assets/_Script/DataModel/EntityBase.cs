@@ -9,7 +9,7 @@ namespace DataModel
             var t = new T();
             return t;
         }
-        public int Id { get; set; }
+
         public int Version { get; set; }
         public long CreatedAt { get; set; }
         public long UpdatedAt { get; set; }
@@ -39,5 +39,9 @@ namespace DataModel
         {
             DeletedAt = GetEpochTime();
         }
+    }
+    public class EntityBase<TId> : EntityBase
+    {
+        public TId Id { get; set; }
     }
 }

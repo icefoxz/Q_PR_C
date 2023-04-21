@@ -16,7 +16,7 @@ public class Debouncer
     public Debouncer(float debounceTime, MonoBehaviour monoBehaviour)
     {
         this.debounceTime = debounceTime;
-        this.mono = monoBehaviour;
+        mono = monoBehaviour;
     }
 
     public void Debounce(string input, Action<string> action)

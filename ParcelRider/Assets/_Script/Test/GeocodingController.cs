@@ -29,7 +29,7 @@ public class GeocodingController : IController
     private IEnumerator GetGeocodeData(string address,
         Action<(bool isSuccess, double lat, double lng, string message)> onResultAction)
     {
-        var requestUrl = string.Format(geocodingUrl, UnityWebRequest.EscapeURL(address), ApiKey.GoogleApiKey);
+        var requestUrl = string.Format(geocodingUrl, UnityWebRequest.EscapeURL(address), Auth.GoogleApiKey);
         var webRequest = UnityWebRequest.Get(requestUrl);
         yield return webRequest.SendWebRequest();
 

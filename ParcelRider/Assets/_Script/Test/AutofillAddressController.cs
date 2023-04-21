@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using Core;
 using Utls;
-using Newtonsoft.Json;
 
 public class AutofillAddressController : IController
 {
@@ -30,17 +29,24 @@ public class AutofillAddressController : IController
     private IEnumerator FetchAddressSuggestions(string input,
         Action<(string placeId, string address)[]> onRequestResult)
     {
-        var requestUrl = string.Format(googleAutocompleteUrl, UnityWebRequest.EscapeURL(input), ApiKey.GoogleApiKey);
+        var requestUrl = string.Format(googleAutocompleteUrl, UnityWebRequest.EscapeURL(input), Auth.GoogleApiKey);
         var webRequest = UnityWebRequest.Get(requestUrl);
         yield return webRequest.SendWebRequest();
 
         if (webRequest.result == UnityWebRequest.Result.Success) {
             var jsonResponse = GoogleAddressAutocompleteResponse.FromJson(webRequest.downloadHandler.text);
             if (jsonResponse is not { GetPredictions: not null }) yield break;
+#if UNITY_EDITOR
+            if (jsonResponse.GetPredictions.Length == 0)
+                Debug.LogWarning($"{nameof(FetchAddressSuggestions)}.No results found for {input}");
+#endif
             onRequestResult?.Invoke(jsonResponse.GetPredictions);
         }
         else
         {
+#if UNITY_EDITOR
+            throw new NotImplementedException($"{nameof(FetchAddressSuggestions)}.Exception: {webRequest.result}");
+#endif
             onRequestResult?.Invoke(null);
         }
     }

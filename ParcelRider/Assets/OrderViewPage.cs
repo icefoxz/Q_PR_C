@@ -4,14 +4,6 @@ using Views;
 
 public class OrderViewPage : PageUiBase
 {
-    private enum States
-    {
-        Waiting ,
-        Delivery ,
-        Drop ,
-        Completed,
-        Error 
-    }
     private Text Text_orderId { get; }
     private Text Text_from { get; }
     private Text Text_to { get; }
@@ -44,22 +36,22 @@ public class OrderViewPage : PageUiBase
 
     public void Set(DeliveryOrder o)
     {
-        Text_orderId.text = o.Id.ToString();
-        Text_from.text = o.StartPoint;
-        Text_to.text = o.EndPoint;
-        Text_cost.text = o.Price.ToString("F");
-        Text_km.text = o.Distance.ToString();
-        SetState((States)o.Status);
+        Text_orderId.text = o.Id;
+        Text_from.text = o.From.Address;
+        Text_to.text = o.To.Address;
+        Text_cost.text = o.Package.Price.ToString("F");
+        Text_km.text = o.Package.Distance.ToString("F");
+        SetState((DeliveryOrder.States)o.Status);
         Show();
     }
 
-    private void SetState(States state)
+    private void SetState(DeliveryOrder.States state)
     {
-        Elemnent_waitState.SetActive(state == States.Waiting);
-        Elemnent_DeliverState.SetActive(state == States.Delivery);
-        Elemnent_dropState.SetActive(state == States.Drop);
-        Elemnent_errState.SetActive(state == States.Error);
-        Elemnent_completedState.SetActive(state == States.Completed);
+        Elemnent_waitState.SetActive(state == DeliveryOrder.States.Wait);
+        Elemnent_DeliverState.SetActive(state == DeliveryOrder.States.Delivering);
+        Elemnent_dropState.SetActive(state == DeliveryOrder.States.Collection);
+        Elemnent_errState.SetActive(state == DeliveryOrder.States.Exception);
+        Elemnent_completedState.SetActive(state == DeliveryOrder.States.Complete);
     }
 
     private class Element_State : UiBase

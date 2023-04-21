@@ -61,21 +61,20 @@ public class NewPackagePage : PageUiBase
     {
         ResetUi();
         Input_kg.text = kg.ToString();
+        CurrentDo.Size = meter;
         Show();
     }
 
     public DeliveryOrder GenerateOrder()
     {
         var order = EntityBase.Instance<DeliveryOrder>();
-        order.Id = 13000 + Random.Next(500);
+        order.Id = $"{13000 + Random.Next(500)}";
         order.UserId = 888321;
-        order.DeliveryManId = -1;
-        order.StartPoint = Element_from.Address;
-        order.EndPoint = Element_to.Address;
+        order.DeliveryManId = string.Empty;
+        order.From = new IdentityInfo(Element_from.Phone, Element_from.Contact, Element_from.Address);
+        order.To = new IdentityInfo(Element_to.Phone, Element_to.Contact, Element_to.Address);
         order.Status = 0;
-        order.Distance = CurrentDo.Km;
-        order.Weight = CurrentDo.Kg;
-        order.Price = CurrentDo.GetCost();
+        order.Package = new PackageInfo(CurrentDo.Kg, CurrentDo.GetCost(), CurrentDo.Km, CurrentDo.Size);
         return order;
     }
 
