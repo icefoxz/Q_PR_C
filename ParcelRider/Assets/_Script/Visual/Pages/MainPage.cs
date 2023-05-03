@@ -4,6 +4,7 @@ using System.Linq;
 using Controllers;
 using Core;
 using DataModel;
+using OrderHelperLib.DtoModels.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -12,13 +13,15 @@ public class MainPage : PageUiBase
 {
     private ListViewUi<Prefab_Order> OrderListView { get; }
     private View_packagePlayer view_packagePlayer { get; }
+    private View_historySect view_historySect { get; }
     private PackageController PackageController => App.GetController<PackageController>();
 
     public MainPage(IView v, UiManager uiManager) : base(v, uiManager)
     {
         OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
         view_packagePlayer = new View_packagePlayer(v.GetObject<View>("view_packagePlayer"),
-            uiManager, a => UiManager.SetPackageConfirm(a.point, a.kg, a.volume));
+            uiManager, a => UiManager.SetPackageConfirm(a.point, a.kg, a.length, a.width, a.height));
+        view_historySect = new View_historySect(v.GetObject<View>("view_historySect"), ui => uiManager.ViewOrder(ui));
         Hide();//listView代码会导致view active,所以这里要隐藏
     }
 
@@ -111,7 +114,7 @@ public class MainPage : PageUiBase
         private Button btn_setPackage { get; }
         private IUiManager UiManager { get; }
 
-        public View_packagePlayer(IView v,IUiManager uiManager,Action<(float point,float kg, float volume)> onPackageSetAction) : base(v)
+        public View_packagePlayer(IView v,IUiManager uiManager,Action<(float point,float kg, float length, float width, float height)> onPackageSetAction) : base(v)
         {
             UiManager = uiManager;
             view_sizeSwitch = new View_sizeSwitch(v.GetObject<View>("view_sizeSwitch"),UpdateSize);
@@ -128,10 +131,10 @@ public class MainPage : PageUiBase
             ResetValues();
         }
 
-        private void PlayCreationPackage(Action<(float point, float kg, float volume)> callBack)
+        private void PlayCreationPackage(Action<(float point, float kg, float length, float width, float height)> callBack)
         {
             UiManager.PlayCoroutine(view_cubePlayer.PlayCubeSpin(), true,
-                () => callBack((view_info.Point, view_info.Weight, view_info.Size)));
+                () => callBack((view_info.Point, view_info.Weight, view_info.Length, view_info.Width, view_info.Height)));
         }
 
         private void ResetValues()
@@ -172,20 +175,21 @@ public class MainPage : PageUiBase
             var width = element_input_width.Value;
             var height = element_input_height.Value;
             var length = element_input_length.Value;
-            var value = CountSize(width, height, length);
-            var size = view_sizeSwitch.Current switch
-            {
-                View_sizeSwitch.Sizes.Meter => value * 100,
-                View_sizeSwitch.Sizes.Feet => value / PackageController.MeterToFeet * 100,
-                View_sizeSwitch.Sizes.Centimeter => value,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-            view_info.SetCentimeter(size);
+            view_info.SetMeter(GetMeter(length),GetMeter(width), GetMeter(height));
             view_cubePlayer.SetObjectSize(width, height, length);
+
+            float GetMeter(float value)
+            {
+                return view_sizeSwitch.Current switch
+                {
+                    View_sizeSwitch.Sizes.Meter => value,
+                    View_sizeSwitch.Sizes.Feet => value / PackageController.MeterToFeet,
+                    View_sizeSwitch.Sizes.Centimeter => value / 100,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
         }
 
-        private float CountSize(float width, float height, float length) => 
-            MathF.Pow(width * height * length, 1 / 3f);
 
         private class View_weightSwitch : UiBase
         {
@@ -284,9 +288,13 @@ public class MainPage : PageUiBase
             private Text text_point { get; }
             private Text text_weight { get; }
             private Text text_size { get; }
-            public float Size { get; private set; } = 1;
+            public float Size => MathF.Pow(Length * Width * Height, 1f / 3f);
             public float Weight { get; private set; } = 1;
             public float Point { get; private set; } = 1;
+            public float Length { get; private set; }
+            public float Width { get; private set; }
+            public float Height { get; private set; }
+
             public View_info(IView v, bool display = true) : base(v, display)
             {
                 text_point = v.GetObject<Text>("text_point");
@@ -299,10 +307,12 @@ public class MainPage : PageUiBase
                 text_weight.text = $"{kg:F} kg";
             }
 
-            public void SetCentimeter(float cm)
+            public void SetMeter(float length, float width, float height)
             {
-                Size = cm;
-                text_size.text = $"{cm:F} cm³";
+                Length = length;
+                Width = width;
+                Height = height;
+                text_size.text = $"{Size:F} m³";
             }
 
             public void SetPoint(float point)
@@ -392,6 +402,129 @@ public class MainPage : PageUiBase
                 cubeAnim.Play();
                 obj_particle.gameObject.SetActive(true);
                 yield return new WaitForSeconds(1);
+            }
+        }
+    }
+
+    private class View_historySect : UiBase
+    {
+        private ListViewUi<Prefab_history> HistoryView { get; }
+        private event Action<string> OnSelectedHistoryAction;
+        
+        public View_historySect(IView v,Action<string> onSelectedHistoryAction, bool display = true) : base(v, display)
+        {
+            OnSelectedHistoryAction = onSelectedHistoryAction;
+            HistoryView = new ListViewUi<Prefab_history>(v, "prefab_history", "scroll_history");
+        }
+
+        public void UpdateHistories(DeliveryOrderDto[] dos)
+        {
+            HistoryView.ClearList(ui=>ui.Destroy());
+            for (var i = 0; i < dos.Length; i++)
+            {
+                var o = dos[i];
+                var size = MathF.Pow(o.ItemInfo.Height * o.ItemInfo.Width * o.ItemInfo.Length, 1 / 3f);
+                var ui = HistoryView.Instance(v => new Prefab_history(v, () => OnSelectedHistoryAction?.Invoke(o.Id)));
+                ui.SetInfo(state: Prefab_history.States.Complete, address: o.EndCoordinates.Address,
+                    contactName: o.ReceiverInfo.Name,
+                    contactPhone: o.ReceiverInfo.PhoneNumber, weight: o.ItemInfo.Weight, size: size,
+                    point: o.DeliveryInfo.Price, o.DeliveryInfo.Distance);
+            }
+        }
+
+        private class Prefab_history : UiBase
+        {
+            public enum States
+            {
+                Wait,
+                Err,
+                Complete,
+                Close
+            }
+
+            private Text text_toAddress { get; }
+            private View_state view_state { get; }
+            private View_contact view_contact { get; }
+            private View_parcelInfo view_parcelInfo { get; }
+            private Button btn_history { get; }
+            public Prefab_history(IView v, Action onClickAction ,bool display = true) : base(v, display)
+            {
+                text_toAddress = v.GetObject<Text>("text_toAddress");
+                view_state = new View_state(v.GetObject<View>("view_state"));
+                view_contact = new View_contact(v.GetObject<View>("view_contact"));
+                view_parcelInfo = new View_parcelInfo(v.GetObject<View>("view_parcelInfo"));
+                btn_history = v.GetObject<Button>("btn_history");
+                btn_history.OnClickAdd(onClickAction);
+            }
+
+            public void SetInfo(States state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
+            {
+                text_toAddress.text = address;
+                view_state.SetState(state);
+                view_contact.Set(contactName, contactPhone);
+                view_parcelInfo.Set(point, weight, size, distance);
+            }
+
+            private class View_state : UiBase
+            {
+                private Image img_waitState { get; }
+                private Image img_errState { get; }
+                private Image img_completeState { get; }
+                private Image img_closeState { get; }
+                public View_state(IView v, bool display = true) : base(v, display)
+                {
+                    img_waitState = v.GetObject<Image>("img_waitState");
+                    img_errState = v.GetObject<Image>("img_errState");
+                    img_completeState = v.GetObject<Image>("img_completeState");
+                    img_closeState = v.GetObject<Image>("img_closeState");
+                }
+
+                public void SetState(States state)
+                {
+                    img_waitState.gameObject.SetActive(state == States.Wait);
+                    img_errState.gameObject.SetActive(state == States.Err);
+                    img_completeState.gameObject.SetActive(state == States.Complete);
+                    img_closeState.gameObject.SetActive(state == States.Close);
+                }
+            }
+
+            private class View_parcelInfo : UiBase
+            {
+                private Text text_point { get; }
+                private Text text_weight { get; }
+                private Text text_size { get; }
+                private Text text_distance { get; }
+                public View_parcelInfo(IView v, bool display = true) : base(v, display)
+                {
+                    text_point = v.GetObject<Text>("text_point");
+                    text_weight = v.GetObject<Text>("text_weight");
+                    text_size = v.GetObject<Text>("text_size");
+                    text_distance = v.GetObject<Text>("text_distance");
+                }
+
+                public void Set(float point, float weight, float size, float distance)
+                {
+                    text_point.text = point.ToString("##.##");
+                    text_weight.text = $"{weight:F} kg";
+                    text_size.text = $"{size:F} m³";
+                    text_distance.text = $"{distance:F} km";
+                }
+            }
+
+            private class View_contact : UiBase
+            {
+                private Text text_name { get; }
+                private Text text_phone { get; }
+                public View_contact(IView v, bool display = true) : base(v, display)
+                {
+                    text_name = v.GetObject<Text>("text_name");
+                    text_phone = v.GetObject<Text>("text_phone");
+                }
+                public void Set(string name, string phone)
+                {
+                    text_name.text = name;
+                    text_phone.text = phone;
+                }
             }
         }
     }

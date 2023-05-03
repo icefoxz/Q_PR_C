@@ -1,7 +1,7 @@
 public class Auth
 {
-    public const string GoogleApiKey = "AIzaSyDiVMxlS4UPKbJ2OwbvxOK6dGKscI5QoY4";
+    public const string GoogleApiKey = "AIzaSyCxgIBJYTiolgRkU0RDcBKcVBhxNI0WMew";
     public static bool IsRider { get; set; }
     public static bool IsRiderMode { get; set; }
-    public static string RiderId { get; set; } = "TestRider";
+    public static int RiderId { get; set; } 
 }

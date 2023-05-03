@@ -6,7 +6,7 @@ using DataModel;
 
 namespace Controllers
 {
-    internal class RiderController : IController
+    public class RiderController : IController
     {
         private PackageController PackageController => App.GetController<PackageController>();
         private List<(string description, bool justCancel)> ExceptionOps { get; set; } = new List<(string description, bool justCancel)>();

@@ -36,7 +36,7 @@ public abstract class UiBase : IUiBase
 
     public void Destroy() => Object.Destroy(GameObject);
 }
-internal class ListViewUi<T> : UiBase
+public class ListViewUi<T> : UiBase
 {
     private readonly ScrollRect _scrollRect;
     private List<T> _list { get; } = new List<T>();

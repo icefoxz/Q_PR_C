@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using Core;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -27,6 +28,20 @@ namespace Visual.Pages.Rider
             btn_close.OnClickAdd(() =>
             {
                 Hide();//如果不包一层匿名函数,会导致第二次不会关闭总窗口
+            });
+            RegEvents();
+        }
+
+        private void RegEvents()
+        {
+            App.MessagingManager.RegEvent(EventString.User_Update, _ =>
+            {
+                var user = App.Models.User;
+                if (user != null)
+                {
+                    element_inputName.SetText(user.Name);
+                    element_inputPhone.SetText(user.Phone);
+                }
             });
         }
 

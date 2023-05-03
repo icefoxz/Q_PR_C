@@ -10,7 +10,7 @@ using Visual.Pages.Rider;
 
 public interface IUiManager
 {
-    void SetPackageConfirm(float point, float kg, float meter);
+    void SetPackageConfirm(float point, float kg, float length, float width, float height);
     void DisplayWindows(bool display);
     void ViewOrder(string orderId);
     void PlayCoroutine(IEnumerator co, bool transparentPanel, Action callback);
@@ -69,7 +69,13 @@ public class UiManager : MonoBehaviour, IUiManager
         RiderPage = new RiderPage(_riderPage, this);
         NewPackagePage = new NewPackagePage(v: _newPackagePage, () =>
         {
-            PackageController.CreatePackage(NewPackagePage.GenerateOrder());
+            PackageController.CreatePackage(NewPackagePage.GenerateOrder(), success =>
+            {
+                if (success)
+                {
+
+                }
+            });
             PaymentPage.Show();
         }, this);
         LoginController.CheckLoginStatus(OnLoginAction);
@@ -97,8 +103,8 @@ public class UiManager : MonoBehaviour, IUiManager
         }
     }
 
-    public void SetPackageConfirm(float point, float kg, float meter) =>
-        PackageConfirmWindow.Set(point, kg, meter, () => NewPackagePage.Set(kg, meter));
+    public void SetPackageConfirm(float point, float kg, float length, float width, float height) =>
+        PackageConfirmWindow.Set(point, kg, length, width, height, () => NewPackagePage.Set(kg, length, width, height));
 
     public void DisplayWindows(bool display) => _windows.gameObject.SetActive(display);
 
@@ -126,11 +132,7 @@ public class UiManager : MonoBehaviour, IUiManager
         }
     }
 
-    public void LoginInit()
-    {
-        MainPage.Show();
-        UpdateAccountInfo();
-    }
+    public void LoginInit() => MainPage.Show();
 
     public void RiderMode()
     {
@@ -148,21 +150,24 @@ public class UiManager : MonoBehaviour, IUiManager
     {
         if (isLoggedIn)
         {
-            UpdateAccountInfo();
             MainPage.Show();
             return;
         }
-
         LoginPage.Show();
     }
 
     //更新账号信息
     private void UpdateAccountInfo()
     {
-        var userName = LoginController.GetAccountName();
-        var userAvatar = LoginController.GetUserAvatar();
-        View_AccountSect.Set(userName, userAvatar);
-        View_AccountSect.Show();
+        var user = App.Models.User;
+        if (user != null)
+        {
+            var userName = user.Username;
+            var userAvatar = user.Avatar;
+            View_AccountSect.Set(userName, userAvatar);
+            View_AccountSect.Show();
+        }
+        else View_AccountSect.Hide();
     }
 
     //注册为骑手

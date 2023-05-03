@@ -1,45 +1,52 @@
 ﻿using System;
 using Core;
+using OrderHelperLib.DtoModels.Users;
 using UnityEngine;
+using Utl;
 
 namespace Controllers
 {
-    internal class LoginController : IController
+    public class LoginController : IController
     {
-        public async void RequestLogin(string username, string password,
+        public void RequestLogin(string username, string password,
             Action<(bool isSuccess, string message)> callback)
         {
-            var isSuccess = true;
-            var message = string.Empty;
-            callback?.Invoke((isSuccess, message));
+            ApiPanel.Login(username, password, obj =>
+            {
+                App.Models.SetUser(obj.User);
+                callback?.Invoke((true, string.Empty));
+            }, msg =>
+                callback?.Invoke((false, msg)));
         }
-        public async void RequestGoogle(Action<bool> callback)
+
+        public void RequestGoogle(Action<bool> callback)
         {
             var isSuccess = true;
             var message = string.Empty;
             callback?.Invoke(isSuccess);
         }
-        public async void RequestFacebook(Action<bool> callback)
+        public void RequestFacebook(Action<bool> callback)
         {
             var isSuccess = true;
             var message = string.Empty;
             callback?.Invoke(isSuccess);
         }
 
-        public async void RequestRegister(Action<(bool isSuccess,string message)> onCallbackAction)
+        public void RequestRegister(RegisterDto registerModel,
+            Action<(bool isSuccess, string message)> onCallbackAction)
         {
-            var isSuccess = true;
-            var message = string.Empty;
-            onCallbackAction?.Invoke((isSuccess, message));
+            ApiPanel.Register(registerModel, obj =>
+            {
+                App.Models.SetUser(obj.User);
+                onCallbackAction?.Invoke((true, "Login success!"));
+            }, msg =>
+                onCallbackAction?.Invoke((false, msg)));
         }
 
-        public string GetAccountName() => "Test";
-
-        public Sprite GetUserAvatar() => null;
-
-        public async void CheckLoginStatus(Action<bool> onLoginAction)
+        public void CheckLoginStatus(Action<bool> onLoginAction)
         {
-            onLoginAction?.Invoke(true);//暂时都是success
+            var hasUserIdentity = App.Models.User != null;
+            onLoginAction?.Invoke(hasUserIdentity);
         }
     }
 }

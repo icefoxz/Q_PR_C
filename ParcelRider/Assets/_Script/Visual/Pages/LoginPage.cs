@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Controllers;
 using Core;
+using OrderHelperLib.DtoModels.Users;
 using UnityEngine.UI;
 using Views;
 
@@ -14,7 +15,7 @@ public class LoginPage : PageUiBase
     public LoginPage(IView v, UiManager uiManager) : base(v, uiManager)
     {
         view_regSect = new View_RegSect(v.GetObject<View>("view_regSect"),
-            () => LoginController.RequestRegister(OnRegisterCallback)
+            () => LoginController.RequestRegister(view_regSect.GetRegisterModel(), OnRegisterCallback)
         );
         view_loginSect = new View_loginSect(v.GetObject<View>("view_loginSect"), arg =>
             {
@@ -32,6 +33,7 @@ public class LoginPage : PageUiBase
         var (isSuccess, message) = obj;
         if (isSuccess)
         {
+            view_regSect.Hide();
             OnLoggedIn();
             return;
         }
@@ -254,6 +256,18 @@ public class LoginPage : PageUiBase
                 IsValid = isValid;
                 SetHighlight(!isValid);
             }
+        }
+
+        public RegisterDto GetRegisterModel()
+        {
+            return new ()
+            {
+                Username = element_input_username.Value,
+                Phone = element_input_phone.Value,
+                Name = element_input_name.Value,
+                Email = element_input_email.Value,
+                Password = element_input_password.Value,
+            };
         }
     }
 }

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using Controllers;
 using DataModel;
+using Model;
 using UnityEngine;
+using Utl;
 using Random = UnityEngine.Random;
 
 namespace Core
@@ -19,6 +21,8 @@ namespace Core
         public static Res Res { get; private set; }
         public static UiBuilder UiBuilder { get; private set; }
         public static UiManager UiManager { get; private set; }
+        public static AppModels Models { get; private set; }
+        public static MessagingManager MessagingManager { get; } = new MessagingManager();
 
         public static MonoService MonoService
         {
@@ -38,6 +42,7 @@ namespace Core
             IsRunning = true;
             Res = res;
             MonoService = monoService;
+            Models = new AppModels();
             ControllerReg();
             TestData();
             UiInit(canvas, uiManager);
@@ -54,7 +59,7 @@ namespace Core
                 {
                     Id = i.ToString(),
                     Status = i == 0 ? 0 : Random.Range(0, 5),
-                    Package = new PackageInfo(1.5f + i, 10f + i, 10f + i, 15f + i),
+                    Package = new PackageInfo(1.5f + i, 10f + i, 10f + i, 15f + i, 1f + i, 1f + i),
                     From = new IdentityInfo($"From {i}", "1234567890", "TestAddress1"),
                     To = new IdentityInfo($"To {i}", "1234567890", "TestAddress2"),
                 };

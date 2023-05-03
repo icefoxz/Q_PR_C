@@ -17,10 +17,10 @@ public class PackageConfirmWindow : WinUiBase
     }
 
 
-    public void Set(float point, float kg, float meter, Action onConfirmAction)
+    public void Set(float point, float kg, float length, float width, float height, Action onConfirmAction)
     {
         UiManager.DisplayWindows(true);
-        view_Info.Set(point, kg, meter);
+        view_Info.Set(point, kg, length, width, height);
         btn_confirm.OnClickAdd(() =>
         {
             onConfirmAction?.Invoke();
@@ -41,8 +41,9 @@ public class PackageConfirmWindow : WinUiBase
             text_size = v.GetObject<Text>("text_size");
         }
 
-        public void Set(float point, float kg, float meter)
+        public void Set(float point, float kg, float length, float width, float height)
         {
+            var meter = MathF.Pow(length * width * height, 1 / 3f);
             text_point.text = point.ToString("##.##");
             text_weight.text = $"{kg:F} kg";
             text_size.text = $"{meter:F} meter";

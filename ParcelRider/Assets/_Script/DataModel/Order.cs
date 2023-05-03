@@ -7,7 +7,7 @@ namespace DataModel
     /// </summary>
     public class Order : EntityBase<string>
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public ICollection<OrderTag> Tags { get; set; }
     }
 }
