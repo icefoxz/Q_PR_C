@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using DataModel;
-using OrderHelperLib.DtoModels.DeliveryOrders;
 using Utl;
 
 namespace Controllers
@@ -16,70 +15,74 @@ namespace Controllers
         private List<DeliveryOrder> OrderList { get; set; } = new List<DeliveryOrder>();
         public IReadOnlyList<DeliveryOrder> Orders => OrderList;
 
-        public void CreatePackage(DeliveryOrder order, Action<bool> callbackAction)
+        public void SetCurrent(DeliveryOrder order) => Current = order;
+        public void CreatePackage(Action<bool> callbackAction)
         {
-            Current = order;
-            var p = order.Package;
-            var item = new ItemInfoDto
-            {
-                Weight = p.Weight,
-                Width = p.Width,
-                Height = p.Height,
-                Length = p.Length,
-                Quantity = 1
-            };
-            var from = GetCoordinate(order.From);
-            var to = GetCoordinate(order.To);
-            var deliveryInfo = new DeliveryInfoDto
-            {
-                Distance = p.Distance,
-                Weight = p.Weight,
-                Price = p.Price
-            };
-            var receiverInfo = new ReceiverInfoDto
-            {
-                Name = order.To.Name,
-                PhoneNumber = order.To.Phone
-            };
-            var deliveryOrder = new DeliveryOrderDto
-            {
-                DeliveryInfo = deliveryInfo,
-                StartCoordinates = from,
-                EndCoordinates = to,
-                ItemInfo = item,
-                ReceiverInfo = receiverInfo,
-            };
-            ApiPanel.CreateDeliveryOrder(deliveryOrder, bag =>
-            {
-                Current = new DeliveryOrder(bag);
-                callbackAction?.Invoke(true);
-            }, msg =>
-            {
-                Current = null;
-                callbackAction?.Invoke(false);
-            });
-
-            CoordinatesDto GetCoordinate(IdentityInfo info)
-            {
-                var dto = new CoordinatesDto();
-                dto.Address = info.Address;
-                return dto;
-            }
+            var dto = Current.ToDto();
+            AddOrder(Current);
+            callbackAction(true);//todo
+            //ApiPanel.CreateDeliveryOrder(dto, bag =>
+            //{
+            //    Current = new DeliveryOrder(bag);
+            //    callbackAction?.Invoke(true);
+            //}, msg =>
+            //{
+            //    Current = null;
+            //    callbackAction?.Invoke(false);
+            //});
         }
 
-
-        public void AddCurrentOrder()
+        public void AddOrder(params DeliveryOrder[] orders)
         {
-            if (Current == null)
-                throw new NullReferenceException("Current order is null!");
-            OrderList.Add(Current);
-            Current = null;
+            OrderList.AddRange(orders);
+            OrderList = OrderList.OrderBy(o => o.Status).ToList();
+            UpdateEvent();
         }
 
-        public void AddOrder(params DeliveryOrder[] orders) => OrderList.AddRange(orders);
-        public void RemoveOrder(DeliveryOrder order) => OrderList.Remove(order);
-        public void ClearOrders() => OrderList.Clear();
+        public void RemoveOrder(DeliveryOrder order)
+        {
+            OrderList.Remove(order);
+            UpdateEvent();
+        }
+
+        public void ClearOrders()
+        {
+            OrderList.Clear();
+            UpdateEvent();
+        }
 
         public DeliveryOrder GetOrder(string orderId) => OrderList.FirstOrDefault(o => o.Id == orderId);
+
+        public void UpdateOrders(Action callbackAction,int page = 1)
+        {
+            callbackAction();//todo
+            UpdateEvent();
+            //ApiPanel.GetDeliveryOrders(50, page, bag =>
+            //{
+            //    OrderList = bag.Select(o => new DeliveryOrder(o)).ToList();
+            //    callbackAction?.Invoke();
+            //}, msg =>
+            //{
+            //    OrderList.Clear();
+            //    callbackAction?.Invoke();
+            //});
+        }
+
+        private static void UpdateEvent() => App.MessagingManager.Send(EventString.Orders_Update, string.Empty);
+
+        public void AssignDeliverMan(string orderId, Action<bool> callbackAction)
+        {
+            var o = OrderList.First(o => o.Id == orderId);
+            o.Status = (int)DeliveryOrder.States.Wait;
+            UpdateEvent();
+            callbackAction(true);//todo
+            //var id = int.Parse(orderId);
+            //ApiPanel.AssignDeliverMan(id, dto =>
+            //{
+            //    var o = OrderList.First(o => o.Id == orderId);
+            //    o.Status = (int)dto.Status;
+            //    callbackAction?.Invoke(true);
+            //}, msg => callbackAction?.Invoke(false));
+        }
     }
 }

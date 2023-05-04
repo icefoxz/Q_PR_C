@@ -114,7 +114,11 @@ public class ListViewUi<T> : UiBase
         rect.sizeDelta = new Vector2(rect.sizeDelta.x, y);
     }
 
-    public void HideOptions() => ScrollRect.gameObject.SetActive(false);
+    public void HideOptions()
+    {
+        ScrollRect.gameObject.SetActive(false);
+    }
+
     public void ShowOptions() => ScrollRect.gameObject.SetActive(true);
     public override void ResetUi() => HideOptions();
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using DataModel;
+using Utl;
 
 namespace Controllers
 {
@@ -15,6 +16,8 @@ namespace Controllers
         {
             // RiderApplication
             callbackAction(true);
+
+            //ApiPanel.RegisterRider();
         }
 
         public void TakeOrder(string orderId, Action callbackAction)
@@ -23,14 +26,18 @@ namespace Controllers
             var o = PackageController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Wait;
             o.DeliveryManId = Auth.RiderId;
+            UpdateOrderEvent();
             callbackAction();
         }
+
+        private static void UpdateOrderEvent() => App.MessagingManager.Send(EventString.Orders_Update, string.Empty);
 
         public void PickItem(string orderId, Action callbackAction)
         {
             // PickItem
             var o = PackageController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Delivering;
+            UpdateOrderEvent();
             callbackAction();
         }
 
@@ -39,6 +46,7 @@ namespace Controllers
             // ItemCollection
             var o = PackageController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Collection;
+            UpdateOrderEvent();
             callbackAction();
         }
 
@@ -47,6 +55,7 @@ namespace Controllers
             // Complete
             var o = PackageController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Complete;
+            UpdateOrderEvent();
             callbackAction();
         }
 
@@ -56,6 +65,7 @@ namespace Controllers
             o.Status = (int)(ExceptionOps[optionIndex].justCancel
                 ? DeliveryOrder.States.None
                 : DeliveryOrder.States.Exception);
+            UpdateOrderEvent();
             callbackAction();
         }
 

@@ -13,7 +13,7 @@ public class PackageConfirmWindow : WinUiBase
         view_Info = new View_info(v.GetObject<View>("view_info"));
         btn_cancel = v.GetObject<Button>("btn_cancel");
         btn_confirm = v.GetObject<Button>("btn_confirm");
-        btn_cancel.OnClickAdd(() => uiManager.DisplayWindows(false));
+        btn_cancel.OnClickAdd(() => Hide());
     }
 
 

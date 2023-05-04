@@ -69,13 +69,7 @@ public class UiManager : MonoBehaviour, IUiManager
         RiderPage = new RiderPage(_riderPage, this);
         NewPackagePage = new NewPackagePage(v: _newPackagePage, () =>
         {
-            PackageController.CreatePackage(NewPackagePage.GenerateOrder(), success =>
-            {
-                if (success)
-                {
-
-                }
-            });
+            PackageController.SetCurrent(NewPackagePage.GenerateOrder());
             PaymentPage.Show();
         }, this);
         LoginController.CheckLoginStatus(OnLoginAction);
@@ -98,8 +92,13 @@ public class UiManager : MonoBehaviour, IUiManager
         {
             NewPackagePage.Hide();
             NewPackagePage.ResetUi();
-            PackageController.AddCurrentOrder();
-            MainPage.SetOrders(PackageController.Orders.ToArray());
+            PackageController.CreatePackage(success =>
+            {
+                if (success)
+                {
+                    //telling message
+                }
+            });
         }
     }
 

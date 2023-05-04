@@ -4,9 +4,9 @@ using System.Linq;
 using Controllers;
 using Core;
 using DataModel;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using Utl;
 using Views;
 
 namespace Visual.Pages.Rider
@@ -22,7 +22,7 @@ namespace Visual.Pages.Rider
         public RiderPage(IView v, UiManager uiManager, bool display = false) : base(v, uiManager, display)
         {
             view_application = new View_application(v.GetObject<View>("view_application"), OnRegisterAction,
-                () => view_doList.Set(PackageController.Orders));
+                UpdateOrderList);
             view_doList = new View_doList(v.GetObject<View>("view_doList"),
                 id => view_deliveryOrder.Set(PackageController.GetOrder(id)));
             view_deliveryOrder =
@@ -33,6 +33,17 @@ namespace Visual.Pages.Rider
                     Complete,
                     OrderException,
                     ExceptionOptionSelected);
+            RegEvents();
+        }
+
+        private void RegEvents()
+        {
+            App.MessagingManager.RegEvent(EventString.Orders_Update, _ => UpdateOrderList());
+        }
+
+        private void UpdateOrderList()
+        {
+            view_doList.Set(PackageController.Orders.OrderByDescending(o => int.Parse(o.Id)).ToArray());
         }
 
         private void ExceptionOptionSelected(string orderId, int optionIndex)
@@ -80,16 +91,29 @@ namespace Visual.Pages.Rider
         {
             RiderController.TakeOrder(orderId, () =>
             {
-                var o = PackageController.GetOrder(orderId);
-                view_deliveryOrder.Set(o);
+                PackageController.AssignDeliverMan(orderId, success =>
+                {
+                    if(success)
+                    {
+                        var o = PackageController.GetOrder(orderId);
+                        view_deliveryOrder.Set(o);
+                        return;
+                    }
+
+                    Debug.LogError("AssignDeliverman failed");
+                });
             });
         }
 
         private void OnRegisterAction()
         {
-            Auth.IsRider = true;
-            Auth.IsRiderMode = true;
-            view_application.ShowSuccess();
+            RiderController.RiderApplication(isSuccess =>
+            {
+                if (!isSuccess) return;
+                Auth.IsRider = true;
+                Auth.IsRiderMode = true;
+                view_application.ShowSuccess();
+            });
         }
 
         public void RegisterRider()
@@ -167,6 +191,7 @@ namespace Visual.Pages.Rider
                     var f = order.From;
                     var t = order.To;
                     var p = order.Package;
+                    ui.SetId(order.Id);
                     ui.SetFrom(f.Name, f.Phone, f.Address);
                     ui.SetTo(t.Name, t.Phone, t.Address);
                     ui.SetParcelInfo(p.Price, p.Size, p.Weight, p.Distance);
@@ -176,6 +201,7 @@ namespace Visual.Pages.Rider
 
             private class Prefab_do : UiBase
             {
+                private Text text_id { get; }
                 private Element_info element_infoFrom { get; }
                 private Element_info element_infoTo { get; }
                 private View_parcelInfo view_parcelInfo { get; }
@@ -183,12 +209,15 @@ namespace Visual.Pages.Rider
 
                 public Prefab_do(IView v, Action onSelectAction, bool display = true) : base(v, display)
                 {
+                    text_id = v.GetObject<Text>("text_id");
                     element_infoFrom = new Element_info(v.GetObject<View>("element_infoFrom"));
                     element_infoTo = new Element_info(v.GetObject<View>("element_infoTo"));
                     view_parcelInfo = new View_parcelInfo(v.GetObject<View>("view_parcelInfo"));
                     btn_select = v.GetObject<Button>("btn_select");
                     btn_select.OnClickAdd(onSelectAction);
                 }
+
+                public void SetId(string id) => text_id.text = id;
 
                 public void SetFrom(string name, string phone, string address) =>
                     element_infoFrom.Set(name, phone, address);

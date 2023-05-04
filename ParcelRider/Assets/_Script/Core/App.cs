@@ -53,18 +53,17 @@ namespace Core
             var packageController = GetController<PackageController>();
             //add testing orders
             var testList = new List<DeliveryOrder>();
-            for (int i = 0; i < 3; i++)
-            {
-                var order = new DeliveryOrder
-                {
-                    Id = i.ToString(),
-                    Status = i == 0 ? 0 : Random.Range(0, 5),
-                    Package = new PackageInfo(1.5f + i, 10f + i, 10f + i, 15f + i, 1f + i, 1f + i),
-                    From = new IdentityInfo($"From {i}", "1234567890", "TestAddress1"),
-                    To = new IdentityInfo($"To {i}", "1234567890", "TestAddress2"),
-                };
-                testList.Add(order);
-            }
+            //for (int i = 0; i < 2; i++)
+            //{
+            //    var order = new DeliveryOrder
+            //    {
+            //        Status = i == 0 ? 0 : Random.Range(0, 3),
+            //        Package = new PackageInfo(1.5f + i, 10f + i, 10f + i, 15f + i, 1f + i, 1f + i),
+            //        From = new IdentityInfo($"From {i}", "1234567890", "TestAddress1"),
+            //        To = new IdentityInfo($"To {i}", "1234567890", "TestAddress2"),
+            //    };
+            //    testList.Add(order);
+            //}
             packageController.AddOrder(testList.ToArray());
         }
 

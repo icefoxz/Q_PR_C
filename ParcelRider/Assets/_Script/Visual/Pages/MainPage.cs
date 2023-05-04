@@ -4,7 +4,6 @@ using System.Linq;
 using Controllers;
 using Core;
 using DataModel;
-using OrderHelperLib.DtoModels.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -22,22 +21,35 @@ public class MainPage : PageUiBase
         view_packagePlayer = new View_packagePlayer(v.GetObject<View>("view_packagePlayer"),
             uiManager, a => UiManager.SetPackageConfirm(a.point, a.kg, a.length, a.width, a.height));
         view_historySect = new View_historySect(v.GetObject<View>("view_historySect"), ui => uiManager.ViewOrder(ui));
+        RegEvents();
         Hide();//listView代码会导致view active,所以这里要隐藏
     }
 
-    public void SetOrders(DeliveryOrder[] orders)
+    private void RegEvents()
     {
-        OrderListView.ClearList(ui => ui.Destroy());
-        foreach (var o in orders)
+        App.MessagingManager.RegEvent(EventString.Orders_Update, _ => RefreshOrderList());
+    }
+
+    private void RefreshOrderList()
+    {
+        SetOrders(PackageController.Orders.OrderBy(o => o.Status).ToArray());
+
+        void SetOrders(DeliveryOrder[] orders)
         {
-            var ui = OrderListView.Instance(v => new Prefab_Order(v, id => UiManager.ViewOrder(id)));
-            ui.Set(o);
+            OrderListView.ClearList(ui => ui.Destroy());
+            foreach (var o in orders.Where(o => o.Status >= 0))
+            {
+                var ui = OrderListView.Instance(v => new Prefab_Order(v, id => UiManager.ViewOrder(id)));
+                ui.Set(o);
+            }
+
+            view_historySect.UpdateHistories(orders.Where(o => o.Status < 0).ToArray());
         }
     }
 
     public override void Show()
     {
-        SetOrders(PackageController.Orders.ToArray());
+        RefreshOrderList();
         base.Show();
     }
 
@@ -47,7 +59,7 @@ public class MainPage : PageUiBase
         private Image Img_deliverState { get; }
         private Image Img_dropState { get; }
         private Image Img_errState { get; }
-        private Image Img_completedState { get; }
+        private Image Img_completeState { get; }
         private Text Text_orderId { get; }
         private Text Text_from { get; }
         private Text Text_to { get; }
@@ -62,7 +74,7 @@ public class MainPage : PageUiBase
             Img_deliverState = v.GetObject<Image>("img_deliveryState");
             Img_dropState = v.GetObject<Image>("img_dropState");
             Img_errState = v.GetObject<Image>("img_errState");
-            Img_completedState = v.GetObject<Image>("img_completedState");
+            Img_completeState = v.GetObject<Image>("img_completeState");
             Text_orderId = v.GetObject<Text>("text_orderId");
             Text_from = v.GetObject<Text>("text_from");
             Text_to = v.GetObject<Text>("text_to");
@@ -97,7 +109,7 @@ public class MainPage : PageUiBase
             Img_deliverState.gameObject.SetActive(state == DeliveryOrder.States.Delivering);
             Img_dropState.gameObject.SetActive(state == DeliveryOrder.States.Collection);
             Img_errState.gameObject.SetActive(state == DeliveryOrder.States.Exception);
-            Img_completedState.gameObject.SetActive(state == DeliveryOrder.States.Complete);
+            Img_completeState.gameObject.SetActive(state == DeliveryOrder.States.Complete);
         }
     }
 
@@ -417,31 +429,23 @@ public class MainPage : PageUiBase
             HistoryView = new ListViewUi<Prefab_history>(v, "prefab_history", "scroll_history");
         }
 
-        public void UpdateHistories(DeliveryOrderDto[] dos)
+        public void UpdateHistories(DeliveryOrder[] dos)
         {
             HistoryView.ClearList(ui=>ui.Destroy());
             for (var i = 0; i < dos.Length; i++)
             {
                 var o = dos[i];
-                var size = MathF.Pow(o.ItemInfo.Height * o.ItemInfo.Width * o.ItemInfo.Length, 1 / 3f);
+                var size = MathF.Pow(o.Package.Height * o.Package.Width * o.Package.Length, 1 / 3f);
                 var ui = HistoryView.Instance(v => new Prefab_history(v, () => OnSelectedHistoryAction?.Invoke(o.Id)));
-                ui.SetInfo(state: Prefab_history.States.Complete, address: o.EndCoordinates.Address,
-                    contactName: o.ReceiverInfo.Name,
-                    contactPhone: o.ReceiverInfo.PhoneNumber, weight: o.ItemInfo.Weight, size: size,
-                    point: o.DeliveryInfo.Price, o.DeliveryInfo.Distance);
+                ui.SetInfo(state: (DeliveryOrder.States)o.Status, address: o.To.Address,
+                    contactName: o.To.Name,
+                    contactPhone: o.To.Phone, weight: o.Package.Weight, size: size,
+                    point: o.Package.Price, o.Package.Distance);
             }
         }
 
         private class Prefab_history : UiBase
         {
-            public enum States
-            {
-                Wait,
-                Err,
-                Complete,
-                Close
-            }
-
             private Text text_toAddress { get; }
             private View_state view_state { get; }
             private View_contact view_contact { get; }
@@ -457,7 +461,7 @@ public class MainPage : PageUiBase
                 btn_history.OnClickAdd(onClickAction);
             }
 
-            public void SetInfo(States state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
+            public void SetInfo(DeliveryOrder.States state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
             {
                 text_toAddress.text = address;
                 view_state.SetState(state);
@@ -479,12 +483,12 @@ public class MainPage : PageUiBase
                     img_closeState = v.GetObject<Image>("img_closeState");
                 }
 
-                public void SetState(States state)
+                public void SetState(DeliveryOrder.States state)
                 {
-                    img_waitState.gameObject.SetActive(state == States.Wait);
-                    img_errState.gameObject.SetActive(state == States.Err);
-                    img_completeState.gameObject.SetActive(state == States.Complete);
-                    img_closeState.gameObject.SetActive(state == States.Close);
+                    img_waitState.gameObject.SetActive(state == DeliveryOrder.States.Wait);
+                    img_errState.gameObject.SetActive(state == DeliveryOrder.States.Exception);
+                    img_completeState.gameObject.SetActive(state == DeliveryOrder.States.Complete);
+                    img_closeState.gameObject.SetActive(false);
                 }
             }
 

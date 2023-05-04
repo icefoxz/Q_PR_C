@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
 using Core;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -85,7 +83,7 @@ namespace Visual.Sects
 
             IEnumerator AdjustmentAfterNewFrame(string input)
             {
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(1f);
                 if (IsSuggestionTaken) yield break; //选中建议地址,所以离开编辑框的时候不用触发
                 if (SelectedAddress == input) yield break;
                 PlaceId = string.Empty;
@@ -107,14 +105,31 @@ namespace Visual.Sects
             ClearList();
         }
 
+        //private bool _isResetting;
+
         public override void ResetUi()
         {
-            PlaceId = string.Empty;
-            input_autofill.text = string.Empty;
-            AutofillListView.ClearList(v => v.Destroy());
-            AutofillListView.HideOptions();
-            IsSuggestionTaken = false;
+            //if (_isResetting) return;
+            //App.MonoService.StartCoroutine(ResetAfterHalfSeconds());
+            Reset();
+
+            void Reset()
+            {
+                PlaceId = string.Empty;
+                input_autofill.text = string.Empty;
+                AutofillListView.ClearList(v => v.Destroy());
+                AutofillListView.HideOptions();
+                IsSuggestionTaken = false;
+                //_isResetting = false;
+            }
+
+            IEnumerator ResetAfterHalfSeconds()
+            {
+                yield return new WaitForSeconds(1f);
+                Reset();
+            }
         }
+
 
         private class Prefab_Address : UiBase
         {

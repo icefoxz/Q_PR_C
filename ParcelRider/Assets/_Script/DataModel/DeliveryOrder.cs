@@ -8,14 +8,15 @@ namespace DataModel
     /// </summary>
     public class DeliveryOrder : Order
     {
+        private static int IdSeed { get; set; } = 123000;
         public enum States
         {
             None,
             Wait,
             Delivering,
             Collection,
-            Complete,
-            Exception,
+            Complete = -1,
+            Exception = -2,
         }
 
         public IdentityInfo From { get; set; }
@@ -26,7 +27,7 @@ namespace DataModel
 
         public DeliveryOrder()
         {
-
+            Id = IdSeed++.ToString();
         }
 
         public DeliveryOrder(DeliveryOrderDto dto)
@@ -38,6 +39,47 @@ namespace DataModel
                 dto.ItemInfo.Length, dto.ItemInfo.Width, dto.ItemInfo.Height);
             DeliveryManId = dto.DeliveryManId;
             Status = (int)dto.Status;
+        }
+
+        public DeliveryOrderDto ToDto()
+        {
+            var p = Package;
+            var item = new ItemInfoDto
+            {
+                Weight = p.Weight,
+                Width = p.Width,
+                Height = p.Height,
+                Length = p.Length,
+                Quantity = 1
+            };
+            var from = GetCoordinate(From);
+            var to = GetCoordinate(To);
+            var deliveryInfo = new DeliveryInfoDto
+            {
+                Distance = p.Distance,
+                Weight = p.Weight,
+                Price = p.Price
+            };
+            var receiverInfo = new ReceiverInfoDto
+            {
+                Name = To.Name,
+                PhoneNumber = To.Phone
+            };
+            return new DeliveryOrderDto
+            {
+                DeliveryInfo = deliveryInfo,
+                StartCoordinates = from,
+                EndCoordinates = to,
+                ItemInfo = item,
+                ReceiverInfo = receiverInfo,
+            };
+
+            CoordinatesDto GetCoordinate(IdentityInfo info)
+            {
+                var dto = new CoordinatesDto();
+                dto.Address = info.Address;
+                return dto;
+            }
         }
     }
 

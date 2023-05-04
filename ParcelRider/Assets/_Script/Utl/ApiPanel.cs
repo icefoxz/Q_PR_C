@@ -182,5 +182,28 @@ namespace Utl
         public static void UpdateOrderStatus(DeliverySetStatusDto setStatusDto,
             Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(UpdateOrderStatusApi,
             setStatusDto, msg => callbackAction?.Invoke((true, msg)), msg => callbackAction?.Invoke((false, msg)));
+
+        public static void RegisterRider(Action<bool> callbackAction)
+        {
+            CallBag("User_CreateDeliveryMan", bag =>
+            {
+                callbackAction?.Invoke(true);
+            }, arg => callbackAction?.Invoke(false));
+        }
+
+        public static void GetDeliveryOrders(int limit,int page,Action<DeliveryOrderDto[]> successAction, Action<string> failedAction)
+        {
+            CallBag("User_GetAllDeliveryOrders", DataBag.Serialize(limit, page), bag =>
+            {
+                var orders = bag.Get<DeliveryOrderDto[]>(0);
+                successAction?.Invoke(orders);
+            }, failedAction);
+        }
+
+        public static void AssignDeliverMan(int orderId, Action<DeliveryOrderDto> successAction, Action<string> failedAction)
+        {
+            CallBag("DeliveryMan_AssignDeliveryMan", DataBag.Serialize(orderId),
+                bag => successAction?.Invoke(bag.Get<DeliveryOrderDto>(0)), failedAction);
+        }
     }
 }
