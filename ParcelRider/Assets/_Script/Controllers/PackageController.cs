@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using DataModel;
-using Utl;
+using OrderHelperLib.Contracts;
 
 namespace Controllers
 {
@@ -16,8 +16,9 @@ namespace Controllers
         public IReadOnlyList<DeliveryOrder> Orders => OrderList;
 
         public void SetCurrent(DeliveryOrder order) => Current = order;
-        public void CreatePackage(Action<bool> callbackAction)
+        public void CreatePackage(PaymentMethods payment,Action<bool> callbackAction)
         {
+            Current.SetPaymentMethod(payment);
             var dto = Current.ToDto();
             AddOrder(Current);
             callbackAction(true);//todo
@@ -70,14 +71,14 @@ namespace Controllers
 
         private static void UpdateEvent() => App.MessagingManager.Send(EventString.Orders_Update, string.Empty);
 
-        public void AssignDeliverMan(string orderId, Action<bool> callbackAction)
+        public void AssignRider(string orderId, Action<bool> callbackAction)
         {
             var o = OrderList.First(o => o.Id == orderId);
             o.Status = (int)DeliveryOrder.States.Wait;
             UpdateEvent();
             callbackAction(true);//todo
             //var id = int.Parse(orderId);
-            //ApiPanel.AssignDeliverMan(id, dto =>
+            //ApiPanel.AssignRider(id, dto =>
             //{
             //    var o = OrderList.First(o => o.Id == orderId);
             //    o.Status = (int)dto.Status;

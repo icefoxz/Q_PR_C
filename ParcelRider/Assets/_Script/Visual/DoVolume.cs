@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.UIElements;
 
 public record DoVolume
 {
@@ -7,9 +8,7 @@ public record DoVolume
     public float Length { get; set; }
     public float Width { get; set; }
     public float Height { get; set; }
-
     public float GetCost() => GetCost(Kg, Km);
-
     public static float GetCost(float kg, float km)
     {
         if (kg <= 0 || km <= 0) return 0;
@@ -30,4 +29,5 @@ public record DoVolume
         var fare = Math.Max(kgFare, kmFare);
         return Math.Max(fare, min);
     }
+    public float GetSize() => MathF.Pow(Length * Width * Height, 1f / 3f);
 }

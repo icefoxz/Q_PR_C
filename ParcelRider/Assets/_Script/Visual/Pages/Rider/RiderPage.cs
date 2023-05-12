@@ -91,7 +91,7 @@ namespace Visual.Pages.Rider
         {
             RiderController.TakeOrder(orderId, () =>
             {
-                PackageController.AssignDeliverMan(orderId, success =>
+                PackageController.AssignRider(orderId, success =>
                 {
                     if(success)
                     {
@@ -100,7 +100,7 @@ namespace Visual.Pages.Rider
                         return;
                     }
 
-                    Debug.LogError("AssignDeliverman failed");
+                    Debug.LogError("AssignRider failed");
                 });
             });
         }
@@ -185,7 +185,7 @@ namespace Visual.Pages.Rider
             {
                 DoListView.ClearList(ui => ui.Destroy());
                 foreach (var order in orders.Where(o =>
-                             o.DeliveryManId == Auth.RiderId || o.Status == (int)DeliveryOrder.States.None))
+                             o.Rider?.Id == Auth.RiderId || o.Status == (int)DeliveryOrder.States.None))
                 {
                     var ui = DoListView.Instance(v => new Prefab_do(v, () => OnOrderSelected(order.Id)));
                     var f = order.From;

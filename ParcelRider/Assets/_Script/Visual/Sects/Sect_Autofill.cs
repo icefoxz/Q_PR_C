@@ -12,6 +12,7 @@ namespace Visual.Sects
     {
         private InputField input_autofill { get; }
         private ListViewUi<Prefab_Address> AutofillListView { get; }
+        private Button btn_x { get; }
         public string PlaceId { get; private set; }
         public string Input => input_autofill.text;
         private string SelectedAddress { get; set; }
@@ -20,35 +21,41 @@ namespace Visual.Sects
         private float Charlimit { get; }
         public Transform Content => AutofillListView.ScrollRect.content;
         private float ScrollRectMaxHeight { get; }
-        private const float PosAlign = 25f;
         private event Action<(string placeId,string address)> OnAddressConfirmAction;
         //如果选中了建议地址,则不再触发OnEndEdit
         private bool IsSuggestionTaken { get; set; }
+        private float YPosAlign { get; set; }
 
         public Sect_Autofill(IView v,
             Action<string> onAddressInputAction,
             Action<(string placeId, string address)> onAddressConfirmAction,
             float charlimit,
             float contentHeight,
-            float contentPadding) : base(v)
+            float contentPadding,
+            float yPosAlign) : base(v)
         {
             OnAddressConfirmAction = onAddressConfirmAction;
             input_autofill = v.GetObject<InputField>("input_autofill");
             AutofillListView = new ListViewUi<Prefab_Address>(v, "prefab_autofill", "scroll_autofill");
+            btn_x = v.GetObject<Button>("btn_x");
             ContentHeight = contentHeight;
             ContentPadding = contentPadding;
             Charlimit = charlimit;
+            YPosAlign = yPosAlign;
             input_autofill.onValueChanged.AddListener(input =>
             {
                 if (SelectedAddress == input) return;
                 IsSuggestionTaken = false;//重置地址内容(是否是自己输入或是选择建议)
                 onAddressInputAction(input);
             });
-            input_autofill.onEndEdit.AddListener(OnFinishEdit);
+            //去掉自动关闭,让建议地址一直存在,直到用户选择或其它控件调用关闭
+            //input_autofill.onEndEdit.AddListener(OnFinishEdit);
+            btn_x.OnClickAdd(HideOptions);
             AutofillListView.HideOptions();
             ScrollRectMaxHeight = ((RectTransform)AutofillListView.ScrollRect.transform).sizeDelta.y;
         }
 
+        public void HideOptions() => AutofillListView.HideOptions();
 
         public void Set(ICollection<(string placeId, string address)> arg)
         {
@@ -67,7 +74,7 @@ namespace Visual.Sects
             if (contentHeight > ScrollRectMaxHeight) contentHeight = ScrollRectMaxHeight;
             AutofillListView.ScrollRectSetSizeY(contentHeight);
             var local = AutofillListView.ScrollRect.transform.localPosition;
-            var pos = contentHeight / 2 + PosAlign;
+            var pos = contentHeight / 2 + YPosAlign;
             AutofillListView.ScrollRect.transform.localPosition = new Vector3(local.x, pos, local.z);
             AutofillListView.ShowOptions();
         }

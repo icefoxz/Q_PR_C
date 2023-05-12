@@ -3,6 +3,8 @@ using System.Collections;
 using System.Linq;
 using Controllers;
 using Core;
+using OrderHelperLib.Contracts;
+using OrderHelperLib.DtoModels.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -10,7 +12,7 @@ using Visual.Pages.Rider;
 
 public interface IUiManager
 {
-    void SetPackageConfirm(float point, float kg, float length, float width, float height);
+    void NewPackage(float point, float kg, float length, float width, float height);
     void DisplayWindows(bool display);
     void ViewOrder(string orderId);
     void PlayCoroutine(IEnumerator co, bool transparentPanel, Action callback);
@@ -55,24 +57,71 @@ public class UiManager : MonoBehaviour, IUiManager
     private PackageController PackageController => App.GetController<PackageController>();
     private LoginController LoginController => App.GetController<LoginController>();
 
-    public void Init()
+    public void Init(bool startUi)
     {
         View_AccountSect = new View_AccountSect(_view_accountSect, 
             () => AccountWindow.Show(),
             OnLogoutAction);
         LoginPage = new LoginPage(_loginPage, this);
         MainPage = new MainPage(_mainPage, this);
-        PaymentPage = new PaymentPage(_paymentPage, OnPaymentCallback, this);
+        PaymentPage = new PaymentPage(_paymentPage, this);
         PackageConfirmWindow = new PackageConfirmWindow(_win_packageConfirm, this);
         AccountWindow = new AccountWindow(_win_account, this);
         OrderViewPage = new OrderViewPage(_orderViewPage, this);
         RiderPage = new RiderPage(_riderPage, this);
-        NewPackagePage = new NewPackagePage(v: _newPackagePage, () =>
-        {
-            PackageController.SetCurrent(NewPackagePage.GenerateOrder());
-            PaymentPage.Show();
-        }, this);
+        NewPackagePage = new NewPackagePage(v: _newPackagePage, OnNewPackageSubmit, () => NewPackagePage.Hide(), this);
+        if (startUi) StartUi();
+    }
+
+    private void StartUi()
+    {
         LoginController.CheckLoginStatus(OnLoginAction);
+    }
+
+    //当新的包裹提交
+    private void OnNewPackageSubmit()
+    {
+        var order = NewPackagePage.GenerateOrder();
+        var p = order.Package;
+        PackageConfirmWindow.Set(p.Price, p.Weight, p.Length, p.Width, p.Height, 
+            RiderCollectPayment, 
+            DeductFromCredit,
+            PaymentGateway);
+        PackageController.SetCurrent(order);
+
+        void RiderCollectPayment()
+        {
+            PackageController.SetCurrent(order);
+            CreateNewDeliveryOrder(PaymentMethods.RiderCollection);
+        }
+
+        void DeductFromCredit()
+        {
+            PackageController.SetCurrent(order);
+            CreateNewDeliveryOrder(PaymentMethods.UserCreditDeduction);
+        }
+
+        void PaymentGateway()
+        {
+            PackageController.SetCurrent(order);
+            PaymentPage.Set(success =>
+            {
+                if (success) CreateNewDeliveryOrder(PaymentMethods.OnlinePayment);
+            });
+        }
+
+        void CreateNewDeliveryOrder(PaymentMethods method)
+        {
+            NewPackagePage.Hide();
+            NewPackagePage.ResetUi();
+            PackageController.CreatePackage(method, success =>
+            {
+                if (success)
+                {
+                    //telling message
+                }
+            });
+        }
     }
 
     private void OnLogoutAction()
@@ -86,24 +135,10 @@ public class UiManager : MonoBehaviour, IUiManager
         foreach (Transform page in OverlapPages) page.gameObject.SetActive(false);
     }
 
-    private void OnPaymentCallback(bool isSuccess)
+    public void NewPackage(float point, float kg, float length, float width, float height)
     {
-        if (isSuccess)
-        {
-            NewPackagePage.Hide();
-            NewPackagePage.ResetUi();
-            PackageController.CreatePackage(success =>
-            {
-                if (success)
-                {
-                    //telling message
-                }
-            });
-        }
+        NewPackagePage.Set(kg, length, width, height);
     }
-
-    public void SetPackageConfirm(float point, float kg, float length, float width, float height) =>
-        PackageConfirmWindow.Set(point, kg, length, width, height, () => NewPackagePage.Set(kg, length, width, height));
 
     public void DisplayWindows(bool display) => _windows.gameObject.SetActive(display);
 

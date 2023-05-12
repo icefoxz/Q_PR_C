@@ -35,7 +35,7 @@ namespace Core
             private set => _monoService = value;
         }
 
-        public static void Run(Res res, Canvas canvas, UiManager uiManager, MonoService monoService)
+        public static void Run(Res res, Canvas canvas, UiManager uiManager, MonoService monoService,bool startUi)
         {
             if (IsRunning)
                 throw new NotImplementedException("App is running!");
@@ -45,7 +45,7 @@ namespace Core
             Models = new AppModels();
             ControllerReg();
             TestData();
-            UiInit(canvas, uiManager);
+            UiInit(canvas, uiManager, startUi);
         }
 
         private static void TestData()
@@ -67,11 +67,11 @@ namespace Core
             packageController.AddOrder(testList.ToArray());
         }
 
-        private static void UiInit(Canvas canvas, UiManager uiManager)
+        private static void UiInit(Canvas canvas, UiManager uiManager,bool startUi)
         {
             UiBuilder = new UiBuilder(canvas, Res);
             UiManager = uiManager;
-            UiManager.Init();
+            UiManager.Init(startUi);
         }
 
         private static void ControllerReg()

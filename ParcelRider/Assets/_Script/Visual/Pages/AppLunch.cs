@@ -10,10 +10,10 @@ public class AppLunch : MonoBehaviour
     [SerializeField] private MonoService _monoService;
     [SerializeField] private string _serverUrl;
     [SerializeField] private ApiPanel _apiPanel;
-
+    [SerializeField] private bool _startUi;
     private void Start()
     {
-        App.Run(_res, _mainCanvas, _uiManager, _monoService);
+        App.Run(_res, _mainCanvas, _uiManager, _monoService, _startUi);
         _apiPanel.Init(_serverUrl);
     }
 }

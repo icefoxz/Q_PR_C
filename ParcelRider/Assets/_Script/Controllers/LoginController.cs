@@ -11,18 +11,18 @@ namespace Controllers
         public void RequestLogin(string username, string password,
             Action<(bool isSuccess, string message)> callback)
         {
-            App.Models.SetUser(new UserDto
-            {
-                Username = username,
-                Name = "Test User",
-            });
-            callback?.Invoke((true, string.Empty));
-            //ApiPanel.Login(username, password, obj =>
+            //App.Models.SetUser(new UserDto
             //{
-            //    App.Models.SetUser(obj.User);
-            //    callback?.Invoke((true, string.Empty));
-            //}, msg =>
-            //    callback?.Invoke((false, msg)));
+            //    Username = username,
+            //    Name = "Test User",
+            //});
+            //callback?.Invoke((true, string.Empty));
+            ApiPanel.Login(username, password, obj =>
+            {
+                App.Models.SetUser(obj.User);
+                callback?.Invoke((true, string.Empty));
+            }, msg =>
+                callback?.Invoke((false, msg)));
         }
 
         public void RequestGoogle(Action<bool> callback)
@@ -58,14 +58,14 @@ namespace Controllers
                 Name = registerModel.Name,
                 Phone = registerModel.Phone,
             });
-            onCallbackAction?.Invoke((true, "Login success!"));
+            //onCallbackAction?.Invoke((true, "Login success!"));
 
-            //ApiPanel.Register(registerModel, obj =>
-            //{
-            //    App.Models.SetUser(obj.User);
-            //    onCallbackAction?.Invoke((true, "Login success!"));
-            //}, msg =>
-            //    onCallbackAction?.Invoke((false, msg)));
+            ApiPanel.Register(registerModel, obj =>
+            {
+                App.Models.SetUser(obj.User);
+                onCallbackAction?.Invoke((true, "Login success!"));
+            }, msg =>
+                onCallbackAction?.Invoke((false, msg)));
         }
 
         public void CheckLoginStatus(Action<bool> onLoginAction)

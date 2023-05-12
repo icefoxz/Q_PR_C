@@ -25,7 +25,10 @@ namespace Controllers
             // TakeOrder
             var o = PackageController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Wait;
-            o.DeliveryManId = Auth.RiderId;
+            o.Rider = new Rider
+            {
+                Id = Auth.RiderId
+            };
             UpdateOrderEvent();
             callbackAction();
         }

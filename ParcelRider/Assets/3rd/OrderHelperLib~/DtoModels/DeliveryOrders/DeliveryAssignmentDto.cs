@@ -3,7 +3,7 @@
     public class DeliveryAssignmentDto
     {
         public int DeliveryOrderId { get; set; }
-        public int DeliveryManId { get; set; }
+        public int RiderId { get; set; }
     }
 
     public class DeliverySetStatusDto

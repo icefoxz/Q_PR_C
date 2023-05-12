@@ -18,10 +18,10 @@ namespace Utl
         private const string LoginApi = "Anonymous_LoginApi";
         private const string ReloginApi = "User_ReloginApi";
         private const string TestApi = "User_TestApi";
-        private const string CreateDeliveryManApi = "User_CreateDeliveryMan";
+        private const string CreateRiderApi = "User_CreateRider";
         private const string CreateDeliveryOrderApi = "User_CreateDeliveryOrder";
-        private const string AssignDeliveryManApi = "DeliveryMan_AssignDeliveryMan";
-        private const string UpdateOrderStatusApi = "DeliveryMan_UpdateOrderStatus";
+        private const string AssignRiderApi = "Rider_AssignRider";
+        private const string UpdateOrderStatusApi = "Rider_UpdateOrderStatus";
 
         public void Init(string serverUrl)
         {
@@ -156,9 +156,9 @@ namespace Utl
                 }, failedCallbackAction);
         }
 
-        // CreateDeliveryMan
-        public static void CreateDeliveryMan(Action<(bool isSuccess, string arg)> callbackAction) =>
-            Call<string>(CreateDeliveryManApi, msg => callbackAction?.Invoke((true, msg)),
+        // CreateRider
+        public static void CreateRider(Action<(bool isSuccess, string arg)> callbackAction) =>
+            Call<string>(CreateRiderApi, msg => callbackAction?.Invoke((true, msg)),
                 msg => callbackAction?.Invoke((false, msg)));
 
         // CreateDeliveryOrder
@@ -173,9 +173,9 @@ namespace Utl
             }, arg => failedAction?.Invoke(arg));
         }
 
-        // AssignDeliveryMan
-        public static void AssignDeliveryMan(DeliveryAssignmentDto assignmentDto,
-            Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(AssignDeliveryManApi,
+        // AssignRider
+        public static void AssignRider(DeliveryAssignmentDto assignmentDto,
+            Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(AssignRiderApi,
             assignmentDto, msg => callbackAction?.Invoke((true, msg)), msg => callbackAction?.Invoke((false, msg)));
 
         // UpdateOrderStatus
@@ -185,7 +185,7 @@ namespace Utl
 
         public static void RegisterRider(Action<bool> callbackAction)
         {
-            CallBag("User_CreateDeliveryMan", bag =>
+            CallBag("User_CreateRider", bag =>
             {
                 callbackAction?.Invoke(true);
             }, arg => callbackAction?.Invoke(false));
@@ -200,9 +200,9 @@ namespace Utl
             }, failedAction);
         }
 
-        public static void AssignDeliverMan(int orderId, Action<DeliveryOrderDto> successAction, Action<string> failedAction)
+        public static void AssignRider(int orderId, Action<DeliveryOrderDto> successAction, Action<string> failedAction)
         {
-            CallBag("DeliveryMan_AssignDeliveryMan", DataBag.Serialize(orderId),
+            CallBag("Rider_AssignRider", DataBag.Serialize(orderId),
                 bag => successAction?.Invoke(bag.Get<DeliveryOrderDto>(0)), failedAction);
         }
     }

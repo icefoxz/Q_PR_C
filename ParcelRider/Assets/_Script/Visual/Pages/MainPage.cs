@@ -19,7 +19,7 @@ public class MainPage : PageUiBase
     {
         OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
         view_packagePlayer = new View_packagePlayer(v.GetObject<View>("view_packagePlayer"),
-            uiManager, a => UiManager.SetPackageConfirm(a.point, a.kg, a.length, a.width, a.height));
+            uiManager, a => UiManager.NewPackage(a.point, a.kg, a.length, a.width, a.height));
         view_historySect = new View_historySect(v.GetObject<View>("view_historySect"), ui => uiManager.ViewOrder(ui));
         RegEvents();
         Hide();//listView代码会导致view active,所以这里要隐藏
@@ -55,45 +55,50 @@ public class MainPage : PageUiBase
 
     private class Prefab_Order : UiBase
     {
-        private Image Img_waitState { get; }
-        private Image Img_deliverState { get; }
-        private Image Img_dropState { get; }
-        private Image Img_errState { get; }
-        private Image Img_completeState { get; }
-        private Text Text_orderId { get; }
-        private Text Text_from { get; }
-        private Text Text_to { get; }
-        private Text Text_cost { get; }
-        private Text Text_km { get; }
-        private Button Btn_order { get; }
+        private Text text_orderId { get; }
+        private Prefab_DeliveryState prefab_deliveryState { get; }
+        private Text text_volume { get; }
+        private Text text_km { get; }
+        private Text text_cost { get; }
+        private Text text_to { get; }
+        private Text text_contactName { get; }
+        private Text text_contactPhone { get; }
+        private Text text_riderName { get; }
+        private Text text_riderPhone { get; }
+        private Button btn_order { get; }
         private string SelectedOrderId { get; set; }
 
         public Prefab_Order(IView v, Action<string> onBtnClick) : base(v)
         {
-            Img_waitState = v.GetObject<Image>("img_waitState");
-            Img_deliverState = v.GetObject<Image>("img_deliveryState");
-            Img_dropState = v.GetObject<Image>("img_dropState");
-            Img_errState = v.GetObject<Image>("img_errState");
-            Img_completeState = v.GetObject<Image>("img_completeState");
-            Text_orderId = v.GetObject<Text>("text_orderId");
-            Text_from = v.GetObject<Text>("text_from");
-            Text_to = v.GetObject<Text>("text_to");
-            Text_cost = v.GetObject<Text>("text_cost");
-            Text_km = v.GetObject<Text>("text_km");
-            Btn_order = v.GetObject<Button>("btn_order");
-            Btn_order.OnClickAdd(() => onBtnClick?.Invoke(SelectedOrderId));
+            prefab_deliveryState = new Prefab_DeliveryState(v.GetObject<View>("prefab_deliveryState"));
+            text_orderId = v.GetObject<Text>("text_orderId");
+            text_to = v.GetObject<Text>("text_to");
+            text_cost = v.GetObject<Text>("text_cost");
+            text_volume = v.GetObject<Text>("text_volume");
+            text_km = v.GetObject<Text>("text_km");
+            text_contactName = v.GetObject<Text>("text_contactName");
+            text_contactPhone = v.GetObject<Text>("text_contactPhone");
+            text_riderName = v.GetObject<Text>("text_riderName");
+            text_riderPhone = v.GetObject<Text>("text_riderPhone");
+            btn_order = v.GetObject<Button>("btn_order");
+            btn_order.OnClickAdd(() => onBtnClick?.Invoke(SelectedOrderId));
+            
         }
 
         public void Set(DeliveryOrder o)
         {
             SelectedOrderId = o.Id;
             var state = (DeliveryOrder.States)o.Status;
-            SetState(state);
-            Text_orderId.text = o.Id;
-            Text_from.text = ConvertText("from: ", o.From.Address, 15);
-            Text_to.text = ConvertText("to: ", o.To.Address, 15);
-            Text_cost.text = o.Package.Price.ToString("F");
-            Text_km.text = o.Package.Distance.ToString("F");
+            prefab_deliveryState.SetState(state);
+            text_orderId.text = o.Id;
+            text_to.text = ConvertText("to: ", o.To.Address, 15);
+            text_cost.text = o.Package.Price.ToString("F");
+            text_km.text = o.Package.Distance.ToString("F1") + "km";
+            text_volume.text = o.Package.Size.ToString("F1") + "m³";
+            text_contactName.text = o.To.Name;
+            text_contactPhone.text = o.To.Phone;
+            text_riderName.text = o.Rider?.Name;
+            text_riderPhone.text = o.Rider?.Phone;
         }
 
         private string ConvertText(string prefix, string text, int maxChars)
@@ -101,15 +106,6 @@ public class MainPage : PageUiBase
             var t = prefix + text;
             if(t.Length > maxChars) return t[..maxChars] + "...";
             return t;
-        }
-
-        private void SetState(DeliveryOrder.States state)
-        {
-            Img_waitState.gameObject.SetActive(state == DeliveryOrder.States.Wait);
-            Img_deliverState.gameObject.SetActive(state == DeliveryOrder.States.Delivering);
-            Img_dropState.gameObject.SetActive(state == DeliveryOrder.States.Collection);
-            Img_errState.gameObject.SetActive(state == DeliveryOrder.States.Exception);
-            Img_completeState.gameObject.SetActive(state == DeliveryOrder.States.Complete);
         }
     }
 
@@ -437,7 +433,7 @@ public class MainPage : PageUiBase
                 var o = dos[i];
                 var size = MathF.Pow(o.Package.Height * o.Package.Width * o.Package.Length, 1 / 3f);
                 var ui = HistoryView.Instance(v => new Prefab_history(v, () => OnSelectedHistoryAction?.Invoke(o.Id)));
-                ui.SetInfo(state: (DeliveryOrder.States)o.Status, address: o.To.Address,
+                ui.SetInfo(o.Id, state: (DeliveryOrder.States)o.Status, address: o.To.Address,
                     contactName: o.To.Name,
                     contactPhone: o.To.Phone, weight: o.Package.Weight, size: size,
                     point: o.Package.Price, o.Package.Distance);
@@ -446,6 +442,7 @@ public class MainPage : PageUiBase
 
         private class Prefab_history : UiBase
         {
+            private Text text_orderId { get; }
             private Text text_toAddress { get; }
             private View_state view_state { get; }
             private View_contact view_contact { get; }
@@ -453,6 +450,7 @@ public class MainPage : PageUiBase
             private Button btn_history { get; }
             public Prefab_history(IView v, Action onClickAction ,bool display = true) : base(v, display)
             {
+                text_orderId = v.GetObject<Text>("text_orderId");
                 text_toAddress = v.GetObject<Text>("text_toAddress");
                 view_state = new View_state(v.GetObject<View>("view_state"));
                 view_contact = new View_contact(v.GetObject<View>("view_contact"));
@@ -461,8 +459,9 @@ public class MainPage : PageUiBase
                 btn_history.OnClickAdd(onClickAction);
             }
 
-            public void SetInfo(DeliveryOrder.States state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
+            public void SetInfo(string orderId,DeliveryOrder.States state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
             {
+                text_orderId.text = orderId;
                 text_toAddress.text = address;
                 view_state.SetState(state);
                 view_contact.Set(contactName, contactPhone);
@@ -509,9 +508,9 @@ public class MainPage : PageUiBase
                 public void Set(float point, float weight, float size, float distance)
                 {
                     text_point.text = point.ToString("##.##");
-                    text_weight.text = $"{weight:F} kg";
-                    text_size.text = $"{size:F} m³";
-                    text_distance.text = $"{distance:F} km";
+                    text_weight.text = $"{weight:F}";
+                    text_size.text = $"{size:F}";
+                    text_distance.text = $"{distance:F}";
                 }
             }
 
@@ -532,4 +531,5 @@ public class MainPage : PageUiBase
             }
         }
     }
+
 }

@@ -1,15 +1,7 @@
-﻿namespace OrderHelperLib.DtoModels.DeliveryOrders
+﻿using OrderHelperLib.Contracts;
+
+namespace OrderHelperLib.DtoModels.DeliveryOrders
 {
-    public enum DeliveryOrderStatus
-    {
-        Created, // 等待接单
-        Accepted, // 已接单
-        InProgress, // 配送中
-        Canceled = -1, // 已取消
-        Delivered = -2, // 已送达
-        Closed = -3, // 关闭
-        Exception = -4, // 异常
-    }
     public class DeliveryOrderDto
     {
         public string Id { get; set; }
@@ -20,9 +12,27 @@
         public string ReceiverUserId { get; set; }
         public ReceiverInfoDto ReceiverInfo { get; set; }
         public DeliveryInfoDto DeliveryInfo { get; set; }
-        public int? DeliveryManId { get; set; }
-        public DeliveryManDto DeliveryMan { get; set; }
+        public MyStates MyState { get; set; }
+        public int? RiderId { get; set; }
+        public RiderDto Rider { get; set; }
+        public PaymentInfoDto PaymentInfo { get; set; }
         public DeliveryOrderStatus Status { get; set; }
+    }
+
+    public class PaymentInfoDto
+    {
+        public float Price { get; set; } // 价格
+        public PaymentMethods PaymentMethod { get; set; } // 付款类型
+        /// <summary>
+        /// 付款Reference,如果骑手代收将会是骑手Id, 如果是在线支付将会是支付平台的Reference, 如果是用户扣账将会是用户Id
+        /// </summary>
+        public string? PaymentReference { get; set; }
+        public bool PaymentReceived { get; set; } // 是否已经完成付款
+    }
+
+    public class LingauDto
+    {
+        public float Credit { get; set; }
     }
 
     public class UserDto
@@ -64,10 +74,11 @@
         public string PhoneNumber { get; set; }
     }
 
-    public class DeliveryManDto
+    public class RiderDto
     {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Phone { get; set; }
         public string Location { get; set; }
-        public bool IsWorking { get; set; }
-        public string UserId { get; set; }
     }
 }

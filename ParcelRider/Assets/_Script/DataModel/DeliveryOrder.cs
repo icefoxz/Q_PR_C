@@ -1,4 +1,5 @@
 using System;
+using OrderHelperLib.Contracts;
 using OrderHelperLib.DtoModels.DeliveryOrders;
 
 namespace DataModel
@@ -22,8 +23,9 @@ namespace DataModel
         public IdentityInfo From { get; set; }
         public IdentityInfo To { get; set; }
         public PackageInfo Package { get; set; }
-        public int? DeliveryManId { get; set; }
+        public Rider Rider { get; set; } 
         public int Status { get; set; }
+        public int PaymentMethod { get; set; }
 
         public DeliveryOrder()
         {
@@ -37,7 +39,7 @@ namespace DataModel
             To = new IdentityInfo(dto.ReceiverInfo.PhoneNumber, dto.ReceiverInfo.Name, dto.EndCoordinates.Address);
             Package = new PackageInfo(dto.ItemInfo.Weight, dto.DeliveryInfo.Price, dto.DeliveryInfo.Distance,
                 dto.ItemInfo.Length, dto.ItemInfo.Width, dto.ItemInfo.Height);
-            DeliveryManId = dto.DeliveryManId;
+            Rider = new Rider(dto.Rider);
             Status = (int)dto.Status;
         }
 
@@ -80,6 +82,11 @@ namespace DataModel
                 dto.Address = info.Address;
                 return dto;
             }
+        }
+
+        public void SetPaymentMethod(PaymentMethods payment)
+        {
+            PaymentMethod = (int)payment;
         }
     }
 
