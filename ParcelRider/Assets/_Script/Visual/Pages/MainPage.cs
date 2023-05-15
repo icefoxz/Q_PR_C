@@ -13,7 +13,7 @@ public class MainPage : PageUiBase
     private ListViewUi<Prefab_Order> OrderListView { get; }
     private View_packagePlayer view_packagePlayer { get; }
     private View_historySect view_historySect { get; }
-    private PackageController PackageController => App.GetController<PackageController>();
+    private OrderController OrderController => App.GetController<OrderController>();
 
     public MainPage(IView v, UiManager uiManager) : base(v, uiManager)
     {
@@ -32,7 +32,7 @@ public class MainPage : PageUiBase
 
     private void RefreshOrderList()
     {
-        SetOrders(PackageController.Orders.OrderBy(o => o.Status).ToArray());
+        SetOrders(OrderController.Orders.OrderBy(o => o.Status).ToArray());
 
         void SetOrders(DeliveryOrder[] orders)
         {
@@ -136,6 +136,7 @@ public class MainPage : PageUiBase
             btn_setPackage = v.GetObject<Button>("btn_setPackage");
             btn_setPackage.OnClickAdd(() => PlayCreationPackage(onPackageSetAction));
             view_cubePlayer = new View_cubePlayer(v.GetObject<View>("view_cubePlayer"));
+            OnWeightSwitch();
             ResetValues();
         }
 
@@ -172,7 +173,7 @@ public class MainPage : PageUiBase
             {
                 View_weightSwitch.Weights.Kilogram => weight,
                 View_weightSwitch.Weights.Gram => weight / 1000f,
-                View_weightSwitch.Weights.Pound => weight / PackageController.KgToPounds,
+                View_weightSwitch.Weights.Pound => weight / OrderController.KgToPounds,
                 _ => throw new ArgumentOutOfRangeException()
             };
             view_info.SetKg(kg);
@@ -191,7 +192,7 @@ public class MainPage : PageUiBase
                 return view_sizeSwitch.Current switch
                 {
                     View_sizeSwitch.Sizes.Meter => value,
-                    View_sizeSwitch.Sizes.Feet => value / PackageController.MeterToFeet,
+                    View_sizeSwitch.Sizes.Feet => value / OrderController.MeterToFeet,
                     View_sizeSwitch.Sizes.Centimeter => value / 100,
                     _ => throw new ArgumentOutOfRangeException()
                 };

@@ -17,14 +17,14 @@ namespace Visual.Pages.Rider
         private View_doList view_doList { get; }
         private View_deliveryOrder view_deliveryOrder { get; }
         private RiderController RiderController => App.GetController<RiderController>();
-        private PackageController PackageController => App.GetController<PackageController>();
+        private OrderController OrderController => App.GetController<OrderController>();
 
         public RiderPage(IView v, UiManager uiManager, bool display = false) : base(v, uiManager, display)
         {
             view_application = new View_application(v.GetObject<View>("view_application"), OnRegisterAction,
                 UpdateOrderList);
             view_doList = new View_doList(v.GetObject<View>("view_doList"),
-                id => view_deliveryOrder.Set(PackageController.GetOrder(id)));
+                id => view_deliveryOrder.Set(OrderController.GetOrder(id)));
             view_deliveryOrder =
                 new View_deliveryOrder(v.GetObject<View>("view_deliveryOrder"),
                     TackOrder,
@@ -43,14 +43,14 @@ namespace Visual.Pages.Rider
 
         private void UpdateOrderList()
         {
-            view_doList.Set(PackageController.Orders.OrderByDescending(o => int.Parse(o.Id)).ToArray());
+            view_doList.Set(OrderController.Orders.OrderByDescending(o => int.Parse(o.Id)).ToArray());
         }
 
         private void ExceptionOptionSelected(string orderId, int optionIndex)
         {
             RiderController.SetException(orderId, optionIndex, () =>
             {
-                var o = PackageController.GetOrder(orderId);
+                var o = OrderController.GetOrder(orderId);
                 view_deliveryOrder.Set(o);
             });
         }
@@ -64,7 +64,7 @@ namespace Visual.Pages.Rider
         {
             RiderController.Complete(orderId, () =>
             {
-                var o = PackageController.GetOrder(orderId);
+                var o = OrderController.GetOrder(orderId);
                 view_deliveryOrder.Set(o);
             });
         }
@@ -73,7 +73,7 @@ namespace Visual.Pages.Rider
         {
             RiderController.ItemCollection(orderId, () =>
             {
-                var o = PackageController.GetOrder(orderId);
+                var o = OrderController.GetOrder(orderId);
                 view_deliveryOrder.Set(o);
             });
         }
@@ -82,7 +82,7 @@ namespace Visual.Pages.Rider
         {
             RiderController.PickItem(orderId, () =>
             {
-                var o = PackageController.GetOrder(orderId);
+                var o = OrderController.GetOrder(orderId);
                 view_deliveryOrder.Set(o);
             });
         }
@@ -91,11 +91,11 @@ namespace Visual.Pages.Rider
         {
             RiderController.TakeOrder(orderId, () =>
             {
-                PackageController.AssignRider(orderId, success =>
+                OrderController.AssignRider(orderId, success =>
                 {
                     if(success)
                     {
-                        var o = PackageController.GetOrder(orderId);
+                        var o = OrderController.GetOrder(orderId);
                         view_deliveryOrder.Set(o);
                         return;
                     }
@@ -126,7 +126,7 @@ namespace Visual.Pages.Rider
 
         public override void Show()
         {
-            if(Auth.IsRider) view_doList.Set(PackageController.Orders);
+            if(Auth.IsRider) view_doList.Set(OrderController.Orders);
             base.Show();
         }
 

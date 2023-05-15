@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Core;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Views;
 
@@ -23,12 +24,13 @@ namespace Visual.Sects
         private float ScrollRectMaxHeight { get; }
         private event Action<(string placeId,string address)> OnAddressConfirmAction;
         //如果选中了建议地址,则不再触发OnEndEdit
-        private bool IsSuggestionTaken { get; set; }
+        //private bool IsSuggestionTaken { get; set; }
         private float YPosAlign { get; set; }
 
         public Sect_Autofill(IView v,
             Action<string> onAddressInputAction,
             Action<(string placeId, string address)> onAddressConfirmAction,
+            Action onCloseAction,
             float charlimit,
             float contentHeight,
             float contentPadding,
@@ -45,12 +47,9 @@ namespace Visual.Sects
             input_autofill.onValueChanged.AddListener(input =>
             {
                 if (SelectedAddress == input) return;
-                IsSuggestionTaken = false;//重置地址内容(是否是自己输入或是选择建议)
                 onAddressInputAction(input);
             });
-            //去掉自动关闭,让建议地址一直存在,直到用户选择或其它控件调用关闭
-            //input_autofill.onEndEdit.AddListener(OnFinishEdit);
-            btn_x.OnClickAdd(HideOptions);
+            btn_x.OnClickAdd(onCloseAction);
             AutofillListView.HideOptions();
             ScrollRectMaxHeight = ((RectTransform)AutofillListView.ScrollRect.transform).sizeDelta.y;
         }
@@ -79,31 +78,27 @@ namespace Visual.Sects
             AutofillListView.ShowOptions();
         }
 
-
-        private void ClearList() => AutofillListView.ClearList(p => p.Destroy());
-
-        //OnFinishEdit与OnAddressSelected基本上一样,但是为了避免OnFinishEdit是因为点击了listView element触发的
-        //所以特别作处理不让它clearList,否则点击的button根本不会执行
-        private void OnFinishEdit(string address)
+        public void SetInputField(string input)
         {
-            App.MonoService.StartCoroutine(AdjustmentAfterNewFrame(address));
-
-            IEnumerator AdjustmentAfterNewFrame(string input)
+            input_autofill.text = input;
+            input_autofill.caretPosition = input.Length;
+            input_autofill.ActivateInputField();
+            App.MonoService.StartCoroutine(SelectInputFieldWithDelay(input_autofill));
+            
+            IEnumerator SelectInputFieldWithDelay(InputField inputField)
             {
-                yield return new WaitForSeconds(1f);
-                if (IsSuggestionTaken) yield break; //选中建议地址,所以离开编辑框的时候不用触发
-                if (SelectedAddress == input) yield break;
-                PlaceId = string.Empty;
-                SelectedAddress = input;
-                input_autofill.text = input;
-                AutofillListView.ScrollRect.gameObject.SetActive(false);
-                OnAddressConfirmAction?.Invoke((string.Empty, input));
+                // 等待一帧
+                yield return null;
+
+                // 现在设置选中的 GameObject
+                EventSystem.current.SetSelectedGameObject(inputField.gameObject);
             }
         }
 
+        private void ClearList() => AutofillListView.ClearList(p => p.Destroy());
+
         private void OnAddressSelected(string placeId, string address)
         {
-            IsSuggestionTaken = true;
             SelectedAddress = address;
             PlaceId = placeId;
             input_autofill.text = address;
@@ -112,31 +107,13 @@ namespace Visual.Sects
             ClearList();
         }
 
-        //private bool _isResetting;
-
         public override void ResetUi()
         {
-            //if (_isResetting) return;
-            //App.MonoService.StartCoroutine(ResetAfterHalfSeconds());
-            Reset();
-
-            void Reset()
-            {
-                PlaceId = string.Empty;
-                input_autofill.text = string.Empty;
-                AutofillListView.ClearList(v => v.Destroy());
-                AutofillListView.HideOptions();
-                IsSuggestionTaken = false;
-                //_isResetting = false;
-            }
-
-            IEnumerator ResetAfterHalfSeconds()
-            {
-                yield return new WaitForSeconds(1f);
-                Reset();
-            }
+            PlaceId = string.Empty;
+            input_autofill.text = string.Empty;
+            AutofillListView.ClearList(v => v.Destroy());
+            AutofillListView.HideOptions();
         }
-
 
         private class Prefab_Address : UiBase
         {

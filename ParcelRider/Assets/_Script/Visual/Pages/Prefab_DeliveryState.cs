@@ -25,8 +25,8 @@ public class Prefab_DeliveryState : UiBase
 
     public void SetState(DeliveryOrder.States state)
     {
-        img_waitState.gameObject.SetActive(state == DeliveryOrder.States.None);
-        img_deliveryState.gameObject.SetActive(state == DeliveryOrder.States.Wait);
+        img_waitState.gameObject.SetActive(state is DeliveryOrder.States.None or DeliveryOrder.States.Wait);
+        img_deliveryState.gameObject.SetActive(state == DeliveryOrder.States.Delivering);
         img_dropState.gameObject.SetActive(state == DeliveryOrder.States.Collection);
         img_errState.gameObject.SetActive(state == DeliveryOrder.States.Exception);
         img_completeState.gameObject.SetActive(state == DeliveryOrder.States.Complete);

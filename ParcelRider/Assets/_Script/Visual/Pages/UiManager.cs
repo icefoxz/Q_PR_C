@@ -1,10 +1,8 @@
 using System;
 using System.Collections;
-using System.Linq;
 using Controllers;
 using Core;
 using OrderHelperLib.Contracts;
-using OrderHelperLib.DtoModels.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -36,6 +34,8 @@ public class UiManager : MonoBehaviour, IUiManager
     //windows
     [SerializeField] private Page _win_packageConfirm;
     [SerializeField] private Page _win_account;
+    [SerializeField] private Page _win_confirm;
+    [SerializeField] private Page _win_message;
 
     [SerializeField] private View _view_accountSect;
 
@@ -53,8 +53,10 @@ public class UiManager : MonoBehaviour, IUiManager
     private NewPackagePage NewPackagePage { get; set; }
     private PackageConfirmWindow PackageConfirmWindow { get; set; }
     private AccountWindow AccountWindow { get; set; }
+    private ConfirmWindow ConfirmWindow { get; set; }
+    private MessageWindow MessageWindow { get; set; }
 
-    private PackageController PackageController => App.GetController<PackageController>();
+    private OrderController OrderController => App.GetController<OrderController>();
     private LoginController LoginController => App.GetController<LoginController>();
 
     public void Init(bool startUi)
@@ -65,12 +67,17 @@ public class UiManager : MonoBehaviour, IUiManager
         LoginPage = new LoginPage(_loginPage, this);
         MainPage = new MainPage(_mainPage, this);
         PaymentPage = new PaymentPage(_paymentPage, this);
+
         PackageConfirmWindow = new PackageConfirmWindow(_win_packageConfirm, this);
         AccountWindow = new AccountWindow(_win_account, this);
+        ConfirmWindow = new ConfirmWindow(_win_confirm, this);
+        MessageWindow = new MessageWindow(_win_message, this);
+
         OrderViewPage = new OrderViewPage(_orderViewPage, this);
         RiderPage = new RiderPage(_riderPage, this);
         NewPackagePage = new NewPackagePage(v: _newPackagePage, OnNewPackageSubmit, () => NewPackagePage.Hide(), this);
         if (startUi) StartUi();
+        _windows.gameObject.SetActive(false);
     }
 
     private void StartUi()
@@ -87,23 +94,23 @@ public class UiManager : MonoBehaviour, IUiManager
             RiderCollectPayment, 
             DeductFromCredit,
             PaymentGateway);
-        PackageController.SetCurrent(order);
+        OrderController.SetCurrent(order);
 
         void RiderCollectPayment()
         {
-            PackageController.SetCurrent(order);
+            OrderController.SetCurrent(order);
             CreateNewDeliveryOrder(PaymentMethods.RiderCollection);
         }
 
         void DeductFromCredit()
         {
-            PackageController.SetCurrent(order);
+            OrderController.SetCurrent(order);
             CreateNewDeliveryOrder(PaymentMethods.UserCreditDeduction);
         }
 
         void PaymentGateway()
         {
-            PackageController.SetCurrent(order);
+            OrderController.SetCurrent(order);
             PaymentPage.Set(success =>
             {
                 if (success) CreateNewDeliveryOrder(PaymentMethods.OnlinePayment);
@@ -114,7 +121,7 @@ public class UiManager : MonoBehaviour, IUiManager
         {
             NewPackagePage.Hide();
             NewPackagePage.ResetUi();
-            PackageController.CreatePackage(method, success =>
+            OrderController.CreatePackage(method, success =>
             {
                 if (success)
                 {
@@ -144,8 +151,18 @@ public class UiManager : MonoBehaviour, IUiManager
 
     public void ViewOrder(string orderId)
     {
-        var order = PackageController.GetOrder(orderId);
-        OrderViewPage.Set(order);
+        var order = OrderController.GetOrder(orderId);
+        OrderViewPage.Set(order, () => ConfirmWindow.Set("Cancel Order?", () =>
+        {
+            OrderController.RequestCancelOrder(orderId, success =>
+                {
+                    if (!success)
+                    {
+                        MessageWindow.Set("Order", "Failed to cancel order");
+                    }
+                }
+            );
+        }));
     }
 
     public void ShowPanel(bool transparent, bool displayLoadingImage = true) =>

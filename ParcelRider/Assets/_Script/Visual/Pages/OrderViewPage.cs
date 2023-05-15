@@ -1,3 +1,4 @@
+using System;
 using DataModel;
 using UnityEngine.UI;
 using Views;
@@ -8,6 +9,7 @@ public class OrderViewPage : PageUiBase
     private Text text_riderName { get; }
     private Text text_riderPhone { get; }
     private Button btn_close { get; }
+    private Button btn_cancel { get; }
     private Element_State elemnent_waitState { get; }
     private Element_State elemnent_DeliverState { get; }
     private Element_State elemnent_dropState { get; }
@@ -21,6 +23,7 @@ public class OrderViewPage : PageUiBase
     {
         text_orderId = v.GetObject<Text>("text_orderId");
         btn_close = v.GetObject<Button>("btn_close");
+        btn_cancel = v.GetObject<Button>("btn_cancel");
         text_riderName = v.GetObject<Text>("text_riderName");
         text_riderPhone = v.GetObject<Text>("text_riderPhone");
 
@@ -38,7 +41,7 @@ public class OrderViewPage : PageUiBase
         btn_close.OnClickAdd(Hide);
     }
 
-    public void Set(DeliveryOrder o)
+    public void Set(DeliveryOrder o, Action onCancelRequestAction)
     {
         text_orderId.text = o.Id;
         view_packageInfo.Set(o.Package.Price,o.Package.Distance,o.Package.Weight, o.Package.Size);
@@ -47,11 +50,13 @@ public class OrderViewPage : PageUiBase
         text_riderName.text = o.Rider?.Name;
         text_riderPhone.text = o.Rider?.Phone;
         SetState((DeliveryOrder.States)o.Status);
+        btn_cancel.OnClickAdd(onCancelRequestAction);
         Show();
     }
 
     private void SetState(DeliveryOrder.States state)
     {
+        btn_cancel.gameObject.SetActive(state == DeliveryOrder.States.None);
         elemnent_waitState.SetActive(state == DeliveryOrder.States.Wait);
         elemnent_DeliverState.SetActive(state == DeliveryOrder.States.Delivering);
         elemnent_dropState.SetActive(state == DeliveryOrder.States.Collection);

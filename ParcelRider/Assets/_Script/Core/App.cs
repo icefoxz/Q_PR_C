@@ -50,7 +50,7 @@ namespace Core
 
         private static void TestData()
         {
-            var packageController = GetController<PackageController>();
+            var packageController = GetController<OrderController>();
             //add testing orders
             var testList = new List<DeliveryOrder>();
             //for (int i = 0; i < 2; i++)
@@ -78,7 +78,7 @@ namespace Core
         {
             ServiceContainer = new ControllerServiceContainer();
             ServiceContainer.Reg(new LoginController());
-            ServiceContainer.Reg(new PackageController());
+            ServiceContainer.Reg(new OrderController());
             ServiceContainer.Reg(new AutofillAddressController());
             ServiceContainer.Reg(new GeocodingController());
             ServiceContainer.Reg(new RiderController());

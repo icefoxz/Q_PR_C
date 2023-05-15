@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Core;
 using OrderHelperLib.DtoModels.Users;
-using UnityEngine;
 using Utl;
 
 namespace Controllers
@@ -37,6 +37,7 @@ namespace Controllers
             var message = string.Empty;
             callback?.Invoke(isSuccess);
         }
+
         public void RequestFacebook(Action<bool> callback)
         {
             App.Models.SetUser(new UserDto
@@ -73,5 +74,6 @@ namespace Controllers
             var hasUserIdentity = App.Models.User != null;
             onLoginAction?.Invoke(hasUserIdentity);
         }
+
     }
 }

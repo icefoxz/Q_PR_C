@@ -7,7 +7,7 @@ using OrderHelperLib.Contracts;
 
 namespace Controllers
 {
-    public class PackageController : IController
+    public class OrderController : IController
     {
         public const float KgToPounds = 2.2046226218f;
         public const float MeterToFeet = 3.280839895f;
@@ -84,6 +84,14 @@ namespace Controllers
             //    o.Status = (int)dto.Status;
             //    callbackAction?.Invoke(true);
             //}, msg => callbackAction?.Invoke(false));
+        }
+
+        public void RequestCancelOrder(string orderId, Action<bool> callbackAction)
+        {
+            var o = OrderList.First(o => o.Id == orderId);
+            o.Status = (int)DeliveryOrder.States.Exception;
+            UpdateEvent();
+            callbackAction(true);//todo
         }
     }
 }

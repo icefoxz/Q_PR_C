@@ -9,7 +9,7 @@ namespace Controllers
 {
     public class RiderController : IController
     {
-        private PackageController PackageController => App.GetController<PackageController>();
+        private OrderController OrderController => App.GetController<OrderController>();
         private List<(string description, bool justCancel)> ExceptionOps { get; set; } = new List<(string description, bool justCancel)>();
 
         public void RiderApplication(Action<bool> callbackAction)
@@ -23,7 +23,7 @@ namespace Controllers
         public void TakeOrder(string orderId, Action callbackAction)
         {
             // TakeOrder
-            var o = PackageController.GetOrder(orderId);
+            var o = OrderController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Wait;
             o.Rider = new Rider
             {
@@ -38,7 +38,7 @@ namespace Controllers
         public void PickItem(string orderId, Action callbackAction)
         {
             // PickItem
-            var o = PackageController.GetOrder(orderId);
+            var o = OrderController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Delivering;
             UpdateOrderEvent();
             callbackAction();
@@ -47,7 +47,7 @@ namespace Controllers
         public void ItemCollection(string orderId, Action callbackAction)
         {
             // ItemCollection
-            var o = PackageController.GetOrder(orderId);
+            var o = OrderController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Collection;
             UpdateOrderEvent();
             callbackAction();
@@ -56,7 +56,7 @@ namespace Controllers
         public void Complete(string orderId, Action callbackAction)
         {
             // Complete
-            var o = PackageController.GetOrder(orderId);
+            var o = OrderController.GetOrder(orderId);
             o.Status = (int)DeliveryOrder.States.Complete;
             UpdateOrderEvent();
             callbackAction();
@@ -64,7 +64,7 @@ namespace Controllers
 
         public void SetException(string orderId, int optionIndex, Action callbackAction)
         {
-            var o = PackageController.GetOrder(orderId);
+            var o = OrderController.GetOrder(orderId);
             o.Status = (int)(ExceptionOps[optionIndex].justCancel
                 ? DeliveryOrder.States.None
                 : DeliveryOrder.States.Exception);
@@ -74,7 +74,7 @@ namespace Controllers
 
         public void OrderException(string orderId, Action<string[]> callbackOptions)
         {
-            var o = PackageController.GetOrder(orderId);
+            var o = OrderController.GetOrder(orderId);
             var status = (DeliveryOrder.States)o.Status;
             ExceptionOps.Clear();
             switch (status)

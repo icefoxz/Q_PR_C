@@ -2,6 +2,7 @@
 using System.Collections;
 using Core;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Views;
 
@@ -110,11 +111,13 @@ namespace Visual.Pages.Rider
 
                 private void DelayEndEditMode()
                 {
-                    StartCoroutine(DelayEndEdit());
+                    App.MonoService.StartCoroutine(DelayEndEdit());
 
                     IEnumerator DelayEndEdit()
                     {
-                        yield return new WaitForSeconds(0.5f);
+                        yield return new WaitForSeconds(0.2f);
+                        yield return new WaitUntil(() =>
+                            EventSystem.current.currentSelectedGameObject != btn_confirm.gameObject);
                         Switch(false);
                     }
                 }
@@ -123,6 +126,15 @@ namespace Visual.Pages.Rider
                 {
                     obj_input.SetActive(editMode);
                     btn_edit.gameObject.SetActive(!editMode);
+                    input_value.caretPosition = input_value.text.Length;
+                    input_value.ActivateInputField();
+                    App.MonoService.StartCoroutine(DelayEventSelectObject());
+                }
+
+                private IEnumerator DelayEventSelectObject()
+                {
+                    yield return null;
+                    EventSystem.current.SetSelectedGameObject(input_value.gameObject);
                 }
 
                 public void SetPlaceholder(string placeholder) => input_value.placeholder.GetComponent<Text>().text = placeholder;
