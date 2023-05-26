@@ -27,7 +27,7 @@ namespace Controllers
             o.Status = (int)DeliveryOrder.States.Wait;
             o.Rider = new Rider
             {
-                Id = Auth.RiderId
+                Id = App.Models.Rider.Id
             };
             UpdateOrderEvent();
             callbackAction();

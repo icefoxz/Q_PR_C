@@ -1,6 +1,5 @@
 using System;
 using Core;
-using Model;
 using UnityEngine;
 using UnityEngine.UI;
 using Views;
@@ -34,9 +33,14 @@ public class View_AccountSect : UiBase
             var user = App.Models.User;
             if (user != null) Set(user.Name, user.Avatar);
         });
+        App.MessagingManager.RegEvent(EventString.Rider_Update, _ =>
+        {
+            var rider = App.Models.Rider;
+            if (rider != null) Set(rider.Name, null);
+        });
     }
 
-    public void Set(string name, Sprite ico = null)
+    private void Set(string name, Sprite ico = null)
     {
         text_name.text = name;
         if (ico!=null) img_ico.sprite = ico;

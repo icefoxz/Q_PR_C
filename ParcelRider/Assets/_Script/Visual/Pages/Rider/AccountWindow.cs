@@ -10,22 +10,23 @@ namespace Visual.Pages.Rider
 {
     internal class AccountWindow : WinUiBase
     {
-        private Button btn_regRider { get; }
         private Button btn_close { get; }
         private Text text_lastLogin { get; }
         private Element_input element_inputName { get; }
         private Element_input element_inputPhone { get; }
         private View_avatar view_avatar { get; }
+        private UiManager Mgr { get; }
 
         public AccountWindow(IView v, UiManager uiManager, bool display = false) : base(v, uiManager, display)
         {
-            btn_regRider = v.GetObject<Button>("btn_regRider");
-            btn_close = v.GetObject<Button>("btn_close");
+            Mgr = uiManager;
+            //btn_regRider = v.GetObject<Button>("btn_regRider");
+            //btn_close = v.GetObject<Button>("btn_close");
             text_lastLogin = v.GetObject<Text>("text_lastLogin");
-            view_avatar = new View_avatar(v.GetObject<View>("view_avatar"),UserMode,RiderMode);
+            view_avatar = new View_avatar(v.GetObject<View>("view_avatar"),UserMode);
             element_inputName = new Element_input(v.GetObject<View>("element_inputName"));
             element_inputPhone = new Element_input(v.GetObject<View>("element_inputPhone"));
-            btn_regRider.OnClickAdd(uiManager.RegisterRider);
+            //btn_regRider.OnClickAdd(uiManager.RegisterRider);
             btn_close.OnClickAdd(() =>
             {
                 Hide();//如果不包一层匿名函数,会导致第二次不会关闭总窗口
@@ -46,25 +47,23 @@ namespace Visual.Pages.Rider
             });
         }
 
-        private void RiderMode()
-        {
-            UiManager.RiderMode();
-            Auth.IsRiderMode = true;
-            view_avatar.UpdateAvatars();
-            Hide();
-        }
+        //private void RiderMode()
+        //{
+        //    Mgr.RiderMode();
+        //    Auth.IsRiderMode = true;
+        //    view_avatar.UpdateAvatars();
+        //    Hide();
+        //}
 
         private void UserMode()
         {
-            UiManager.UserMode();
-            Auth.IsRiderMode = false;
+            Mgr.UserMode();
             view_avatar.UpdateAvatars();
             Hide();
         }
 
         public override void Show()
         {
-            btn_regRider.gameObject.SetActive(!Auth.IsRider);
             view_avatar.UpdateAvatars();
             base.Show();
         }
@@ -144,23 +143,19 @@ namespace Visual.Pages.Rider
         private class View_avatar : UiBase
         {
             private Element element_user { get; }
-            private Element element_rider { get; }
+            //private Element element_rider { get; }
 
-            public View_avatar(IView v, Action onUserSelected, Action onRiderSelected, bool display = true) 
+            public View_avatar(IView v, Action onUserSelected, bool display = true) 
                 : base(v, display)
             {
                 element_user = new Element(v.GetObject<View>("element_user"), onUserSelected);
-                element_rider = new Element(v.GetObject<View>("element_rider"), onRiderSelected);
+                //element_rider = new Element(v.GetObject<View>("element_rider"), onRiderSelected);
             }
 
             public void UpdateAvatars()
             {
-                var isRider = Auth.IsRider;
-                var isRiderMode = Auth.IsRiderMode;
                 element_user.Show();
-                element_user.SetSelected(!isRiderMode);
-                element_rider.GameObject.SetActive(isRider);
-                element_rider.SetSelected(isRiderMode);
+                element_user.SetSelected(true);
             }
 
             private class Element : UiBase

@@ -14,12 +14,13 @@ public class MainPage : PageUiBase
     private View_packagePlayer view_packagePlayer { get; }
     private View_historySect view_historySect { get; }
     private OrderController OrderController => App.GetController<OrderController>();
-
+    private UiManager Mgr { get; }
     public MainPage(IView v, UiManager uiManager) : base(v, uiManager)
     {
+        Mgr = uiManager;
         OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
         view_packagePlayer = new View_packagePlayer(v.GetObject<View>("view_packagePlayer"),
-            uiManager, a => UiManager.NewPackage(a.point, a.kg, a.length, a.width, a.height));
+            uiManager, a => uiManager.NewPackage(a.point, a.kg, a.length, a.width, a.height));
         view_historySect = new View_historySect(v.GetObject<View>("view_historySect"), ui => uiManager.ViewOrder(ui));
         RegEvents();
         Hide();//listView代码会导致view active,所以这里要隐藏
@@ -39,7 +40,7 @@ public class MainPage : PageUiBase
             OrderListView.ClearList(ui => ui.Destroy());
             foreach (var o in orders.Where(o => o.Status >= 0))
             {
-                var ui = OrderListView.Instance(v => new Prefab_Order(v, id => UiManager.ViewOrder(id)));
+                var ui = OrderListView.Instance(v => new Prefab_Order(v, id => Mgr.ViewOrder(id)));
                 ui.Set(o);
             }
 

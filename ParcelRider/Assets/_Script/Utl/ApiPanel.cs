@@ -205,5 +205,20 @@ namespace Utl
             CallBag("Rider_AssignRider", DataBag.Serialize(orderId),
                 bag => successAction?.Invoke(bag.Get<DeliveryOrderDto>(0)), failedAction);
         }
+
+        public static void RiderLogin(string username, string password, Action<RiderDto> successAction, Action<string> failedAction)
+        {
+            CallBag("Anonymous_RiderLogin", DataBag.Serialize(username, password), bag =>
+            {
+                var rider = bag.Get<RiderDto>(0);
+                if (rider == null)
+                {
+                    failedAction?.Invoke(bag.ToString());
+                    return;
+                }
+                Caller.RegAccessToken(bag.Get<string>(1));
+                successAction?.Invoke(rider);
+            }, failedAction);
+        }
     }
 }

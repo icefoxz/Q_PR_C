@@ -11,20 +11,22 @@ public class LoginPage : PageUiBase
     private View_loginSect view_loginSect { get; }
     private View_RegSect view_regSect { get; }
     private LoginController LoginController => App.GetController<LoginController>();
-
-    public LoginPage(IView v, UiManager uiManager) : base(v, uiManager)
+    private event Action OnLoggedInEvent;
+    public LoginPage(IView v, Action onLoggedInAction, UiManagerBase uiManager) : base(v, uiManager)
     {
+        OnLoggedInEvent += onLoggedInAction;
+        OnLoggedInEvent += Hide;
         view_regSect = new View_RegSect(v.GetObject<View>("view_regSect"),
             () => LoginController.RequestRegister(view_regSect.GetRegisterModel(), OnRegisterCallback)
         );
-        view_loginSect = new View_loginSect(v.GetObject<View>("view_loginSect"), arg =>
+        view_loginSect = new View_loginSect(v: v.GetObject<View>("view_loginSect"), onLoginAction: arg =>
             {
                 var (username, password) = arg;
                 LoginController.RequestLogin(username, password, OnLoginCallback);
             },
-            () => LoginController.RequestGoogle(OnThirdPartyAuthCallback),
-            () => LoginController.RequestFacebook(OnThirdPartyAuthCallback),
-            () => view_regSect.Show());
+            onGoogleAction: () => LoginController.RequestGoogle(OnLoginCallback),
+            onFacebookAction: () => LoginController.RequestFacebook(OnLoginCallback),
+            onRegAction: () => view_regSect.Show());
     }
 
     //register
@@ -34,36 +36,24 @@ public class LoginPage : PageUiBase
         if (isSuccess)
         {
             view_regSect.Hide();
-            OnLoggedIn();
+            OnLoggedInEvent?.Invoke();
             return;
         }
         view_regSect.SetErrorMessage(message);
     }
 
-    //login invocation
-    private void OnLoggedIn()
-    {
-        Hide();
-        UiManager.LoginInit();
-    }
-
-    //3rd party login
-    private void OnThirdPartyAuthCallback(bool isSuccess)
-    {
-        if (isSuccess)
-        {
-            OnLoggedIn();
-            return;
-        }
-        view_loginSect.SetMessage("Login failed");
-    }
     //login
+    private void OnLoginCallback(bool isSuccess)
+    {
+        var message = isSuccess ? "Login Success!" : "Login failed";
+        OnLoginCallback((isSuccess, message));
+    }
     private void OnLoginCallback((bool isSuccess, string message) obj)
     {
         var (isSuccess, message) = obj;
         if (isSuccess)
         {
-            OnLoggedIn();
+            OnLoggedInEvent?.Invoke();
             return;
         }
         view_loginSect.SetMessage(message);
@@ -94,10 +84,26 @@ public class LoginPage : PageUiBase
             btn_facebook = v.GetObject<Button>("btn_facebook");
             btn_register = v.GetObject<Button>("btn_register");
             text_errMsg = v.GetObject<Text>("text_errMsg");
-            btn_login.OnClickAdd(()=>onLoginAction((input_username.text,input_password.text)));
-            btn_google.OnClickAdd(onGoogleAction);
-            btn_facebook.OnClickAdd(onFacebookAction);
-            btn_register.OnClickAdd(onRegAction);
+            btn_login.OnClickAdd(() =>
+            {
+                SetMessage();
+                onLoginAction((input_username.text, input_password.text));
+            });
+            btn_google.OnClickAdd(() =>
+            {
+                SetMessage();
+                onGoogleAction?.Invoke();
+            });
+            btn_facebook.OnClickAdd(() =>
+            {
+                SetMessage();
+                onFacebookAction?.Invoke();
+            });
+            btn_register.OnClickAdd(() =>
+            {
+                SetMessage();
+                onRegAction?.Invoke();
+            });
             input_password.onValueChanged.AddListener(_ => UpdateLoginButtonInteractable());
             input_username.onValueChanged.AddListener(_ => UpdateLoginButtonInteractable());
             SetMessage();

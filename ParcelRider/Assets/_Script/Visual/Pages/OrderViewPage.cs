@@ -19,7 +19,7 @@ public class OrderViewPage : PageUiBase
     private Element_contact element_contactFrom { get; }
     private View_packageInfo view_packageInfo { get; }
 
-    public OrderViewPage(IView v, UiManager uiManager) : base(v, uiManager)
+    public OrderViewPage(IView v, IUiManager uiManager) : base(v, uiManager)
     {
         text_orderId = v.GetObject<Text>("text_orderId");
         btn_close = v.GetObject<Button>("btn_close");

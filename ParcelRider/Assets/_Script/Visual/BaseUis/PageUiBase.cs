@@ -28,7 +28,7 @@ public abstract class PageUiBase : UiBase
 {
     protected IUiManager UiManager { get; }
 
-    protected PageUiBase(IView v, UiManager uiManager, bool display = false) : base(v, display)
+    protected PageUiBase(IView v, IUiManager uiManager, bool display = false) : base(v, display)
     {
         UiManager = uiManager;
     }

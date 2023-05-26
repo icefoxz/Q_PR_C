@@ -1,9 +1,32 @@
 ﻿using Core;
-using OrderHelperLib.DtoModels.Users;
+using Model;
+using OrderHelperLib.DtoModels.DeliveryOrders;
 using UnityEngine;
+using UserDto = OrderHelperLib.DtoModels.Users.UserDto;
 
 namespace Model
 {
+    public class RiderModel : ModelBase
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Phone { get; set; }
+        public Sprite Avatar { get; set; }
+
+        public RiderModel(RiderDto dto)
+        {
+            Id = dto.Id;
+            Name = dto.Name;
+            Phone = dto.Phone;
+        }
+
+        public void SetAvatar(Sprite sprite)
+        {
+            Avatar = sprite;
+            SendEvent(EventString.Rider_Update);
+        }
+    }
+    
     public class UserModel : ModelBase
     {
         public UserModel(UserDto dto)

@@ -20,7 +20,7 @@ namespace Core
 
         public static Res Res { get; private set; }
         public static UiBuilder UiBuilder { get; private set; }
-        public static UiManager UiManager { get; private set; }
+        public static UiManagerBase UiManager { get; private set; }
         public static AppModels Models { get; private set; }
         public static MessagingManager MessagingManager { get; } = new MessagingManager();
 
@@ -35,7 +35,7 @@ namespace Core
             private set => _monoService = value;
         }
 
-        public static void Run(Res res, Canvas canvas, UiManager uiManager, MonoService monoService,bool startUi)
+        public static void Run(Res res, Canvas canvas, UiManagerBase uiManager, MonoService monoService,bool startUi)
         {
             if (IsRunning)
                 throw new NotImplementedException("App is running!");
@@ -53,21 +53,21 @@ namespace Core
             var packageController = GetController<OrderController>();
             //add testing orders
             var testList = new List<DeliveryOrder>();
-            //for (int i = 0; i < 2; i++)
-            //{
-            //    var order = new DeliveryOrder
-            //    {
-            //        Status = i == 0 ? 0 : Random.Range(0, 3),
-            //        Package = new PackageInfo(1.5f + i, 10f + i, 10f + i, 15f + i, 1f + i, 1f + i),
-            //        From = new IdentityInfo($"From {i}", "1234567890", "TestAddress1"),
-            //        To = new IdentityInfo($"To {i}", "1234567890", "TestAddress2"),
-            //    };
-            //    testList.Add(order);
-            //}
+            for (int i = 0; i < 2; i++)
+            {
+                var order = new DeliveryOrder
+                {
+                    Status = i == 0 ? 0 : Random.Range(0, 3),
+                    Package = new PackageInfo(1.5f + i, 10f + i, 10f + i, 15f + i, 1f + i, 1f + i),
+                    From = new IdentityInfo($"From {i}", "1234567890", "TestAddress1"),
+                    To = new IdentityInfo($"To {i}", "1234567890", "TestAddress2"),
+                };
+                testList.Add(order);
+            }
             packageController.AddOrder(testList.ToArray());
         }
 
-        private static void UiInit(Canvas canvas, UiManager uiManager,bool startUi)
+        private static void UiInit(Canvas canvas, UiManagerBase uiManager,bool startUi)
         {
             UiBuilder = new UiBuilder(canvas, Res);
             UiManager = uiManager;
@@ -77,11 +77,11 @@ namespace Core
         private static void ControllerReg()
         {
             ServiceContainer = new ControllerServiceContainer();
-            ServiceContainer.Reg(new LoginController());
+            //ServiceContainer.Reg(new AutofillAddressController());
+            //ServiceContainer.Reg(new GeocodingController());
             ServiceContainer.Reg(new OrderController());
-            ServiceContainer.Reg(new AutofillAddressController());
-            ServiceContainer.Reg(new GeocodingController());
             ServiceContainer.Reg(new RiderController());
+            ServiceContainer.Reg(new RiderApiController());
             ServiceContainer.Reg(new PictureController(MonoService));
         }
     }
