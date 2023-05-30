@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using DataModel;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +13,6 @@ namespace Visual.Pages.Rider
         private Element_info element_infoFrom { get; }
         private Element_info element_infoTo { get; }
         private View_riderOptions view_riderOptions { get; }
-        private View_exception view_exception { get; }
         private Button btn_exception { get; }
         private Button btn_close { get; }
         private string orderId { get; set; }
@@ -25,7 +23,7 @@ namespace Visual.Pages.Rider
             Action<string> onCollectionAction,
             Action<string> onCompletedAction,
             Action<string> onExceptionAction,
-            Action<string,int> onExceptionOpSelectedAction, RiderUiManager uiManager) : base(v,uiManager)
+            RiderUiManager uiManager) : base(v,uiManager)
         {
             view_states = new View_states(v.GetObject<View>("view_states"));
             view_parcelInfo = new View_parcelInfo(v.GetObject<View>("view_parcelInfo"));
@@ -36,8 +34,6 @@ namespace Visual.Pages.Rider
                 , () => onPickItemAction(orderId)
                 , () => onCollectionAction(orderId)
                 , () => onCompletedAction(orderId));
-            view_exception = new View_exception(v.GetObject<View>("view_exception"),
-                index => onExceptionOpSelectedAction(orderId, index));
             btn_exception = v.GetObject<Button>("btn_exception");
             btn_exception.OnClickAdd(() => onExceptionAction(orderId));
             btn_close = v.GetObject<Button>("btn_close");
@@ -64,7 +60,6 @@ namespace Visual.Pages.Rider
                 view_riderOptions.SetState(state);
             }
         }
-        public void SetExceptionOption(string[] options) => view_exception.SetOptions(options);
 
         private class View_states : UiBase
         {
@@ -180,54 +175,6 @@ namespace Visual.Pages.Rider
                 btn_collection.gameObject.SetActive(state == DeliveryOrder.States.Delivering);
                 btn_complete.gameObject.SetActive(state == DeliveryOrder.States.Collection);
             }
-        }
-        private class View_exception : UiBase
-        {
-            private ListViewUi<Prefab_option> OptionListView { get; set; }
-            private Button btn_close { get; }
-            private  Action<int> OnOptionSelected { get; set; }
-
-            public View_exception(IView v,Action<int> onOptionSelected, bool display = true) :
-                base(v, display)
-            {
-                OnOptionSelected = onOptionSelected;
-                btn_close = v.GetObject<Button>("btn_close");
-                btn_close.OnClickAdd(Hide);
-                OptionListView = new ListViewUi<Prefab_option>(v, "prefab_option", "scroll_options");
-                Hide();
-            }
-
-            public void SetOptions(IList<string> options)
-            {
-                OptionListView.ClearList(ui=>ui.Destroy());
-                for (var i = 0; i < options.Count; i++)
-                {
-                    var option = options[i];
-                    var index = i;
-                    var prefab = OptionListView.Instance(v => new Prefab_option(v, () =>
-                    {
-                        OnOptionSelected(index);
-                        Hide();
-                    }));
-                    prefab.Set(option);
-                }
-                Show();
-            }
-
-            private class Prefab_option : UiBase
-            {
-                private Text text_description { get; }
-                private Button btn_option { get; }
-                public Prefab_option(IView v, Action onCLickAction ,bool display = true) : base(v, display)
-                {
-                    text_description = v.GetObject<Text>("text_description");
-                    btn_option = v.GetObject<Button>("btn_option");
-                    btn_option.OnClickAdd(onCLickAction);
-                }
-
-                public void Set(string description) => text_description.text = description;
-            }
-                
         }
     }
 }

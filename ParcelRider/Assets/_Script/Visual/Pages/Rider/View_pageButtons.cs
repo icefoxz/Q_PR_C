@@ -14,12 +14,12 @@ namespace Visual.Pages.Rider
             Action onHistoryPageAction
             , bool display = true) : base(v, display)
         {
-            element_pageHome = new Element_page(v, () =>
+            element_pageHome = new Element_page(v.GetObject<View>("element_pageHome"), () =>
             {
                 SelectedPage(element_pageHome);
                 onHomePageAction?.Invoke();
             }, display);
-            element_pageHistory = new Element_page(v, () =>
+            element_pageHistory = new Element_page(v.GetObject<View>("element_pageHistory"), () =>
             {
                 SelectedPage(element_pageHistory);
                 onHistoryPageAction?.Invoke();
@@ -36,7 +36,7 @@ namespace Visual.Pages.Rider
             public Element_page(IView v, Action onClickAction, bool display = true) : base(v, display)
             {
                 btn_page = v.GetObject<Button>("btn_page");
-                outline = v.GameObject.GetComponent<Outline>();
+                outline = btn_page.gameObject.GetComponent<Outline>();
                 btn_page.OnClickAdd(onClickAction);
             }
             public void SetSelected(bool selected) => outline.enabled = selected;
