@@ -17,7 +17,7 @@ namespace Visual.Pages.Rider
             OnOptionSelected = onOptionSelected;
             btn_close = v.GetObject<Button>("btn_close");
             btn_close.OnClickAdd(Hide);
-            OptionListView = new ListViewUi<Prefab_option>(v, "prefab_option", "scroll_options");
+            OptionListView = new ListViewUi<Prefab_option>(v, "prefab_option", "scroll_options", true, false);
         }
 
         public void SetOptions(string orderId, IList<string> options)
@@ -50,6 +50,5 @@ namespace Visual.Pages.Rider
 
             public void Set(string description) => text_description.text = description;
         }
-
     }
 }

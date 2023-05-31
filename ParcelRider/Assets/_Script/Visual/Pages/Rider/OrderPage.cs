@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Core;
 using DataModel;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,14 +10,20 @@ namespace Visual.Pages.Rider
 {
     public class OrderPage : PageUiBase
     {
+        private Text text_orderId { get; }
+        private Text text_riderName { get; }
+        private Text text_riderPhone { get; }
         private View_states view_states { get; }
-        private View_parcelInfo view_parcelInfo { get; }
-        private Element_info element_infoFrom { get; }
-        private Element_info element_infoTo { get; }
+        private View_packageInfo view_packageInfo { get; }
+        private Element_contact element_contactTo { get; }
+        private Element_contact element_contactFrom { get; }
         private View_riderOptions view_riderOptions { get; }
+        private View_image view_image { get; }
         private Button btn_exception { get; }
         private Button btn_close { get; }
         private string orderId { get; set; }
+        private List<Sprite> images { get; set; } = new List<Sprite>();
+        private PictureController PictureController => App.GetController<PictureController>();
 
         public OrderPage(IView v,
             Action<string> onTakeOrderAction,
@@ -23,12 +31,16 @@ namespace Visual.Pages.Rider
             Action<string> onCollectionAction,
             Action<string> onCompletedAction,
             Action<string> onExceptionAction,
-            RiderUiManager uiManager) : base(v,uiManager)
+            RiderUiManager uiManager) : base(v, uiManager)
         {
+            text_orderId = v.GetObject<Text>("text_orderId");
+            text_riderName = v.GetObject<Text>("text_riderName");
+            text_riderPhone = v.GetObject<Text>("text_riderPhone");
+            view_packageInfo = new View_packageInfo(v.GetObject<View>("view_packageInfo"));
             view_states = new View_states(v.GetObject<View>("view_states"));
-            view_parcelInfo = new View_parcelInfo(v.GetObject<View>("view_parcelInfo"));
-            element_infoFrom = new Element_info(v.GetObject<View>("element_infoFrom"));
-            element_infoTo = new Element_info(v.GetObject<View>("element_infoTo"));
+            view_image = new View_image(v.GetObject<View>("view_image"), ImageSelected_PromptImageWindow,Camera_callPictureController);
+            element_contactTo = new Element_contact(v.GetObject<View>("element_contactTo"));
+            element_contactFrom = new Element_contact(v.GetObject<View>("element_contactFrom"));
             view_riderOptions = new View_riderOptions(v.GetObject<View>("view_riderOptions")
                 , () => onTakeOrderAction(orderId)
                 , () => onPickItemAction(orderId)
@@ -40,21 +52,40 @@ namespace Visual.Pages.Rider
             btn_close.OnClickAdd(() => Hide());
         }
 
+        private void Camera_callPictureController()
+        {
+            PictureController.OpenCamera(OnPictureTaken);
+
+            void OnPictureTaken(Texture2D texture)
+            {
+                images.Add(Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero));
+                UpdateImages();
+            }
+        }
+
+        private void UpdateImages() => view_image.Set(images.ToArray());
+
+        private void ImageSelected_PromptImageWindow(int index) => ImageWindow.Set(images[index]);
+
         public void Set(DeliveryOrder order)
         {
             orderId = order.Id;
             var p = order.Package;
             var f = order.From;
             var t = order.To;
-            view_parcelInfo.Set(p.Price, p.Size, p.Weight, p.Distance);
-            element_infoFrom.Set(f.Name, f.Phone, f.Address);
-            element_infoTo.Set(t.Name, t.Phone, t.Address);
+            text_orderId.text = order.Id;
+            text_riderName.text = order.Rider?.Name;
+            text_riderPhone.text = order.Rider?.Phone;
+            view_packageInfo.Set(p.Price, p.Size, p.Weight, p.Distance);
+            element_contactFrom.Set(f.Name, f.Phone, f.Address);
+            element_contactTo.Set(t.Name, t.Phone, t.Address);
             UpdateState((DeliveryOrder.States)order.Status);
             Show();
+
             void UpdateState(DeliveryOrder.States state)
             {
-                btn_exception.gameObject.SetActive(state is DeliveryOrder.States.Wait 
-                    or DeliveryOrder.States.Delivering 
+                btn_exception.gameObject.SetActive(state is DeliveryOrder.States.Wait
+                    or DeliveryOrder.States.Delivering
                     or DeliveryOrder.States.Collection);
                 view_states.SetState(state);
                 view_riderOptions.SetState(state);
@@ -102,58 +133,16 @@ namespace Visual.Pages.Rider
                 public void SetIcon(Sprite icon) => img_state.sprite = icon;
             }
         }
-        private class View_parcelInfo : UiBase
-        {
-            private Text text_point { get; }
-            private Text text_meter { get; }
-            private Text text_kg{ get; }
-            private Text text_km { get; }
 
-            public View_parcelInfo(IView v, bool display = true) : base(v, display)
-            {
-                text_point = v.GetObject<Text>("text_point");
-                text_meter = v.GetObject<Text>("text_meter");
-                text_kg = v.GetObject<Text>("text_kg");
-                text_km = v.GetObject<Text>("text_km");
-            }
-
-            public void Set(float point, float meter, float kg, float km)
-            {
-                text_point.text = point.ToString("F");
-                text_meter.text = meter.ToString("F");
-                text_kg.text = kg.ToString("F");
-                text_km.text = km.ToString("F");
-            }
-        }
-        private class Element_info : UiBase
-        {
-            private Text text_contactName { get; }
-            private Text text_contactPhone { get; }
-            private Text text_address { get; }
-
-            public Element_info(IView v, bool display = true) : base(v, display)
-            {
-                text_contactName = v.GetObject<Text>("text_contactName");
-                text_contactPhone = v.GetObject<Text>("text_contactPhone");
-                text_address = v.GetObject<Text>("text_address");
-            }
-
-            public void Set(string name, string phone, string address)
-            {
-                text_contactName.text = name;
-                text_contactPhone.text = phone;
-                text_address.text = address;
-            }
-        }
-        private class View_riderOptions :UiBase
+        private class View_riderOptions : UiBase
         {
             private Button btn_takeOrder { get; }
             private Button btn_pickItem { get; }
             private Button btn_collection { get; }
             private Button btn_complete { get; }
 
-            public View_riderOptions(IView v, 
-                Action onTakeOrderAction, 
+            public View_riderOptions(IView v,
+                Action onTakeOrderAction,
                 Action onPickItemAction,
                 Action onCollectionAction,
                 Action onCompleteAction, bool display = true) : base(v, display)
@@ -174,6 +163,67 @@ namespace Visual.Pages.Rider
                 btn_pickItem.gameObject.SetActive(state == DeliveryOrder.States.Wait);
                 btn_collection.gameObject.SetActive(state == DeliveryOrder.States.Delivering);
                 btn_complete.gameObject.SetActive(state == DeliveryOrder.States.Collection);
+            }
+        }
+
+        private class Element_contact : UiBase
+        {
+            private Text text_name { get; }
+            private Text text_phone { get; }
+            private Text text_address { get; }
+
+            public Element_contact(IView v) : base(v)
+            {
+                text_name = v.GetObject<Text>("text_name");
+                text_phone = v.GetObject<Text>("text_phone");
+                text_address = v.GetObject<Text>("text_address");
+            }
+
+            public void Set(string name, string phone, string address)
+            {
+                text_name.text = name;
+                text_phone.text = phone;
+                text_address.text = address;
+            }
+        }
+
+        private class View_image : UiBase
+        {
+            private ListViewUi<Prefab_image> ImageListView { get; }
+            private Button btn_camera { get; }
+            private event Action<int> OnImageSelected;
+            public View_image(IView v,Action<int> onImageSelectedAction,Action onCameraAction) : base(v)
+            {
+                OnImageSelected = onImageSelectedAction;
+                btn_camera = v.GetObject<Button>("btn_camera");
+                btn_camera.OnClickAdd(onCameraAction);
+                ImageListView = new ListViewUi<Prefab_image>(v, "prefab_image", "scroll_image");
+            }
+
+            public void Set(Sprite[] images)
+            {
+                ImageListView.ClearList(ui => ui.Destroy());
+                for (var i = 0; i < images.Length; i++)
+                {
+                    var index = i;
+                    var sprite = images[i];
+                    ImageListView.Instance(v =>
+                        new Prefab_image(v, sprite, () => OnImageSelected?.Invoke(index)));
+                }
+            }
+
+            private class Prefab_image : UiBase
+            {
+                private Image img_item { get; }
+                private Button btn_image { get; }
+
+                public Prefab_image(IView v,Sprite image ,Action onclickAction, bool display = true) : base(v, display)
+                {
+                    img_item = v.GetObject<Image>("img_item");
+                    btn_image = v.GetObject<Button>("btn_image");
+                    img_item.sprite = image;
+                    btn_image.OnClickAdd(onclickAction);
+                }
             }
         }
     }

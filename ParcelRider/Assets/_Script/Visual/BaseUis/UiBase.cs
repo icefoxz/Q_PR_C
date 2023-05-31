@@ -53,16 +53,17 @@ public class ListViewUi<T> : UiBase
         }
     }
 
-    public ListViewUi(View prefab, ScrollRect scrollRect,IView v ,bool hideChildrenViews = true) : base(v)
+    public ListViewUi(View prefab, ScrollRect scrollRect,IView v ,bool hideChildrenViews = true,bool display = true) : base(v,display)
     {
         Prefab = prefab;
         _scrollRect = scrollRect;
         if (hideChildrenViews) HideChildren();
     }
 
-    public ListViewUi(IView v, string prefabName, string scrollRectName, bool hideChildrenViews = true) : this(
+    public ListViewUi(IView v, string prefabName, string scrollRectName, bool hideChildrenViews = true,
+        bool display = true) : this(
         v.GetObject<View>(prefabName),
-        v.GetObject<ScrollRect>(scrollRectName), v, hideChildrenViews)
+        v.GetObject<ScrollRect>(scrollRectName), v, hideChildrenViews, display)
     {
     }
 

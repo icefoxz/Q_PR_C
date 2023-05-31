@@ -59,7 +59,6 @@ namespace DataModel
             var deliveryInfo = new DeliveryInfoDto
             {
                 Distance = p.Distance,
-                Weight = p.Weight,
                 Price = p.Price
             };
             var receiverInfo = new ReceiverInfoDto
