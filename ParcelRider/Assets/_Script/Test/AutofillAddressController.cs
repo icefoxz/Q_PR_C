@@ -7,7 +7,7 @@ using Core;
 using Utl;
 using Utls;
 
-public class AutofillAddressController : IController
+public class AutofillAddressController : ControllerBase
 {
     private MonoService Mono => App.MonoService;
     private string googleAutocompleteUrl =

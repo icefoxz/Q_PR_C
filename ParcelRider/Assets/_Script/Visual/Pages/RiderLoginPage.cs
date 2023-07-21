@@ -7,7 +7,7 @@ using Views;
 public class RiderLoginPage : PageUiBase
 {
     private View_loginSect view_loginSect { get; }
-    private RiderApiController ApiController => App.GetController<RiderApiController>();
+    private RiderLoginController RiderLoginController => App.GetController<RiderLoginController>();
     private event Action OnLoggedInEvent;
     public RiderLoginPage(IView v, Action onLoggedInAction, UiManagerBase uiManager) : base(v, uiManager)
     {
@@ -16,7 +16,7 @@ public class RiderLoginPage : PageUiBase
         view_loginSect = new View_loginSect(v: v.GetObject<View>("view_loginSect"), onLoginAction: arg =>
             {
                 var (username, password) = arg;
-                ApiController.RequestLogin(username, password, OnLoginCallback);
+                RiderLoginController.Rider_RequestLogin(username, password, OnLoginCallback);
             });
     }
 

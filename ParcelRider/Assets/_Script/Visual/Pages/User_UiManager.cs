@@ -1,0 +1,181 @@
+using System;
+using Controllers;
+using Core;
+using OrderHelperLib.Contracts;
+using UnityEngine;
+using Views;
+using Visual.Pages.Rider;
+
+public class User_UiManager : UiManagerBase
+{
+    [SerializeField] private Transform _overlapPages;
+
+    [SerializeField] private Page _mainPage;
+    [SerializeField] private Page _loginPage;
+    [SerializeField] private Page _newPackagePage;
+    [SerializeField] private Page _orderViewPage;
+    [SerializeField] private Page _paymentPage;
+
+    //windows
+    [SerializeField] private Page _win_packageConfirm;
+    [SerializeField] private Page _win_account;
+    [SerializeField] private Page _win_confirm;
+    [SerializeField] private Page _win_message;
+    [SerializeField] private Page _win_image;
+
+    [SerializeField] private View _view_accountSect;
+
+    //覆盖mainpage的页面
+    private Transform OverlapPages => _overlapPages;
+    private User_LoginPage User_LoginPage { get; set; }
+    private User_MainPage User_MainPage { get; set; }
+    private PaymentPage PaymentPage { get; set; }
+    private User_OrderViewPage User_OrderViewPage { get; set; }
+    
+    private View_AccountSect View_AccountSect { get; set; }
+
+    private User_NewPackagePage User_NewPackagePage { get; set; }
+    private PackageConfirmWindow PackageConfirmWindow { get; set; }
+    private AccountWindow AccountWindow { get; set; }
+    private ConfirmWindow ConfirmWindow { get; set; }
+    private MessageWindow MessageWindow { get; set; }
+    private ImageWindow ImageWindow { get; set; }
+
+    private UserOrderController UserOrderController => App.GetController<UserOrderController>();
+    private LoginController LoginController => App.GetController<LoginController>();
+
+    public override void Init(bool startUi)
+    {
+        View_AccountSect = new View_AccountSect(v: _view_accountSect, 
+            onAccountAction: () => AccountWindow.Show(),
+            logoutAction: OnLogoutAction);
+        User_LoginPage = new User_LoginPage(v: _loginPage, onLoggedInAction: LoginInit, uiManager: this);
+        User_MainPage = new User_MainPage(v: _mainPage, uiManager: this);
+        PaymentPage = new PaymentPage(v: _paymentPage, uiManager: this);
+
+        PackageConfirmWindow = new PackageConfirmWindow(v: _win_packageConfirm, uiManager: this);
+        AccountWindow = new AccountWindow(v: _win_account, uiManager: this);
+        ConfirmWindow = new ConfirmWindow(v: _win_confirm, uiManager: this);
+        MessageWindow = new MessageWindow(v: _win_message, uiManager: this);
+        ImageWindow = new ImageWindow(v: _win_image, uiManager: this);
+
+        User_OrderViewPage = new User_OrderViewPage(v: _orderViewPage, uiManager: this);
+        User_NewPackagePage = new User_NewPackagePage(v: _newPackagePage, onSubmit: OnNewPackageSubmit,
+            onCancelAction: () => User_NewPackagePage.Hide(), uiManager: this);
+        if (startUi) StartUi();
+        Windows.SetActive(value: false);
+    }
+
+    private void StartUi()
+    {
+        LoginController.CheckLoginStatus(onLoginAction: OnLoginAction);
+    }
+
+    //当新的包裹提交
+    private void OnNewPackageSubmit()
+    {
+        var order = User_NewPackagePage.GenerateOrder();
+        var p = order.Package;
+        PackageConfirmWindow.Set(point: p.Price, kg: p.Weight, length: p.Length, width: p.Width, height: p.Height, 
+            onRiderCollectAction: RiderCollectPayment, 
+            onDeductFromPoint: DeductFromCredit,
+            onPaymentGateway: PaymentGateway);
+        UserOrderController.SetCurrent(order: order);
+
+        void RiderCollectPayment()
+        {
+            UserOrderController.SetCurrent(order: order);
+            CreateNewDeliveryOrder(method: PaymentMethods.RiderCollection);
+        }
+
+        void DeductFromCredit()
+        {
+            UserOrderController.SetCurrent(order: order);
+            CreateNewDeliveryOrder(method: PaymentMethods.UserCreditDeduction);
+        }
+
+        void PaymentGateway()
+        {
+            UserOrderController.SetCurrent(order: order);
+            PaymentPage.Set(onPaymentAction: success =>
+            {
+                if (success) CreateNewDeliveryOrder(method: PaymentMethods.OnlinePayment);
+            });
+        }
+
+        void CreateNewDeliveryOrder(PaymentMethods method)
+        {
+            UserOrderController.CreatePackage(payment: method, callbackAction: (success, message) =>
+            {
+                if (success)
+                {
+                    User_NewPackagePage.Hide();
+                    User_NewPackagePage.ResetUi();
+                    UserOrderController.Do_UpdateAll();
+                    MessageWindow.Set(title: "Create Order", content: "Success!");
+                    return;
+                }
+                MessageWindow.Set(title: "Create Order Failed", content: message);
+            });
+        }
+    }
+
+    private void OnLogoutAction()
+    {
+        CloseAllPages();
+        User_LoginPage.Show();
+    }
+
+    public void CloseAllPages()
+    {
+        foreach (Transform page in OverlapPages) page.gameObject.SetActive(value: false);
+    }
+
+    public void NewPackage(float point, float kg, float length, float width, float height)
+    {
+        User_NewPackagePage.Set(kg: kg, length: length, width: width, height: height);
+    }
+
+    public void ViewOrder(string orderId)
+    {
+        var o = App.Models.OrderCollection.GetOrder(orderId);
+        UserOrderController.SetCurrent(o);
+        var orderStatus = (DeliveryOrderStatus)o.Status;
+        User_OrderViewPage.DisplayCurrentOrder(onCancelRequestAction: orderStatus.IsClosed() ? null : OnCancelRequestAction(orderId));
+
+        Action OnCancelRequestAction(string s) =>
+            () =>
+            {
+                ConfirmWindow.Set(title: "Cancel Order?", onConfirmAction: () =>
+                {
+                    UserOrderController.Do_RequestCancel(orderId: s, callbackAction: success =>
+                    {
+                        if (success) return;
+                        MessageWindow.Set(title: "Order", content: "Failed to cancel order");
+                    });
+                });
+            };
+    }
+
+    private void LoginInit()
+    {
+        UserOrderController.Do_UpdateAll();
+        User_MainPage.Show();
+    }
+
+    public void UserMode()
+    {
+        CloseAllPages();
+        User_MainPage.Show();
+    }
+
+    private void OnLoginAction(bool isLoggedIn)
+    {
+        if (isLoggedIn)
+        {
+            User_MainPage.Show();
+            return;
+        }
+        User_LoginPage.Show();
+    }
+}

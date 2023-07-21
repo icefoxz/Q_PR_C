@@ -1,21 +1,37 @@
 ﻿using System.Collections;
 using Core;
 using DataModel;
-using OrderHelperLib.DtoModels.DeliveryOrders;
+using OrderHelperLib.DtoModels.Users;
 using UnityEngine.Networking;
 using UnityEngine;
-using UserDto = OrderHelperLib.DtoModels.Users.UserDto;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace Model
 {
     public class AppModels : ModelBase
     {
-        public UserModel User { get; set; }
-        public Rider Rider { get; set; }
+        public UserModel User { get; private set; }
+        public Rider Rider { get; private set; }
+        public OrderCollectionViewModel OrderCollection { get; private set; } = new OrderCollectionViewModel();
 
-        public void SetRider(RiderDto rider)
+        public void SetOrderList(List<DeliveryOrder> orders)
         {
-            Rider = new Rider(rider);
+            OrderCollection.ClearOrders();
+            OrderCollection.SetOrders(orders);
+        }
+
+        public void SetCurrentOrder(DeliveryOrder order) => OrderCollection.SetCurrent(order.Id);
+
+        public void SetRider(UserDto u)
+        {
+            Rider = new Rider
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Phone = u.Phone
+            };
             SendEvent(EventString.Rider_Update);
         }
 

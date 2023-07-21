@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 using Utl;
 using Utls;
 
-public class GeocodingController : IController
+public class GeocodingController : ControllerBase
 {
     private string geocodingUrl = "https://maps.googleapis.com/maps/api/geocode/json?address={0}&key={1}";
     private Debouncer FromDebouncer { get; }

@@ -9,19 +9,22 @@ namespace Utl
 {
     public class ApiPanel : MonoBehaviour
     {
-        public static ApiCaller Caller { get; private set; }
+        protected static ApiCaller Caller { get; set; }
 
         [SerializeField] private Panel _panel;
-        private static Panel Panel { get; set; }
+        protected static Panel Panel { get; set; }
 
-        private const string RegisterApi = "Anonymous_RegisterApi";
-        private const string LoginApi = "Anonymous_LoginApi";
-        private const string ReloginApi = "User_ReloginApi";
+        private const string User_RegisterApi = "Anonymous_RegisterApi";
+        private const string User_LoginApi = "Anonymous_LoginApi";
+        private const string User_ReloginApi = "User_ReloginApi";
         private const string TestApi = "User_TestApi";
-        private const string CreateRiderApi = "User_CreateRider";
-        private const string CreateDeliveryOrderApi = "User_CreateDeliveryOrder";
-        private const string AssignRiderApi = "Rider_AssignRider";
-        private const string UpdateOrderStatusApi = "Rider_UpdateOrderStatus";
+        private const string User_CreateRiderApi = "User_CreateRider";
+        private const string User_CreateDeliveryOrderApi = "User_CreateDeliveryOrder";
+        private const string User_GetAllDeliveryOrders = "User_GetAllDeliveryOrders";
+
+        private const string Rider_LoginApi = "Anonymous_RiderLoginApi";
+        private const string Rider_AssignRiderApi = "Rider_AssignRider";
+        private const string Rider_UpdateOrderStatusApi = "Rider_UpdateOrderStatus";
 
         public void Init(string serverUrl)
         {
@@ -42,7 +45,7 @@ namespace Utl
         private static void Call<T>(string method, object content, Action<T> callbackAction,
             Action<string> failedCallbackAction, params (string, string)[] queryParams) where T : class
         {
-            Panel.Show(true, true);
+            Panel.Show(false, true);
             Caller.Call<T>(method: method, content: content, result =>
                 {
                     Panel.Hide();
@@ -60,7 +63,7 @@ namespace Utl
             params (string, string)[] queryParams)
             where T : class
         {
-            Panel.Show(true, true);
+            Panel.Show(false, true);
             Caller.Call<T>(method: method, content: content, result =>
                 {
                     Panel.Hide();
@@ -84,12 +87,12 @@ namespace Utl
         private static void CallBag(string method, string databag, Action<DataBag> callbackAction,
             Action<string> failedCallbackAction, params (string, string)[] queryParams) 
         {
-            Panel.Show(true, true);
+            Panel.Show(false, true);
             Caller.CallBag(method: method, databag, result =>
                 {
                     Panel.Hide();
                     callbackAction?.Invoke(result);
-                }, result =>
+                }, (code,result) =>
                 {
                     Panel.Hide();
                     failedCallbackAction?.Invoke(result);
@@ -101,13 +104,13 @@ namespace Utl
             Action<DataBag> callbackAction, Action<string> failedCallbackAction,
             params (string, string)[] queryParams)
         {
-            Panel.Show(true, true);
+            Panel.Show(false, true);
             Caller.CallBag(method: method, databag, result =>
                 {
                     Panel.Hide();
                     callbackAction?.Invoke(result);
                 },
-                result =>
+                (code,result)=>
                 {
                     Panel.Hide();
                     failedCallbackAction?.Invoke(result);
@@ -117,9 +120,9 @@ namespace Utl
 
         #endregion
         // Register
-        public static void Register(RegisterDto registerModel, Action<LoginResult> callbackAction,
+        public static void User_Register(RegisterDto registerModel, Action<LoginResult> callbackAction,
             Action<string> failedCallbackAction) =>
-            CallBagWithoutToken(RegisterApi, DataBag.SerializeWithName(nameof(RegisterDto),registerModel), bag =>
+            CallBagWithoutToken(User_RegisterApi, DataBag.SerializeWithName(nameof(RegisterDto),registerModel), bag =>
             {
                 var loginResult = bag.Get<LoginResult>(0);
                 Caller.RegAccessToken(loginResult.access_token);
@@ -127,14 +130,28 @@ namespace Utl
             }, failedCallbackAction);
 
         // Login
-        public static void Login(string username, string password, Action<LoginResult> callbackAction, Action<string> failedCallbackAction)
+        public static void User_Login(string username, string password, Action<LoginResult> callbackAction, Action<string> failedCallbackAction)
         {
             var content = new LoginDto
             {
                 Username = username,
                 Password = password
             };
-            CallBagWithoutToken(LoginApi, DataBag.SerializeWithName(nameof(LoginDto), content), bag =>
+            CallBagWithoutToken(User_LoginApi, DataBag.SerializeWithName(nameof(LoginDto), content), bag =>
+            {
+                var obj = bag.Get<LoginResult>(0);
+                Caller.RegAccessToken(obj.access_token);
+                callbackAction?.Invoke(obj);
+            }, msg => failedCallbackAction?.Invoke(msg));
+        }
+        public static void Rider_Login(string username, string password, Action<LoginResult> callbackAction, Action<string> failedCallbackAction)
+        {
+            var content = new LoginDto
+            {
+                Username = username,
+                Password = password
+            };
+            CallBagWithoutToken(Rider_LoginApi, DataBag.SerializeWithName(nameof(LoginDto), content), bag =>
             {
                 var obj = bag.Get<LoginResult>(0);
                 Caller.RegAccessToken(obj.access_token);
@@ -142,23 +159,22 @@ namespace Utl
             }, msg => failedCallbackAction?.Invoke(msg));
         }
 
-
         // Relogin
-        public static void Relogin(string refreshToken, string username, Action<LoginResult> callbackAction,
+        public static void User_Relogin(string refreshToken, string username, Action<LoginResult> callbackAction,
             Action<string> failedCallbackAction)
         {
-            Caller.CallBagWithToken(ReloginApi, DataBag.Serialize(username),
+            Caller.CallBag(User_ReloginApi, DataBag.Serialize(username),
                 refreshToken, bag =>
                 {
                     var obj = bag.Get<LoginResult>(0);
                     Caller.RegAccessToken(obj.access_token);
                     callbackAction?.Invoke(obj);
-                }, failedCallbackAction);
+                }, (code, message) => failedCallbackAction(message));
         }
 
         // CreateRider
         public static void CreateRider(Action<(bool isSuccess, string arg)> callbackAction) =>
-            Call<string>(CreateRiderApi, msg => callbackAction?.Invoke((true, msg)),
+            Call<string>(User_CreateRiderApi, msg => callbackAction?.Invoke((true, msg)),
                 msg => callbackAction?.Invoke((false, msg)));
 
         // CreateDeliveryOrder
@@ -166,7 +182,7 @@ namespace Utl
             Action<DeliveryOrderDto> successAction,
             Action<string> failedAction)
         {
-            CallBag(CreateDeliveryOrderApi, DataBag.Serialize(orderDto), bag =>
+            CallBag(User_CreateDeliveryOrderApi, DataBag.Serialize(orderDto), bag =>
             {
                 var deliveryOrder = bag.Get<DeliveryOrderDto>(0);
                 successAction?.Invoke(deliveryOrder);
@@ -174,14 +190,14 @@ namespace Utl
         }
 
         // AssignRider
-        public static void AssignRider(DeliveryAssignmentDto assignmentDto,
-            Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(AssignRiderApi,
-            assignmentDto, msg => callbackAction?.Invoke((true, msg)), msg => callbackAction?.Invoke((false, msg)));
-
-        // UpdateOrderStatus
-        public static void UpdateOrderStatus(DeliverySetStatusDto setStatusDto,
-            Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(UpdateOrderStatusApi,
-            setStatusDto, msg => callbackAction?.Invoke((true, msg)), msg => callbackAction?.Invoke((false, msg)));
+        //public static void AssignRider(DeliveryAssignmentDto assignmentDto,
+        //    Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(AssignRiderApi,
+        //    assignmentDto, msg => callbackAction?.Invoke((true, msg)), msg => callbackAction?.Invoke((false, msg)));
+        public static void Rider_AssignRider(int orderId, Action<DeliveryOrderDto> successAction, Action<string> failedAction)
+        {
+            CallBag(Rider_AssignRiderApi, DataBag.Serialize(orderId),
+                bag => successAction?.Invoke(bag.Get<DeliveryOrderDto>(0)), failedAction);
+        }
 
         public static void RegisterRider(Action<bool> callbackAction)
         {
@@ -191,34 +207,29 @@ namespace Utl
             }, arg => callbackAction?.Invoke(false));
         }
 
-        public static void GetDeliveryOrders(int limit,int page,Action<DeliveryOrderDto[]> successAction, Action<string> failedAction)
+        public static void User_GetDeliveryOrders(int limit,int page,Action<DeliveryOrderDto[]> successAction, Action<string> failedAction)
         {
-            CallBag("User_GetAllDeliveryOrders", DataBag.Serialize(limit, page), bag =>
+            CallBag(User_GetAllDeliveryOrders, DataBag.Serialize(limit, page), bag =>
+            {
+                var orders = bag.Get<DeliveryOrderDto[]>(0);
+                successAction?.Invoke(orders);
+            }, failedAction);
+        }
+        public static void Rider_GetDeliveryOrders(int limit,int page,Action<DeliveryOrderDto[]> successAction, Action<string> failedAction)
+        {
+            CallBag("Rider_GetAllDeliveryOrders", DataBag.Serialize(limit, page), bag =>
             {
                 var orders = bag.Get<DeliveryOrderDto[]>(0);
                 successAction?.Invoke(orders);
             }, failedAction);
         }
 
-        public static void AssignRider(int orderId, Action<DeliveryOrderDto> successAction, Action<string> failedAction)
+        public static void Rider_PickItem(DeliveryOrder order, Action<DeliveryOrderDto> successAction,
+            Action<string> failedAction)
         {
-            CallBag("Rider_AssignRider", DataBag.Serialize(orderId),
-                bag => successAction?.Invoke(bag.Get<DeliveryOrderDto>(0)), failedAction);
-        }
-
-        public static void RiderLogin(string username, string password, Action<RiderDto> successAction, Action<string> failedAction)
-        {
-            CallBag("Anonymous_RiderLogin", DataBag.Serialize(username, password), bag =>
-            {
-                var rider = bag.Get<RiderDto>(0);
-                if (rider == null)
-                {
-                    failedAction?.Invoke(bag.ToString());
-                    return;
-                }
-                Caller.RegAccessToken(bag.Get<string>(1));
-                successAction?.Invoke(rider);
-            }, failedAction);
+            var dto = order.ToDto();
+            CallBag(Rider_UpdateOrderStatusApi, DataBag.Serialize(dto),
+                bag => { successAction?.Invoke(bag.Get<DeliveryOrderDto>(0)); }, failedAction);
         }
     }
 }

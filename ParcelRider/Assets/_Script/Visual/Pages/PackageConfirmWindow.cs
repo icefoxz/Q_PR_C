@@ -10,7 +10,7 @@ public class PackageConfirmWindow : WinUiBase
     private Button btn_paymentGateway { get; }
     private View_info view_Info { get; }
 
-    public PackageConfirmWindow(IView v, UiManager uiManager) : base(v, uiManager)
+    public PackageConfirmWindow(IView v, User_UiManager uiManager) : base(v, uiManager)
     {
         view_Info = new View_info(v.GetObject<View>("view_info"));
         btn_cancel = v.GetObject<Button>("btn_cancel");

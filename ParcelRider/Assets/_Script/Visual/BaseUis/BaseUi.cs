@@ -7,9 +7,9 @@ namespace Visual.BaseUis
     /// </summary>
     public interface IUiBase
     {
-        public void Show();
-        public void Hide();
-        public void ResetUi();
+        void Show();
+        void Hide();
+        void ResetUi();
     }
 
     /// <summary>

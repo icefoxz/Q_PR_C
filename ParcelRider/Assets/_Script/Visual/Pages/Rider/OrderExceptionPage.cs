@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Controllers;
+using System;
 using System.Collections.Generic;
+using Core;
 using UnityEngine.UI;
 using Views;
 
@@ -9,12 +11,11 @@ namespace Visual.Pages.Rider
     {
         private ListViewUi<Prefab_option> OptionListView { get; set; }
         private Button btn_close { get; }
-        private Action<string,int> OnOptionSelected { get; set; }
+        private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public OrderExceptionPage(IView v, Action<string, int> onOptionSelected, RiderUiManager uiManager) :
+        public OrderExceptionPage(IView v, Rider_UiManager uiManager) :
             base(v, uiManager)
         {
-            OnOptionSelected = onOptionSelected;
             btn_close = v.GetObject<Button>("btn_close");
             btn_close.OnClickAdd(Hide);
             OptionListView = new ListViewUi<Prefab_option>(v, "prefab_option", "scroll_options", true, false);
@@ -25,17 +26,21 @@ namespace Visual.Pages.Rider
             OptionListView.ClearList(ui => ui.Destroy());
             for (var i = 0; i < options.Count; i++)
             {
-                var option = options[i];
+                var description = options[i];
                 var index = i;
-                var prefab = OptionListView.Instance(v => new Prefab_option(v, () =>
+                var prefab = OptionListView.Instance(v => new Prefab_option(v, onCLickAction: () =>
                 {
-                    OnOptionSelected(orderId, index);
-                    Hide();
+                    ConfirmWindow.Set(() =>
+                    {
+                        ExceptionOptionSelected(orderId, index);
+                        Hide();
+                    }, $"{description}?");
                 }));
-                prefab.Set(option);
+                prefab.Set(description);
             }
             Show();
         }
+        private void ExceptionOptionSelected(string orderId, int optionIndex) => RiderOrderController.SetException(orderId, optionIndex);
 
         private class Prefab_option : UiBase
         {

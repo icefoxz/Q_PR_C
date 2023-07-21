@@ -2,7 +2,7 @@ using OrderHelperLib.DtoModels.DeliveryOrders;
 
 namespace DataModel
 {
-    public class Rider : EntityBase
+    public class Rider : EntityBase<string>
     {
         public string Name { get; set; }
         public string Phone{ get; set; }
@@ -15,7 +15,7 @@ namespace DataModel
 
         public Rider(RiderDto r)
         {
-            Id = r.Id;
+            Id = r.Id.ToString();
             Name = r.Name;
             Phone = r.Phone;
             Location = r.Location;

@@ -4,7 +4,7 @@ using Core;
 using UnityEngine;
 using UnityEngine.Android;
 
-public class PictureController : IController
+public class PictureController : ControllerBase
 {
     private const string JavaGallerycamerahelperClass = "com.icefoxz.parcelrider.GalleryCameraHelper";
     private Action<Texture2D> _onPictureTaken;

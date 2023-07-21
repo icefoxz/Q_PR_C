@@ -7,7 +7,7 @@ public class PaymentPage : PageUiBase
     private Button btn_pay { get; }
     private Button btn_cancel { get; }
 
-    public PaymentPage(IView v, UiManager uiManager) : base(v, uiManager)
+    public PaymentPage(IView v, User_UiManager uiManager) : base(v, uiManager)
     {
         btn_pay = v.GetObject<Button>("btn_pay");
         btn_cancel = v.GetObject<Button>("btn_cancel");

@@ -48,5 +48,21 @@ namespace Visual.Pages.Rider
             }
             public void SetSelected(bool selected) => outline.enabled = selected;
         }
+
+        public void SetSelected(Rider_UiManager.ActivityPages page)
+        {
+            switch (page)
+            {
+                case Rider_UiManager.ActivityPages.ListPage:
+                    SelectedPage(element_pageJobs);
+                    break;
+                case Rider_UiManager.ActivityPages.HomePage:
+                    SelectedPage(element_pageHome);
+                    break;
+                case Rider_UiManager.ActivityPages.HistoryPage:
+                    SelectedPage(element_pageHistory);
+                    break;
+            }
+        }
     }
 }

@@ -6,13 +6,13 @@ using OrderHelperLib.DtoModels.Users;
 using UnityEngine.UI;
 using Views;
 
-public class LoginPage : PageUiBase
+public class User_LoginPage : PageUiBase
 {
     private View_loginSect view_loginSect { get; }
     private View_RegSect view_regSect { get; }
     private LoginController LoginController => App.GetController<LoginController>();
     private event Action OnLoggedInEvent;
-    public LoginPage(IView v, Action onLoggedInAction, UiManagerBase uiManager) : base(v, uiManager)
+    public User_LoginPage(IView v, Action onLoggedInAction, UiManagerBase uiManager) : base(v, uiManager)
     {
         OnLoggedInEvent += onLoggedInAction;
         OnLoggedInEvent += Hide;

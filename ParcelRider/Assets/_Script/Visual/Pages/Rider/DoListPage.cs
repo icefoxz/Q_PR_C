@@ -11,10 +11,10 @@ namespace Visual.Pages.Rider
 {
     internal abstract class DoListPage : PageUiBase
     {
-        private View_doList view_doList { get; }
-        private OrderController OrderController => App.GetController<OrderController>();
+        protected View_doList view_doList { get; }
+        protected UserOrderController UserOrderController => App.GetController<UserOrderController>();
 
-        protected DoListPage(IView v, Action<string> onOrderSelectedAction, RiderUiManager uiManager, bool display = false)
+        protected DoListPage(IView v, Action<string> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
             : base(v, uiManager, display)
         {
             view_doList = new View_doList(v.GetObject<View>("view_doList"), onOrderSelectedAction);
@@ -28,17 +28,17 @@ namespace Visual.Pages.Rider
 
         private void UpdateOrderList()
         {
-            view_doList.Set(OrderController.Orders.Where(OrderListFilter).OrderByDescending(o => int.Parse(o.Id)).ToArray());
+            var orders = App.Models.OrderCollection.Orders.Where(OrderListFilter).OrderByDescending(o => int.Parse(o.Id))
+                .ToArray();
+            OnOrderListUpdate(orders);
+            view_doList.Set(orders);
         }
+
+        protected abstract void OnOrderListUpdate(DeliveryOrder[] deliveryOrders);
 
         protected abstract bool OrderListFilter(DeliveryOrder order);
 
-        public override void Show()
-        {
-            view_doList.Set(OrderController.Orders.Where(OrderListFilter).OrderByDescending(o => int.Parse(o.Id)).ToArray());
-            base.Show();
-        }
-
+        protected override void OnUiShow() => UpdateOrderList();
     }
 
     #region Do_list 列表页面
@@ -47,6 +47,7 @@ namespace Visual.Pages.Rider
     {
         private ListViewUi<Prefab_do> DoListView { get; }
         private Action<string> OnOrderSelected { get; }
+        public int Count => DoListView.List.Count;
 
         public View_doList(IView v, Action<string> onOrderSelected, bool display = true) : base(v, display)
         {
@@ -57,7 +58,7 @@ namespace Visual.Pages.Rider
         public void Set(IReadOnlyCollection<DeliveryOrder> orders)
         {
             DoListView.ClearList(ui => ui.Destroy());
-            foreach (var order in orders.Where(o => o.Status == (int)DeliveryOrder.States.None))
+            foreach (var order in orders)
             {
                 var ui = DoListView.Instance(v => new Prefab_do(v, () => OnOrderSelected(order.Id)));
                 var f = order.From;

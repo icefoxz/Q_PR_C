@@ -12,7 +12,7 @@ using Utls;
 using Views;
 using Visual.Sects;
 
-public class NewPackagePage : PageUiBase
+public class User_NewPackagePage : PageUiBase
 {
     private Button btn_submit { get; }
     private Button btn_cancel { get; }
@@ -32,7 +32,7 @@ public class NewPackagePage : PageUiBase
     private MyStates[] MyStates { get; set; }
     private bool _isUpperUi;
 
-    public NewPackagePage(IView v, Action onSubmit, Action onCancelAction, UiManager uiManager) : base(v, uiManager)
+    public User_NewPackagePage(IView v, Action onSubmit, Action onCancelAction, User_UiManager uiManager) : base(v, uiManager)
     {
         CurrentDo = new DoVolume();
         btn_submit = v.GetObject<Button>("btn_submit");

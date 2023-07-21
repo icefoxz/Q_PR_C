@@ -14,7 +14,8 @@ public class View_AccountSect : UiBase
     private Button btn_account { get; }
     private Button btn_logout { get; }
     private View_Lingau view_lingau { get; }
-    public View_AccountSect(IView v, Action onAccountAction,Action logoutAction) : base(v, false)
+
+    public View_AccountSect(IView v, Action onAccountAction, Action logoutAction) : base(v)
     {
         text_name = v.GetObject<Text>("text_name");
         img_ico = v.GetObject<Image>("img_ico");

@@ -50,7 +50,8 @@ namespace Core
 
         private static void TestData()
         {
-            var packageController = GetController<OrderController>();
+            var userOrderController = GetController<UserOrderController>();
+            var riderOrderController = GetController<RiderOrderController>();
             //add testing orders
             var testList = new List<DeliveryOrder>();
             for (int i = 0; i < 2; i++)
@@ -64,7 +65,8 @@ namespace Core
                 };
                 testList.Add(order);
             }
-            packageController.AddOrder(testList.ToArray());
+            userOrderController.List_Set(testList.ToArray());
+            riderOrderController.List_Set(testList.ToArray());
         }
 
         private static void UiInit(Canvas canvas, UiManagerBase uiManager,bool startUi)
@@ -77,12 +79,18 @@ namespace Core
         private static void ControllerReg()
         {
             ServiceContainer = new ControllerServiceContainer();
-            //ServiceContainer.Reg(new AutofillAddressController());
-            //ServiceContainer.Reg(new GeocodingController());
-            ServiceContainer.Reg(new OrderController());
-            ServiceContainer.Reg(new RiderController());
-            ServiceContainer.Reg(new RiderApiController());
-            ServiceContainer.Reg(new PictureController(MonoService));
+            //User
+            ServiceContainer.Reg(new LoginController(), AppLaunch.TestMode);
+            ServiceContainer.Reg(new AutofillAddressController(), AppLaunch.TestMode);
+            ServiceContainer.Reg(new GeocodingController(), AppLaunch.TestMode);
+
+            //Rider
+            ServiceContainer.Reg(new RiderLoginController(),AppLaunch.TestMode);
+            ServiceContainer.Reg(new RiderOrderController(), AppLaunch.TestMode);
+
+            //Common
+            ServiceContainer.Reg(new UserOrderController(), AppLaunch.TestMode);
+            ServiceContainer.Reg(new PictureController(MonoService), AppLaunch.TestMode);
         }
     }
 }

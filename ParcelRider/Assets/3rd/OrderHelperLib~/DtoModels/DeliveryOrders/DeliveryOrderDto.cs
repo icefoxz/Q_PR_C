@@ -1,4 +1,5 @@
 ﻿using OrderHelperLib.Contracts;
+using OrderHelperLib.DtoModels.Users;
 
 namespace OrderHelperLib.DtoModels.DeliveryOrders
 {
@@ -14,7 +15,7 @@ namespace OrderHelperLib.DtoModels.DeliveryOrders
         public DeliveryInfoDto DeliveryInfo { get; set; }
         public MyStates MyState { get; set; }
         public int? RiderId { get; set; }
-        public RiderDto Rider { get; set; }
+        public RiderDto? Rider { get; set; }
         public PaymentInfoDto PaymentInfo { get; set; }
         public DeliveryOrderStatus Status { get; set; }
     }
@@ -33,15 +34,6 @@ namespace OrderHelperLib.DtoModels.DeliveryOrders
     public class LingauDto
     {
         public float Credit { get; set; }
-    }
-
-    public class UserDto
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string PhoneNumber { get; set; }
-        public string Email { get; set; }
-        public string Username { get; set; }
     }
 
     public class CoordinatesDto

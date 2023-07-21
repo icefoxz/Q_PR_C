@@ -13,7 +13,7 @@ public class ConfirmWindow : WinUiBase
     private static GameObject obj_content { get; set; }
     private static ConfirmWindow Instance { get; set; }
 
-    public ConfirmWindow(IView v, UiManager uiManager, bool display = false) : base(v, uiManager, display)
+    public ConfirmWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
     {
         btn_yes = v.GetObject<Button>("btn_yes");
         btn_no = v.GetObject<Button>("btn_no");
@@ -21,7 +21,7 @@ public class ConfirmWindow : WinUiBase
         text_content = v.GetObject<Text>("text_content");
         obj_content = v.GetObject("obj_content");
         Instance = this;
-        btn_no.OnClickAdd(Hide);
+        btn_no.OnClickAdd(Hide);//包一层
     }
     public static void Set(Action onConfirmAction)=> Set(ConfirmText, onConfirmAction);
     public static void Set(Action onConfirmAction, string content) => Set(ConfirmText, content, onConfirmAction);
@@ -36,5 +36,6 @@ public class ConfirmWindow : WinUiBase
             onConfirmAction?.Invoke();
             Instance.Hide();
         });
+        Instance.Show();
     }
 }

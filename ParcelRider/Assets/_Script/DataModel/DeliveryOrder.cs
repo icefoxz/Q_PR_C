@@ -35,11 +35,11 @@ namespace DataModel
         public DeliveryOrder(DeliveryOrderDto dto)
         {
             Id = dto.Id;
-            From = new IdentityInfo(dto.User.PhoneNumber, dto.User.Name, dto.StartCoordinates.Address);
+            From = new IdentityInfo(dto.User.Phone, dto.User.Name, dto.StartCoordinates.Address);
             To = new IdentityInfo(dto.ReceiverInfo.PhoneNumber, dto.ReceiverInfo.Name, dto.EndCoordinates.Address);
             Package = new PackageInfo(dto.ItemInfo.Weight, dto.DeliveryInfo.Price, dto.DeliveryInfo.Distance,
                 dto.ItemInfo.Length, dto.ItemInfo.Width, dto.ItemInfo.Height);
-            Rider = new Rider(dto.Rider);
+            Rider = dto.Rider == null ? null : new Rider(dto.Rider);
             Status = (int)dto.Status;
         }
 
@@ -83,10 +83,7 @@ namespace DataModel
             }
         }
 
-        public void SetPaymentMethod(PaymentMethods payment)
-        {
-            PaymentMethod = (int)payment;
-        }
+        public void SetPaymentMethod(PaymentMethods payment) => PaymentMethod = (int)payment;
     }
 
     public class IdentityInfo

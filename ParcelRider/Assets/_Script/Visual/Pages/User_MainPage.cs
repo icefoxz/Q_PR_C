@@ -8,14 +8,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using Views;
 
-public class MainPage : PageUiBase
+public class User_MainPage : PageUiBase
 {
     private ListViewUi<Prefab_Order> OrderListView { get; }
     private View_packagePlayer view_packagePlayer { get; }
     private View_historySect view_historySect { get; }
-    private OrderController OrderController => App.GetController<OrderController>();
-    private UiManager Mgr { get; }
-    public MainPage(IView v, UiManager uiManager) : base(v, uiManager)
+    private UserOrderController UserOrderController => App.GetController<UserOrderController>();
+    private User_UiManager Mgr { get; }
+    public User_MainPage(IView v, User_UiManager uiManager) : base(v, uiManager)
     {
         Mgr = uiManager;
         OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
@@ -33,7 +33,7 @@ public class MainPage : PageUiBase
 
     private void RefreshOrderList()
     {
-        SetOrders(OrderController.Orders.OrderBy(o => o.Status).ToArray());
+        SetOrders(App.Models.OrderCollection.Orders.OrderBy(o => o.Status).ToArray());
 
         void SetOrders(DeliveryOrder[] orders)
         {
@@ -48,11 +48,7 @@ public class MainPage : PageUiBase
         }
     }
 
-    public override void Show()
-    {
-        RefreshOrderList();
-        base.Show();
-    }
+    protected override void OnUiShow() => RefreshOrderList();
 
     private class Prefab_Order : UiBase
     {
@@ -174,7 +170,7 @@ public class MainPage : PageUiBase
             {
                 View_weightSwitch.Weights.Kilogram => weight,
                 View_weightSwitch.Weights.Gram => weight / 1000f,
-                View_weightSwitch.Weights.Pound => weight / OrderController.KgToPounds,
+                View_weightSwitch.Weights.Pound => weight / UserOrderController.KgToPounds,
                 _ => throw new ArgumentOutOfRangeException()
             };
             view_info.SetKg(kg);
@@ -193,7 +189,7 @@ public class MainPage : PageUiBase
                 return view_sizeSwitch.Current switch
                 {
                     View_sizeSwitch.Sizes.Meter => value,
-                    View_sizeSwitch.Sizes.Feet => value / OrderController.MeterToFeet,
+                    View_sizeSwitch.Sizes.Feet => value / UserOrderController.MeterToFeet,
                     View_sizeSwitch.Sizes.Centimeter => value / 100,
                     _ => throw new ArgumentOutOfRangeException()
                 };

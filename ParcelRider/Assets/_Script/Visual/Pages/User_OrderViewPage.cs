@@ -1,9 +1,10 @@
 using System;
+using Core;
 using DataModel;
 using UnityEngine.UI;
 using Views;
 
-public class OrderViewPage : PageUiBase
+public class User_OrderViewPage : PageUiBase
 {
     private Text text_orderId { get; }
     private Text text_riderName { get; }
@@ -19,7 +20,7 @@ public class OrderViewPage : PageUiBase
     private Element_contact element_contactFrom { get; }
     private View_packageInfo view_packageInfo { get; }
 
-    public OrderViewPage(IView v, IUiManager uiManager) : base(v, uiManager)
+    public User_OrderViewPage(IView v, UiManagerBase uiManager) : base(v, uiManager)
     {
         text_orderId = v.GetObject<Text>("text_orderId");
         btn_close = v.GetObject<Button>("btn_close");
@@ -39,19 +40,31 @@ public class OrderViewPage : PageUiBase
         view_packageInfo = new View_packageInfo(v.GetObject<View>("view_packageInfo"));
 
         btn_close.OnClickAdd(Hide);
+        App.MessagingManager.RegEvent(EventString.CurrentOrder_Update, _ => UpdateOrder());
     }
 
-    public void Set(DeliveryOrder o, Action onCancelRequestAction)
+    public void DisplayCurrentOrder(Action onCancelRequestAction)
     {
+        btn_cancel.gameObject.SetActive(onCancelRequestAction != null);
+        if (onCancelRequestAction == null)
+            btn_cancel.onClick.RemoveAllListeners();
+        else
+            btn_cancel.OnClickAdd(onCancelRequestAction);
+        UpdateOrder();
+        Show();
+    }
+
+    private void UpdateOrder()
+    {
+        var o = App.Models.OrderCollection.Current;
+        if (o == null) return;
         text_orderId.text = o.Id;
-        view_packageInfo.Set(o.Package.Price,o.Package.Distance,o.Package.Weight, o.Package.Size);
+        view_packageInfo.Set(o.Package.Price, o.Package.Distance, o.Package.Weight, o.Package.Size);
         element_contactTo.Set(o.To.Name, o.To.Phone, o.To.Address);
         element_contactFrom.Set(o.From.Name, o.From.Phone, o.From.Address);
         text_riderName.text = o.Rider?.Name;
         text_riderPhone.text = o.Rider?.Phone;
         SetState((DeliveryOrder.States)o.Status);
-        btn_cancel.OnClickAdd(onCancelRequestAction);
-        Show();
     }
 
     private void SetState(DeliveryOrder.States state)

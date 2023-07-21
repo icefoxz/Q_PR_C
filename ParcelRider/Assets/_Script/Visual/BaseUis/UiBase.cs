@@ -16,18 +16,29 @@ public abstract class UiBase : IUiBase
 
     public UiBase(IView v, bool display = true)
     {
-        if (v == null) throw new ArgumentNullException($"{GetType().Name}: view = null!");
-        _v = v;
+        _v = v ?? throw new ArgumentNullException($"{GetType().Name}: view = null!");
         GameObject = v.GameObject;
         Transform = v.GameObject.transform;
         RectTransform = v.RectTransform;
         GameObject.SetActive(display);
     }
 
-    public virtual void Show() => GameObject.SetActive(true);
-
-    public virtual void Hide() => GameObject.SetActive(false);
-
+    /// <summary>
+    /// 当ui显示触发器
+    /// </summary>
+    protected virtual void OnUiShow() { }
+    /// <summary>
+    /// 当ui隐藏触发器
+    /// </summary>
+    protected virtual void OnUiHide() { }
+    public void Show() => Display(true);
+    public void Hide() => Display(false);
+    private void Display(bool display)
+    {
+        if (display) OnUiShow();
+        else OnUiHide();
+        GameObject.SetActive(display);
+    }
     public virtual void ResetUi() { }
 
     public Coroutine StartCoroutine(IEnumerator enumerator) => _v.StartCo(enumerator);

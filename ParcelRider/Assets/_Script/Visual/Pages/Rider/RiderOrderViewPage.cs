@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Controllers;
 using Core;
 using DataModel;
 using UnityEngine;
@@ -8,7 +9,7 @@ using Views;
 
 namespace Visual.Pages.Rider
 {
-    public class OrderPage : PageUiBase
+    public class RiderOrderViewPage : PageUiBase
     {
         private Text text_orderId { get; }
         private Text text_riderName { get; }
@@ -18,58 +19,58 @@ namespace Visual.Pages.Rider
         private Element_contact element_contactTo { get; }
         private Element_contact element_contactFrom { get; }
         private View_riderOptions view_riderOptions { get; }
-        private View_image view_image { get; }
+        private View_images ViewImages { get; }
         private Button btn_exception { get; }
         private Button btn_close { get; }
-        private string orderId { get; set; }
+        private string OrderId { get; set; }
         private List<Sprite> images { get; set; } = new List<Sprite>();
         private PictureController PictureController => App.GetController<PictureController>();
+        private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public OrderPage(IView v,
-            Action<string> onTakeOrderAction,
-            Action<string> onPickItemAction,
-            Action<string> onCollectionAction,
-            Action<string> onCompletedAction,
-            Action<string> onExceptionAction,
-            RiderUiManager uiManager) : base(v, uiManager)
+        public RiderOrderViewPage(IView v, Action<string> onExceptionAction,
+            Rider_UiManager uiManager) : base(v, uiManager)
         {
             text_orderId = v.GetObject<Text>("text_orderId");
             text_riderName = v.GetObject<Text>("text_riderName");
             text_riderPhone = v.GetObject<Text>("text_riderPhone");
             view_packageInfo = new View_packageInfo(v.GetObject<View>("view_packageInfo"));
             view_states = new View_states(v.GetObject<View>("view_states"));
-            view_image = new View_image(v.GetObject<View>("view_image"), ImageSelected_PromptImageWindow,Camera_callPictureController);
+            ViewImages = new View_images(v: v.GetObject<View>("view_images"),
+                onImageSelectedAction: ImageSelected_PromptImageWindow,
+                onGalleryAction: () => PictureController.OpenGallery(OnPictureTaken),
+                onCameraAction: () => PictureController.OpenCamera(OnPictureTaken));
             element_contactTo = new Element_contact(v.GetObject<View>("element_contactTo"));
             element_contactFrom = new Element_contact(v.GetObject<View>("element_contactFrom"));
             view_riderOptions = new View_riderOptions(v.GetObject<View>("view_riderOptions")
-                , () => onTakeOrderAction(orderId)
-                , () => onPickItemAction(orderId)
-                , () => onCollectionAction(orderId)
-                , () => onCompletedAction(orderId));
+                , () => TakeOrder_ApiReq(OrderId)
+                , () => PickItem_ApiReq(OrderId)
+                , () => Collection_ApiReq(OrderId)
+                , () => Complete_ApiReq(OrderId));
             btn_exception = v.GetObject<Button>("btn_exception");
-            btn_exception.OnClickAdd(() => onExceptionAction(orderId));
+            btn_exception.OnClickAdd(() => onExceptionAction(OrderId));
             btn_close = v.GetObject<Button>("btn_close");
             btn_close.OnClickAdd(() => Hide());
+
+            App.MessagingManager.RegEvent(EventString.CurrentOrder_Update, _ => ShowCurrentOrder());
         }
 
-        private void Camera_callPictureController()
+        private void Complete_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
+        private void Collection_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.ItemCollection(orderId), "Collection?");
+        private void PickItem_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.PickItem(orderId), "Pick Item?");
+        private void TakeOrder_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.Do_AssignRider(orderId), "Take Order?");
+
+        private void OnPictureTaken(Texture2D texture)
         {
-            PictureController.OpenCamera(OnPictureTaken);
-
-            void OnPictureTaken(Texture2D texture)
-            {
-                images.Add(Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero));
-                UpdateImages();
-            }
+            images.Add(Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero));
+            UpdateImages();
         }
-
-        private void UpdateImages() => view_image.Set(images.ToArray());
-
+        private void UpdateImages() => ViewImages.Set(images.ToArray());
         private void ImageSelected_PromptImageWindow(int index) => ImageWindow.Set(images[index]);
 
-        public void Set(DeliveryOrder order)
+        public void ShowCurrentOrder()
         {
-            orderId = order.Id;
+            var order = App.Models.OrderCollection.Current ?? throw new Exception("No order set to current!");
+            OrderId = order.Id;
             var p = order.Package;
             var f = order.From;
             var t = order.To;
@@ -187,16 +188,23 @@ namespace Visual.Pages.Rider
             }
         }
 
-        private class View_image : UiBase
+        private class View_images : UiBase
         {
             private ListViewUi<Prefab_image> ImageListView { get; }
             private Button btn_camera { get; }
+            private Button btn_gallery { get; }
             private event Action<int> OnImageSelected;
-            public View_image(IView v,Action<int> onImageSelectedAction,Action onCameraAction) : base(v)
+
+            public View_images(IView v, 
+                Action<int> onImageSelectedAction, 
+                Action onGalleryAction,
+                Action onCameraAction) : base(v)
             {
                 OnImageSelected = onImageSelectedAction;
                 btn_camera = v.GetObject<Button>("btn_camera");
                 btn_camera.OnClickAdd(onCameraAction);
+                btn_gallery = v.GetObject<Button>("btn_gallery");
+                btn_gallery.OnClickAdd(onGalleryAction);
                 ImageListView = new ListViewUi<Prefab_image>(v, "prefab_image", "scroll_image");
             }
 

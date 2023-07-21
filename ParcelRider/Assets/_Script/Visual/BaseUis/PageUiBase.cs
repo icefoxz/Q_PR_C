@@ -5,20 +5,18 @@ using Views;
 /// </summary>
 public abstract class WinUiBase : PageUiBase
 {
-    protected WinUiBase(IView v, UiManager uiManager, bool display = false) : base(v, uiManager, display)
+    protected WinUiBase(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
     {
     }
 
-    public override void Hide()
+    protected override void OnUiHide()
     {
         UiManager.DisplayWindows(false);
-        base.Hide();
     }
 
-    public override void Show()
+    protected override void OnUiShow()
     {
         UiManager.DisplayWindows(true);
-        base.Show();
     }
 }
 /// <summary>
@@ -26,9 +24,9 @@ public abstract class WinUiBase : PageUiBase
 /// </summary>
 public abstract class PageUiBase : UiBase
 {
-    protected IUiManager UiManager { get; }
+    protected UiManagerBase UiManager { get; }
 
-    protected PageUiBase(IView v, IUiManager uiManager, bool display = false) : base(v, display)
+    protected PageUiBase(IView v, UiManagerBase uiManager, bool display = false) : base(v, display)
     {
         UiManager = uiManager;
     }

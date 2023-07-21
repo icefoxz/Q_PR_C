@@ -8,6 +8,7 @@ namespace Core
     /// </summary>
     public interface IController
     {
+        void SetTestMode(bool isTestMode);
     }
     /// <summary>
     /// 基于<see cref="IController"/>的DI容器
@@ -24,6 +25,10 @@ namespace Core
             return obj as T;
         }
 
-        public void Reg<T>(T controller) where T : class, IController => Container.Add(typeof(T), controller);
+        public void Reg<T>(T controller, bool testMode) where T : class, IController
+        {
+            controller.SetTestMode(testMode);
+            Container.Add(typeof(T), controller);
+        }
     }
 }

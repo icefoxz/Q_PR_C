@@ -9,7 +9,7 @@ public class ImageWindow : WinUiBase
     private static Button btn_close { get; set; }
     private static ImageWindow Instance { get; set; }
 
-    public ImageWindow(IView v, UiManager uiManager, bool display = false) : base(v, uiManager, display)
+    public ImageWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
     {
         img_image = v.GetObject<Image>("img_image");
         btn_x = v.GetObject<Button>("btn_x");

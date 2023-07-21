@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using Controllers;
 using Core;
 using DataModel;
 using OrderHelperLib.Contracts;
@@ -10,28 +8,27 @@ using Views;
 
 namespace Visual.Pages.Rider
 {
-    internal class RiderHomePage : PageUiBase
+    internal class RiderHomePage : DoListPage
     {
-        private View_doList view_doList { get; }
         private GameObject obj_jobGuide { get; }
         private Button btn_jobList { get; }
-        private OrderController OrderController => App.GetController<OrderController>();
-        public RiderHomePage(IView v, Action<string> onOrderSelectedAction, RiderUiManager uiManager,
-            bool display = false) : base(v, uiManager, display)
+
+        public RiderHomePage(IView v, Action<string> onOrderSelectedAction, Action onJobListAction,
+            Rider_UiManager uiManager,
+            bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
         {
             obj_jobGuide = v.GetObject("obj_jobGuide");
             btn_jobList = v.GetObject<Button>("btn_jobList");
-            view_doList = new View_doList(v.GetObject<View>("view_doList"), onOrderSelectedAction);
+            btn_jobList.OnClickAdd(onJobListAction.Invoke);
         }
 
-        public override void Show()
+        protected override void OnOrderListUpdate(DeliveryOrder[] deliveryOrders)
         {
-            var hasJob = OrderController.Current != null;
+            var hasJob = deliveryOrders.Length > 0;
             obj_jobGuide.SetActive(!hasJob);
             btn_jobList.gameObject.SetActive(!hasJob);
-            view_doList.Set(OrderController.Orders
-                .Where(o => ((DeliveryOrderStatus)o.Status).IsOpen() && o.Rider?.Id == Auth.RiderId).ToArray());
-            base.Show();
         }
+
+        protected override bool OrderListFilter(DeliveryOrder o) => ((DeliveryOrderStatus)o.Status).IsOpen() && o.Rider?.Id == App.Models.Rider?.Id;
     }
 }

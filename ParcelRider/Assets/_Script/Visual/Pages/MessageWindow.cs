@@ -8,7 +8,7 @@ public class MessageWindow : WinUiBase
     private static Button btn_ok { get; set; }
     private static MessageWindow Instance { get; set; }
 
-    public MessageWindow(IView v, UiManager uiManager, bool display = false) : base(v, uiManager, display)
+    public MessageWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
     {
         text_title = v.GetObject<Text>("text_title");
         text_content = v.GetObject<Text>("text_content");

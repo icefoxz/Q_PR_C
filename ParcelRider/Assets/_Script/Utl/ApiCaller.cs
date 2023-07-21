@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using OrderHelperLib;
 
@@ -73,43 +74,40 @@ namespace Utl
 
         public void CallBag(string method, string dataBag,
             Action<DataBag> callbackAction,
-            Action<string> failedCallbackAction,
+            Action<HttpStatusCode, string> failedCallbackAction,
             bool isNeedAccessToken = true,
-            params (string, string)[] queryParams) => CallBagWithToken(method, dataBag,
+            params (string, string)[] queryParams) => CallBag(method, dataBag,
             isNeedAccessToken ? AccessToken : null, callbackAction,
             failedCallbackAction, queryParams);
 
-        public async void CallBagWithToken(string method, string dataBag,
+        public async void CallBag(string method, string dataBag,
             string token,
             Action<DataBag> callbackAction,
-            Action<string> failedCallbackAction,
+            Action<HttpStatusCode,string> failedCallbackAction,
             params (string, string)[] queryParams)
         {
-            var result =
-                await Http.SendStringContentAsync(ServerUrl + method, HttpMethod.Post, dataBag, token, queryParams);
-            if (!result.isSuccess)
-                failedCallbackAction?.Invoke(result.content);
+            var (isSuccess, content, httpStatusCode) = await Http.SendStringContentAsync(ServerUrl + method, HttpMethod.Post, dataBag, token, queryParams);
+            if (!isSuccess)
+                failedCallbackAction?.Invoke(httpStatusCode, content);
             else
             {
-                var bag = DataBag.Deserialize(result.content);
+                var bag = DataBag.Deserialize(content);
                 if (bag == null)
-                    failedCallbackAction?.Invoke(result.content);
+                    failedCallbackAction?.Invoke(httpStatusCode, content);
                 else callbackAction?.Invoke(bag);
             }
         }
 
         public void CallBag(string method, Action<DataBag> callbackAction,
-            Action<string> failedCallbackAction) =>
+            Action<HttpStatusCode, string> failedCallbackAction) =>
             CallBag(method, string.Empty, callbackAction, failedCallbackAction, true, Array.Empty<(string, string)>());
 
         public void CallBag(string method, string databag, Action<DataBag> callbackAction,
-            Action<string> failedCallbackAction) =>
+            Action<HttpStatusCode, string> failedCallbackAction) =>
             CallBag(method, databag, callbackAction, failedCallbackAction, true, Array.Empty<(string, string)>());
 
         public void CallBagWithoutToken(string method, string databag, Action<DataBag> callbackAction,
-            Action<string> failedCallbackAction) =>
+            Action<HttpStatusCode, string> failedCallbackAction) =>
             CallBag(method, databag, callbackAction, failedCallbackAction, false, Array.Empty<(string, string)>());
-
-
     }
 }
