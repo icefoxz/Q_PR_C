@@ -6,6 +6,7 @@ using AOT.Model;
 using AOT.Test;
 using AOT.Utl;
 using AOT.Views;
+using OrderHelperLib.DtoModels.Users;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -52,6 +53,7 @@ namespace AOT.Core
         {
             //add testing orders
             var testList = new List<DeliveryOrder>();
+            Models.SetUser(new UserDto{Id = "TestUser"});
             for (int i = 0; i < 2; i++)
             {
                 var order = new DeliveryOrder

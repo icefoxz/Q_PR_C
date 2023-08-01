@@ -26,22 +26,26 @@ namespace AOT.Controllers
     {
         private DeliveryOrder Current => Models.OrderCollection.Current;
 
-        public void CreatePackage(PaymentMethods payment, Action<bool, string> callbackAction)
+        public void Do_Create(DeliveryOrder order, Action<bool, string> callbackAction)
         {
+
             #region TestMode
 
             if (TestMode)
             {
-                Current.SetPaymentMethod(payment);
+                SetCurrent(order);
+                var list = Models.OrderCollection.Orders.ToList();
+                list.Add(order);
+                List_Clear();
+                List_Set(list.ToArray());
                 Do_UpdateAll();
-                callbackAction(true, string.Empty); //todo 为什么orderlist会生成2次?
+                callbackAction(true, string.Empty);
                 return;
             }
 
-
             #endregion
 
-            var dto = Current.ToDto();
+            var dto = order.ToDto();
             ApiPanel.CreateDeliveryOrder(dto, bag =>
             {
                 SetCurrent(new DeliveryOrder(bag));
@@ -53,10 +57,25 @@ namespace AOT.Controllers
             });
         }
 
+        public void Do_Payment(PaymentMethods payment, Action<bool, string> callbackAction)
+        {
+            #region TestMode
+            if(TestMode)
+            {
+                Current.SetPaymentMethod(payment);
+                callbackAction(true, string.Empty);
+                return;
+            }
+            #endregion
+        }
+
         public void Do_UpdateAll(int page = 1)
         {
             #region TestMode
-            if (TestMode) return;
+            if (TestMode)
+            {
+                return;
+            }
             #endregion
 
             ApiPanel.User_GetDeliveryOrders(50, page, bag =>
@@ -67,7 +86,6 @@ namespace AOT.Controllers
             }, msg => MessageWindow.Set("Error", msg));
         }
         
-
         public void Do_RequestCancel(string orderId, Action<bool> callbackAction)
         {
             #region TestMode

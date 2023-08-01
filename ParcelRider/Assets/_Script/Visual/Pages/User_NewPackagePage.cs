@@ -35,14 +35,14 @@ namespace Visual.Pages
         private MyStates[] MyStates { get; set; }
         private bool _isUpperUi;
 
-        public User_NewPackagePage(IView v, Action onSubmit, Action onCancelAction, User_UiManager uiManager) : base(v, uiManager)
+        public User_NewPackagePage(IView v, Action onSubmit, User_UiManager uiManager) : base(v, uiManager)
         {
             CurrentDo = new DoVolume();
             btn_submit = v.GetObject<Button>("btn_submit");
             btn_cancel = v.GetObject<Button>("btn_cancel");
             drop_state = v.GetObject<Dropdown>("drop_state");
             InitMyStateDropdown();
-            btn_cancel.OnClickAdd(onCancelAction);
+            btn_cancel.OnClickAdd(Hide);
             view_packageInfo = new View_packageInfo(v.GetObject<View>("view_packageInfo"));
             view_addressList = new View_addressList(v.GetObject<View>("view_addressList"), arg =>
             {

@@ -51,8 +51,9 @@ namespace Visual.Pages
         {
             View_AccountSect = new View_AccountSect(v: _view_accountSect, 
                 onAccountAction: () => AccountWindow.Show(),
-                logoutAction: OnLogoutAction);
-            User_LoginPage = new User_LoginPage(v: _loginPage, onLoggedInAction: LoginInit, uiManager: this);
+                logoutAction: 
+                Logout_To_LoginPage);
+            User_LoginPage = new User_LoginPage(v: _loginPage, onLoggedInAction: Login_Init, uiManager: this);
             User_MainPage = new User_MainPage(v: _mainPage, uiManager: this);
             PaymentPage = new PaymentPage(v: _paymentPage, uiManager: this);
 
@@ -63,8 +64,7 @@ namespace Visual.Pages
             ImageWindow = new ImageWindow(v: _win_image, uiManager: this);
 
             User_OrderViewPage = new User_OrderViewPage(v: _orderViewPage, uiManager: this);
-            User_NewPackagePage = new User_NewPackagePage(v: _newPackagePage, onSubmit: OnNewPackageSubmit,
-                onCancelAction: () => User_NewPackagePage.Hide(), uiManager: this);
+            User_NewPackagePage = new User_NewPackagePage(v: _newPackagePage, onSubmit: NewDo_Submit, uiManager: this);
             if (startUi) StartUi();
             Windows.SetActive(value: false);
         }
@@ -75,15 +75,23 @@ namespace Visual.Pages
         }
 
         //当新的包裹提交
-        private void OnNewPackageSubmit()
+        private void NewDo_Submit()
         {
             var order = User_NewPackagePage.GenerateOrder();
             var p = order.Package;
-            PackageConfirmWindow.Set(point: p.Price, kg: p.Weight, length: p.Length, width: p.Width, height: p.Height, 
-                onRiderCollectAction: RiderCollectPayment, 
-                onDeductFromPoint: DeductFromCredit,
-                onPaymentGateway: PaymentGateway);
-            UserOrderController.SetCurrent(order: order);
+            UserOrderController.Do_Create(order, (success, message) =>
+            {
+                if(!success)
+                {
+                    MessageWindow.Set(title: "Create Order Failed", content: message);
+                    return;
+                }
+                PackageConfirmWindow.Set(point: p.Price, kg: p.Weight, length: p.Length, width: p.Width,
+                    height: p.Height,
+                    onRiderCollectAction: RiderCollectPayment,
+                    onDeductFromPoint: DeductFromCredit,
+                    onPaymentGateway: PaymentGateway);
+            });
 
             void RiderCollectPayment()
             {
@@ -108,22 +116,23 @@ namespace Visual.Pages
 
             void CreateNewDeliveryOrder(PaymentMethods method)
             {
-                UserOrderController.CreatePackage(payment: method, callbackAction: (success, message) =>
+                UserOrderController.Do_Payment(payment: method, callbackAction: (success, message) =>
                 {
                     if (success)
                     {
                         User_NewPackagePage.Hide();
                         User_NewPackagePage.ResetUi();
                         UserOrderController.Do_UpdateAll();
+                        UserOrderController.SetCurrent(order);
                         MessageWindow.Set(title: "Create Order", content: "Success!");
                         return;
                     }
-                    MessageWindow.Set(title: "Create Order Failed", content: message);
+                    MessageWindow.Set(title: "Payment Failed", content: message);
                 });
             }
         }
 
-        private void OnLogoutAction()
+        private void Logout_To_LoginPage()
         {
             CloseAllPages();
             User_LoginPage.Show();
@@ -160,7 +169,7 @@ namespace Visual.Pages
                 };
         }
 
-        private void LoginInit()
+        private void Login_Init()
         {
             UserOrderController.Do_UpdateAll();
             User_MainPage.Show();
