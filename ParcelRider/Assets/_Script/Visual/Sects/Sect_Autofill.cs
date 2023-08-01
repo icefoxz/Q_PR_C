@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Core;
+using AOT.BaseUis;
+using AOT.Core;
+using AOT.Views;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Views;
 
 namespace Visual.Sects
 {
@@ -23,8 +24,6 @@ namespace Visual.Sects
         public Transform Content => AutofillListView.ScrollRect.content;
         private float ScrollRectMaxHeight { get; }
         private event Action<(string placeId,string address)> OnAddressConfirmAction;
-        //如果选中了建议地址,则不再触发OnEndEdit
-        //private bool IsSuggestionTaken { get; set; }
         private float YPosAlign { get; set; }
 
         public Sect_Autofill(IView v,

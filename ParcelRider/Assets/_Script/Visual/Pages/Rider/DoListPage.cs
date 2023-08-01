@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Controllers;
-using Core;
-using DataModel;
-using Views;
+using AOT.BaseUis;
+using AOT.Controllers;
+using AOT.Core;
+using AOT.DataModel;
+using AOT.Views;
 using UnityEngine.UI;
 
 namespace Visual.Pages.Rider

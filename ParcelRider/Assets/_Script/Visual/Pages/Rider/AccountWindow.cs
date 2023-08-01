@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
-using Core;
+using AOT.BaseUis;
+using AOT.Core;
+using AOT.Views;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Views;
 
 namespace Visual.Pages.Rider
 {

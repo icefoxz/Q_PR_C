@@ -1,6 +1,6 @@
 ﻿using System;
-using DataModel;
-using Views;
+using AOT.DataModel;
+using AOT.Views;
 
 namespace Visual.Pages.Rider
 {

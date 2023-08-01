@@ -1,7 +1,7 @@
 ﻿using System;
-using DataModel;
+using AOT.DataModel;
+using AOT.Views;
 using OrderHelperLib.Contracts;
-using Views;
 
 namespace Visual.Pages.Rider
 {

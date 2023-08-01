@@ -1,9 +1,10 @@
-﻿using Controllers;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Core;
+using AOT.BaseUis;
+using AOT.Controllers;
+using AOT.Core;
+using AOT.Views;
 using UnityEngine.UI;
-using Views;
 
 namespace Visual.Pages.Rider
 {

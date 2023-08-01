@@ -1,6 +1,7 @@
 ﻿using System;
+using AOT.BaseUis;
+using AOT.Views;
 using UnityEngine.UI;
-using Views;
 
 namespace Visual.Pages.Rider
 {

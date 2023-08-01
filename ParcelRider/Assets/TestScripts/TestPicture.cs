@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using Core;
+using AOT.Controllers;
+using AOT.Core;
+using AOT.Utl;
 using UnityEngine;
 using UnityEngine.UI;
-using Utl;
 
 public class TestPicture : MonoBehaviour
 {

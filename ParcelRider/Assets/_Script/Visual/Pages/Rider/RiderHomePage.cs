@@ -1,10 +1,10 @@
 ﻿using System;
-using Core;
-using DataModel;
+using AOT.Core;
+using AOT.DataModel;
+using AOT.Views;
 using OrderHelperLib.Contracts;
 using UnityEngine;
 using UnityEngine.UI;
-using Views;
 
 namespace Visual.Pages.Rider
 {
