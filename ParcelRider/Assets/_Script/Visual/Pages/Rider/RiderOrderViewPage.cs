@@ -117,23 +117,27 @@ namespace Visual.Pages.Rider
                 element_stateDelivering.SetActive(state == DeliveryOrder.States.Delivering);
                 element_stateCollection.SetActive(state == DeliveryOrder.States.Collection);
                 element_stateComplete.SetActive(state == DeliveryOrder.States.Complete);
-                element_stateException.SetActive(state == DeliveryOrder.States.Exception);
+
+                element_stateComplete.SetViewActive(state != DeliveryOrder.States.Exception);
+                element_stateException.SetViewActive(state == DeliveryOrder.States.Exception);
             }
 
             private class Element_state : UiBase
             {
-                private Image img_state { get; }
-                private Image img_active { get; }
-
-                public Element_state(IView v, bool display = true) : base(v, display)
+                private Image Img_active { get; }
+                public Element_state(IView v) : base(v)
                 {
-                    img_state = v.GetObject<Image>("img_state");
-                    img_active = v.GetObject<Image>("img_active");
+                    Img_active = v.GetObject<Image>("img_active");
                 }
 
-                public void SetActive(bool active) => img_active.gameObject.SetActive(active);
-                public void SetIcon(Sprite icon) => img_state.sprite = icon;
+                public void SetActive(bool active)
+                {
+                    Img_active.gameObject.SetActive(active);
+                }
+
+                public void SetViewActive(bool active) => GameObject.SetActive(active);
             }
+
         }
 
         private class View_riderOptions : UiBase

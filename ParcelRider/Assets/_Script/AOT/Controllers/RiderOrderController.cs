@@ -152,7 +152,7 @@ namespace AOT.Controllers
             if (TestMode)
             {
                 var o = Models.OrderCollection.GetOrder(orderId);
-                o.Rider = App.Models.Rider;
+                o.Rider = App.Models.Rider.ToEntity();
                 o.Status = (int)DeliveryOrder.States.Wait;
                 Models.OrderCollection.UpdateOrder(o);
                 return;

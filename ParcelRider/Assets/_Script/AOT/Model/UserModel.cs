@@ -1,22 +1,27 @@
 ﻿using AOT.Core;
+using AOT.DataModel;
 using OrderHelperLib.DtoModels.DeliveryOrders;
+using OrderHelperLib.DtoModels.Users;
 using UnityEngine;
-using UserDto = OrderHelperLib.DtoModels.Users.UserDto;
 
 namespace AOT.Model
 {
     public class RiderModel : ModelBase
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Phone { get; set; }
         public Sprite Avatar { get; set; }
 
         public RiderModel(RiderDto dto)
         {
-            Id = dto.Id;
+            Id = dto.Id.ToString();
             Name = dto.Name;
             Phone = dto.Phone;
+        }
+
+        public RiderModel()
+        {
         }
 
         public void SetAvatar(Sprite sprite)
@@ -24,6 +29,14 @@ namespace AOT.Model
             Avatar = sprite;
             SendEvent(EventString.Rider_Update);
         }
+
+        public Rider ToEntity() =>
+            new()
+            {
+                Id = Id,
+                Name = Name,
+                Phone = Phone
+            };
     }
     
     public class UserModel : ModelBase

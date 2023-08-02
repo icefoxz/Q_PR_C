@@ -8,7 +8,7 @@ namespace AOT.Model
     /// <summary>
     /// 订单集合, 用于存储订单列表和当前订单
     /// </summary>
-    public class OrderCollectionViewModel 
+    public class DoDataModel 
     {
         // 订单列表
         private List<DeliveryOrder> _orders = new List<DeliveryOrder>();

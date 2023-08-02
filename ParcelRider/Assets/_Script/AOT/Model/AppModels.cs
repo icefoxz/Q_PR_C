@@ -11,8 +11,8 @@ namespace AOT.Model
     public class AppModels : ModelBase
     {
         public UserModel User { get; private set; }
-        public Rider Rider { get; private set; }
-        public OrderCollectionViewModel OrderCollection { get; private set; } = new OrderCollectionViewModel();
+        public RiderModel Rider { get; private set; }
+        public DoDataModel OrderCollection { get; private set; } = new DoDataModel();
 
         public void SetOrderList(List<DeliveryOrder> orders)
         {
@@ -24,7 +24,7 @@ namespace AOT.Model
 
         public void SetRider(UserDto u)
         {
-            Rider = new Rider
+            Rider = new RiderModel
             {
                 Id = u.Id,
                 Name = u.Name,

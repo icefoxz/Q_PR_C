@@ -76,8 +76,10 @@ namespace Visual.Pages
             elemnent_waitState.SetActive(state == DeliveryOrder.States.Wait);
             elemnent_DeliverState.SetActive(state == DeliveryOrder.States.Delivering);
             elemnent_dropState.SetActive(state == DeliveryOrder.States.Collection);
-            elemnent_errState.SetActive(state == DeliveryOrder.States.Exception);
             elemnent_completedState.SetActive(state == DeliveryOrder.States.Complete);
+
+            elemnent_completedState.SetViewActive(state != DeliveryOrder.States.Exception);
+            elemnent_errState.SetViewActive(state == DeliveryOrder.States.Exception);
         }
 
         private class Element_State : UiBase
@@ -88,7 +90,12 @@ namespace Visual.Pages
                 Img_active = v.GetObject<Image>("img_active");
             }
 
-            public void SetActive(bool active) => Img_active.gameObject.SetActive(active);
+            public void SetActive(bool active)
+            {
+                Img_active.gameObject.SetActive(active);
+            }
+
+            public void SetViewActive(bool active) => GameObject.SetActive(active);
         }
 
         private class Element_contact : UiBase
