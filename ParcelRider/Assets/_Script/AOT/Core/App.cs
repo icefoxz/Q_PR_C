@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AOT.Controllers;
 using AOT.DataModel;
 using AOT.Model;
 using AOT.Test;
 using AOT.Utl;
 using AOT.Views;
-using OrderHelperLib.DtoModels.Users;
+using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
+using OrderHelperLib.Dtos.Riders;
+using OrderHelperLib.Dtos.Users;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace AOT.Core
 {
@@ -52,30 +55,93 @@ namespace AOT.Core
         private static void TestData()
         {
             //add testing orders
-            var testList = new List<DeliveryOrder>();
-            Models.SetUser(new UserDto{Id = "TestUser"});
-            for (int i = 0; i < 2; i++)
-            {
-                var order = new DeliveryOrder
-                {
-                    Status = i == 0 ? 0 : Random.Range(0, 3),
-                    Package = new PackageInfo(1.5f + i, 10f + i, 10f + i, 15f + i, 1f + i, 1f + i),
-                    From = new IdentityInfo($"From {i}", "1234567890", "TestAddress1"),
-                    To = new IdentityInfo($"To {i}", "1234567890", "TestAddress2"),
-                };
-                testList.Add(order);
-            }
-            if(AppLaunch.IsUserMode)
+            var testList = GenerateRandomOrders(2);
+                Models.SetUser(new UserModel() { Id = "TestUser" });
+
+            if (AppLaunch.IsUserMode)
             {
                 var userOrderController = GetController<UserOrderController>();
-                userOrderController.List_Set(testList.ToArray());
+                userOrderController.List_Set(testList);
             }
             else
             {
                 var riderOrderController = GetController<RiderOrderController>();
-                riderOrderController.List_Set(testList.ToArray());
+                riderOrderController.List_Set(testList);
+            }
+
+            List<DeliverOrderModel> GenerateRandomOrders(int count)
+            {
+                var random = new System.Random();
+                var orders = new List<DeliverOrderModel>();
+
+                for (int i = 0; i < count; i++)
+                {
+                    var order = new DeliverOrderModel
+                    {
+                        UserId = $"User{random.Next(1000, 9999)}", // Random user id
+                        User = new UserModel
+                        {
+                            /* Assign properties as required */
+                        },
+                        MyState = $"State{random.Next(1, 10)}", // Random state
+                        Status = random.Next(0, 2), // Random status between 0 and 1
+                        ItemInfo = new ItemInfoDto
+                        {
+                            Weight = random.Next(1, 10), // Random weight between 1 and 10
+                            Length = random.Next(1, 10), // Similarly for Length, Width and Height
+                            Width = random.Next(1, 10),
+                            Height = random.Next(1, 10)
+                        },
+                        PaymentInfo = new PaymentInfo
+                        {
+                            Charge = random.Next(1, 100), // Random Charge
+                            Fee = random.Next(1, 100), // Random Fee
+                            Method = PaymentMethods.UserCredit // Random payment method
+                        },
+                        DeliveryInfo = new DeliveryInfoDto
+                        {
+                            Distance = random.Next(1, 100), // Random distance
+                            StartLocation = new LocationDto
+                            {
+                                Address = $"Address{random.Next(1, 10)}",
+                                Latitude = random.NextDouble() * (90.0 - -90.0) + -90.0, // Random latitude
+                                Longitude = random.NextDouble() * (180.0 - -180.0) + -180.0 // Random longitude
+                            },
+                            EndLocation = new LocationDto
+                            {
+                                Address = $"Address{random.Next(1, 10)}",
+                                Latitude = random.NextDouble() * (90.0 - -90.0) + -90.0, // Random latitude
+                                Longitude = random.NextDouble() * (180.0 - -180.0) + -180.0 // Random longitude
+                            }
+                        },
+                        SenderInfo = new SenderInfoDto
+                        {
+                            User = new UserModel
+                            {
+                                /* Assign properties as required */
+                            },
+                            SenderUserId = $"User{random.Next(1000, 9999)}" // Random sender user id
+                        },
+                        ReceiverInfo = new ReceiverInfoDto
+                        {
+                            PhoneNumber = $"PhoneNumber{random.Next(1000, 9999)}", // Random phone number
+                            Name = $"Name{random.Next(1000, 9999)}" // Random name
+                        },
+                        Tags = new List<TagDto>(),
+                        RiderId = random.Next(1, 100), // Random RiderId
+                        Rider = new RiderModel
+                        {
+                            /* Assign properties as required */
+                        }
+                    };
+
+                    orders.Add(order);
+                }
+
+                return orders;
             }
         }
+
 
         private static void UiInit(Canvas canvas, UiManagerBase uiManager,bool startUi)
         {
@@ -100,5 +166,7 @@ namespace AOT.Core
             //Common
             ServiceContainer.Reg(new PictureController(MonoService), AppLaunch.TestMode);
         }
+
+        public static void SendEvent(string eventName, params object[] args) => MessagingManager.SendParams(eventName, args);
     }
 }

@@ -4,7 +4,7 @@ using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.Views;
-using OrderHelperLib.DtoModels.Users;
+using OrderHelperLib.Req_Models.Users;
 using UnityEngine.UI;
 
 namespace Visual.Pages
@@ -267,7 +267,7 @@ namespace Visual.Pages
                 }
             }
 
-            public RegisterDto GetRegisterModel()
+            public User_RegDto GetRegisterModel()
             {
                 return new ()
                 {

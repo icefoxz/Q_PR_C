@@ -2,6 +2,7 @@
 using System.Linq;
 using AOT.Core;
 using AOT.DataModel;
+using OrderHelperLib.Dtos.DeliveryOrders;
 
 namespace AOT.Model
 {
@@ -18,7 +19,7 @@ namespace AOT.Model
         private DeliveryOrder _current;
         public DeliveryOrder? Current => _current;
 
-        public void SetCurrent(string orderId)
+        public void SetCurrent(int orderId)
         {
             var o = GetOrder(orderId);
             _current = o;
@@ -63,7 +64,7 @@ namespace AOT.Model
         }
 
         // 查询订单
-        public DeliveryOrder GetOrder(string id) => Orders.FirstOrDefault(o => o.Id == id);
+        public DeliveryOrder GetOrder(int id) => Orders.FirstOrDefault(o => o.Id == id);
 
         // 发送事件
         private void SendEvent(string eventString) => App.MessagingManager.Send(eventString, null);

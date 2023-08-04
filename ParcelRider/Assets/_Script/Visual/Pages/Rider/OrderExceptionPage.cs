@@ -22,7 +22,7 @@ namespace Visual.Pages.Rider
             OptionListView = new ListViewUi<Prefab_option>(v, "prefab_option", "scroll_options", true, false);
         }
 
-        public void SetOptions(string orderId, IList<string> options)
+        public void SetOptions(int orderId, IList<string> options)
         {
             OptionListView.ClearList(ui => ui.Destroy());
             for (var i = 0; i < options.Count; i++)
@@ -41,7 +41,7 @@ namespace Visual.Pages.Rider
             }
             Show();
         }
-        private void ExceptionOptionSelected(string orderId, int optionIndex) => RiderOrderController.SetException(orderId, optionIndex);
+        private void ExceptionOptionSelected(int orderId, int optionIndex) => RiderOrderController.SetException(orderId, optionIndex);
 
         private class Prefab_option : UiBase
         {

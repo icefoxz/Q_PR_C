@@ -1,6 +1,7 @@
 using System;
 using AOT.Controllers;
 using AOT.Core;
+using AOT.DataModel;
 using AOT.Views;
 using OrderHelperLib.Contracts;
 using UnityEngine;
@@ -78,7 +79,8 @@ namespace Visual.Pages
         private void NewDo_Submit()
         {
             var order = User_NewPackagePage.GenerateOrder();
-            var p = order.Package;
+            var item = order.ItemInfo;
+            var payment = order.PaymentInfo;
             UserOrderController.Do_Create(order, (success, message) =>
             {
                 if(!success)
@@ -86,28 +88,22 @@ namespace Visual.Pages
                     MessageWindow.Set(title: "Create Order Failed", content: message);
                     return;
                 }
-                PackageConfirmWindow.Set(point: p.Price, kg: p.Weight, length: p.Length, width: p.Width,
-                    height: p.Height,
+                PackageConfirmWindow.Set(point: payment.Charge, 
+                    kg: item.Weight, 
+                    length: item.Length, 
+                    width: item.Width, 
+                    height: item.Height,
                     onRiderCollectAction: RiderCollectPayment,
                     onDeductFromPoint: DeductFromCredit,
                     onPaymentGateway: PaymentGateway);
             });
 
-            void RiderCollectPayment()
-            {
-                UserOrderController.SetCurrent(order: order);
-                CreateNewDeliveryOrder(method: PaymentMethods.RiderCollection);
-            }
+            void RiderCollectPayment() => CreateNewDeliveryOrder(method: PaymentMethods.RiderCollection);
 
-            void DeductFromCredit()
-            {
-                UserOrderController.SetCurrent(order: order);
-                CreateNewDeliveryOrder(method: PaymentMethods.UserCreditDeduction);
-            }
+            void DeductFromCredit() => CreateNewDeliveryOrder(method: PaymentMethods.UserCredit);
 
             void PaymentGateway()
             {
-                UserOrderController.SetCurrent(order: order);
                 PaymentPage.Set(onPaymentAction: success =>
                 {
                     if (success) CreateNewDeliveryOrder(method: PaymentMethods.OnlinePayment);
@@ -123,7 +119,6 @@ namespace Visual.Pages
                         User_NewPackagePage.Hide();
                         User_NewPackagePage.ResetUi();
                         UserOrderController.Do_UpdateAll();
-                        UserOrderController.SetCurrent(order);
                         MessageWindow.Set(title: "Create Order", content: "Success!");
                         return;
                     }
@@ -148,19 +143,19 @@ namespace Visual.Pages
             User_NewPackagePage.Set(kg: kg, length: length, width: width, height: height);
         }
 
-        public void ViewOrder(string orderId)
+        public void ViewOrder(int orderId)
         {
+            UserOrderController.ViewOrder(orderId);
             var o = App.Models.OrderCollection.GetOrder(orderId);
-            UserOrderController.SetCurrent(o);
             var orderStatus = (DeliveryOrderStatus)o.Status;
             User_OrderViewPage.DisplayCurrentOrder(onCancelRequestAction: orderStatus.IsClosed() ? null : OnCancelRequestAction(orderId));
 
-            Action OnCancelRequestAction(string s) =>
+            Action OnCancelRequestAction(int i) =>
                 () =>
                 {
                     ConfirmWindow.Set(title: "Cancel Order?", onConfirmAction: () =>
                     {
-                        UserOrderController.Do_RequestCancel(orderId: s, callbackAction: success =>
+                        UserOrderController.Do_RequestCancel(orderId: i, callbackAction: success =>
                         {
                             if (success) return;
                             MessageWindow.Set(title: "Order", content: "Failed to cancel order");

@@ -2,7 +2,8 @@
 using AOT.Core;
 using AOT.Test;
 using AOT.Utl;
-using OrderHelperLib.DtoModels.Users;
+using OrderHelperLib.Dtos.Users;
+using OrderHelperLib.Req_Models.Users;
 
 namespace AOT.Controllers
 {
@@ -23,7 +24,7 @@ namespace AOT.Controllers
             #region TestMode
             if (TestMode)
             {
-                App.Models.SetUser(new UserDto
+                App.Models.SetUser(new UserModel
                 {
                     Username = username,
                     Name = "Test User",
@@ -61,7 +62,7 @@ namespace AOT.Controllers
                     return;
                 }
 
-                App.Models.SetUser(new UserDto
+                App.Models.SetUser(new UserModel()
                 {
                     Username = user.Email,
                     Name = user.DisplayName,
@@ -90,7 +91,7 @@ namespace AOT.Controllers
                     return;
                 }
 
-                App.Models.SetUser(new UserDto
+                App.Models.SetUser(new UserModel()
                 {
                     Username = email,
                     Name = name,
@@ -100,13 +101,13 @@ namespace AOT.Controllers
             });
         }
 
-        public void RequestRegister(RegisterDto registerModel,
+        public void RequestRegister(User_RegDto registerModel,
             Action<(bool isSuccess, string message)> onCallbackAction)
         {
             #region TestMode
             if (TestMode)
             {
-                App.Models.SetUser(new UserDto
+                App.Models.SetUser(new UserModel()
                 {
                     Username = registerModel.Username,
                     Name = registerModel.Name,

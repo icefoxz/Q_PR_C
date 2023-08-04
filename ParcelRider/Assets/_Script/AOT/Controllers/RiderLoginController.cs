@@ -2,7 +2,7 @@
 using AOT.Core;
 using AOT.Test;
 using AOT.Utl;
-using OrderHelperLib.DtoModels.Users;
+using OrderHelperLib.Dtos.Users;
 
 namespace AOT.Controllers
 {
@@ -13,7 +13,7 @@ namespace AOT.Controllers
             #region TestMode
             if(TestMode)
             {
-                App.Models.SetRider(new UserDto
+                App.Models.SetRider(new UserModel()
                 {
                     Id = "1",
                     Name = "Test",

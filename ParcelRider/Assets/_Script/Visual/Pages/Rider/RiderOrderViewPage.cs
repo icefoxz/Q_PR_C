@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
-using AOT.DataModel;
+using AOT.Extensions;
 using AOT.Views;
+using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,12 +25,12 @@ namespace Visual.Pages.Rider
         private View_images ViewImages { get; }
         private Button btn_exception { get; }
         private Button btn_close { get; }
-        private string OrderId { get; set; }
+        private int OrderId { get; set; }
         private List<Sprite> images { get; set; } = new List<Sprite>();
         private PictureController PictureController => App.GetController<PictureController>();
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public RiderOrderViewPage(IView v, Action<string> onExceptionAction,
+        public RiderOrderViewPage(IView v, Action<int> onExceptionAction,
             Rider_UiManager uiManager) : base(v, uiManager)
         {
             text_orderId = v.GetObject<Text>("text_orderId");
@@ -55,10 +57,10 @@ namespace Visual.Pages.Rider
             App.MessagingManager.RegEvent(EventString.CurrentOrder_Update, _ => ShowCurrentOrder());
         }
 
-        private void Complete_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
-        private void Collection_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.ItemCollection(orderId), "Collection?");
-        private void PickItem_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.PickItem(orderId), "Pick Item?");
-        private void TakeOrder_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.Do_AssignRider(orderId), "Take Order?");
+        private void Complete_ApiReq(int orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
+        private void Collection_ApiReq(int orderId) => ConfirmWindow.Set(() => RiderOrderController.ItemCollection(orderId), "Collection?");
+        private void PickItem_ApiReq(int orderId) => ConfirmWindow.Set(() => RiderOrderController.PickItem(orderId), "Pick Item?");
+        private void TakeOrder_ApiReq(int orderId) => ConfirmWindow.Set(() => RiderOrderController.Do_AssignRider(orderId), "Take Order?");
 
         private void OnPictureTaken(Texture2D texture)
         {
@@ -72,23 +74,23 @@ namespace Visual.Pages.Rider
         {
             var order = App.Models.OrderCollection.Current ?? throw new Exception("No order set to current!");
             OrderId = order.Id;
-            var p = order.Package;
-            var f = order.From;
-            var t = order.To;
-            text_orderId.text = order.Id;
+            var sender = order.SenderInfo.User;
+            var receiver = order.ReceiverInfo;
+            var payment = order.PaymentInfo;
+            var deliver = order.DeliveryInfo;
+            var item = order.ItemInfo;
+            text_orderId.text = order.Id.ToString();
             text_riderName.text = order.Rider?.Name;
             text_riderPhone.text = order.Rider?.Phone;
-            view_packageInfo.Set(p.Price, p.Size, p.Weight, p.Distance);
-            element_contactFrom.Set(f.Name, f.Phone, f.Address);
-            element_contactTo.Set(t.Name, t.Phone, t.Address);
-            UpdateState((DeliveryOrder.States)order.Status);
+            view_packageInfo.Set(payment.Charge, deliver.Distance, item.Weight, item.Size());
+            element_contactFrom.Set(sender.Name, sender.Phone, deliver.StartLocation.Address);
+            element_contactTo.Set(receiver.Name, receiver.PhoneNumber, deliver.EndLocation.Address);
+            UpdateState(order.State);
             Show();
 
-            void UpdateState(DeliveryOrder.States state)
+            void UpdateState(DeliveryOrderStatus state)
             {
-                btn_exception.gameObject.SetActive(state is DeliveryOrder.States.Wait
-                    or DeliveryOrder.States.Delivering
-                    or DeliveryOrder.States.Collection);
+                btn_exception.gameObject.SetActive(state.IsOnProgressing());
                 view_states.SetState(state);
                 view_riderOptions.SetState(state);
             }
@@ -111,15 +113,15 @@ namespace Visual.Pages.Rider
                 element_stateException = new Element_state(v.GetObject<View>("element_stateException"));
             }
 
-            public void SetState(DeliveryOrder.States state)
+            public void SetState(DeliveryOrderStatus state)
             {
-                element_stateWait.SetActive(state == DeliveryOrder.States.Wait);
-                element_stateDelivering.SetActive(state == DeliveryOrder.States.Delivering);
-                element_stateCollection.SetActive(state == DeliveryOrder.States.Collection);
-                element_stateComplete.SetActive(state == DeliveryOrder.States.Complete);
+                element_stateWait.SetActive(state == DeliveryOrderStatus.Created);
+                element_stateDelivering.SetActive(state == DeliveryOrderStatus.Assigned);
+                element_stateCollection.SetActive(state == DeliveryOrderStatus.Delivering);
+                element_stateComplete.SetActive(state == DeliveryOrderStatus.Completed);
 
-                element_stateComplete.SetViewActive(state != DeliveryOrder.States.Exception);
-                element_stateException.SetViewActive(state == DeliveryOrder.States.Exception);
+                element_stateComplete.SetViewActive(state != DeliveryOrderStatus.Exception);
+                element_stateException.SetViewActive(state == DeliveryOrderStatus.Exception);
             }
 
             private class Element_state : UiBase
@@ -163,12 +165,12 @@ namespace Visual.Pages.Rider
                 btn_complete.OnClickAdd(onCompleteAction);
             }
 
-            public void SetState(DeliveryOrder.States state)
+            public void SetState(DeliveryOrderStatus state)
             {
-                btn_takeOrder.gameObject.SetActive(state == DeliveryOrder.States.None);
-                btn_pickItem.gameObject.SetActive(state == DeliveryOrder.States.Wait);
-                btn_collection.gameObject.SetActive(state == DeliveryOrder.States.Delivering);
-                btn_complete.gameObject.SetActive(state == DeliveryOrder.States.Collection);
+                btn_takeOrder.gameObject.SetActive(state == DeliveryOrderStatus.Created);
+                btn_pickItem.gameObject.SetActive(state == DeliveryOrderStatus.Assigned);
+                btn_collection.gameObject.SetActive(state == DeliveryOrderStatus.Delivering);
+                btn_complete.gameObject.SetActive(state == DeliveryOrderStatus.Completed);
             }
         }
 

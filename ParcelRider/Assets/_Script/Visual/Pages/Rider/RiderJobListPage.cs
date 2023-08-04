@@ -1,12 +1,13 @@
 ﻿using System;
 using AOT.DataModel;
 using AOT.Views;
+using OrderHelperLib.Contracts;
 
 namespace Visual.Pages.Rider
 {
     internal class RiderJobListPage : DoListPage
     {
-        public RiderJobListPage(IView v, Action<string> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
+        public RiderJobListPage(IView v, Action<int> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
         {
         }
 
@@ -14,6 +15,6 @@ namespace Visual.Pages.Rider
         {
         }
 
-        protected override bool OrderListFilter(DeliveryOrder order) => order.Status == (int)DeliveryOrder.States.None;
+        protected override bool OrderListFilter(DeliveryOrder order) => order.State == DeliveryOrderStatus.Created;
     }
 }

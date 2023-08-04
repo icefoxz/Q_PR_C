@@ -2,6 +2,8 @@ using System;
 using AOT.BaseUis;
 using AOT.DataModel;
 using AOT.Views;
+using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,21 +28,22 @@ namespace Visual.Pages
             view_spots = new View_spots(v.GetObject<View>("view_spots"));
         }
 
-        public void SetState(DeliveryOrder.States state)
+        public void SetState(DeliveryOrderStatus state)
         {
-            img_waitState.gameObject.SetActive(state is DeliveryOrder.States.None or DeliveryOrder.States.Wait);
-            img_deliveryState.gameObject.SetActive(state == DeliveryOrder.States.Delivering);
-            img_dropState.gameObject.SetActive(state == DeliveryOrder.States.Collection);
-            img_errState.gameObject.SetActive(state == DeliveryOrder.States.Exception);
-            img_completeState.gameObject.SetActive(state == DeliveryOrder.States.Complete);
+            img_waitState.gameObject.SetActive(state is DeliveryOrderStatus.Created);
+            img_deliveryState.gameObject.SetActive(state is DeliveryOrderStatus.Assigned);
+            img_dropState.gameObject.SetActive(state is DeliveryOrderStatus.Delivering);
+            img_errState.gameObject.SetActive(state == DeliveryOrderStatus.Exception);
+            img_completeState.gameObject.SetActive(state == DeliveryOrderStatus.Completed);
             var spots = state switch
             {
-                DeliveryOrder.States.None => 0,
-                DeliveryOrder.States.Wait => 1,
-                DeliveryOrder.States.Delivering => 3,
-                DeliveryOrder.States.Collection => 5,
-                DeliveryOrder.States.Complete => 7,
-                DeliveryOrder.States.Exception => 0,
+                DeliveryOrderStatus.Created => 0,
+                DeliveryOrderStatus.Exception => 0,
+                DeliveryOrderStatus.Canceled => 0,
+                DeliveryOrderStatus.Assigned => 3,
+                DeliveryOrderStatus.Delivering => 4,
+                DeliveryOrderStatus.Completed => 7,
+                DeliveryOrderStatus.Close => 7,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
             };
             view_spots.SetSpots(spots);

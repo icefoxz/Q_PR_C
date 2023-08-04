@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using AOT.BaseUis;
 using AOT.Core;
-using AOT.DataModel;
 using AOT.Helpers;
 using AOT.Test;
 using AOT.Views;
 using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 using Visual.Sects;
@@ -132,16 +132,69 @@ namespace Visual.Pages
             Show();
         }
 
-        public DeliveryOrder GenerateOrder()
+        public DeliverOrderModel GenerateOrder()
         {
-            var order = new DeliveryOrder();
-            order.UserId = App.Models.User.Id;
-            order.From = new IdentityInfo(element_from.Phone, element_from.Contact, element_from.Address);
-            order.To = new IdentityInfo(element_to.Phone, element_to.Contact, element_to.Address);
-            order.Status = 0;
-            order.Package = new PackageInfo(CurrentDo.Kg, CurrentDo.GetCost(), CurrentDo.Km, CurrentDo.Length,
-                CurrentDo.Width, CurrentDo.Height);
+            var order = new DeliverOrderModel
+            {
+                UserId = App.Models.User.Id,
+                User = App.Models.User,
+                MyState = CurrentMyState,
+                Status = 0,
+                ItemInfo = GetItemInfo(),
+                PaymentInfo = GetPaymentInfo(),
+                DeliveryInfo = GetDeliveryInfo(),
+                SenderInfo = new SenderInfoDto
+                {
+                    User = App.Models.User,
+                    SenderUserId = App.Models.User.Id,
+                },
+                ReceiverInfo = new ReceiverInfoDto
+                {
+                    PhoneNumber = element_to.Phone,
+                    Name = element_to.Contact,
+                },
+                Tags = Array.Empty<TagDto>()
+            };
             return order;
+
+            DeliveryInfoDto GetDeliveryInfo()
+            {
+                return new DeliveryInfoDto
+                {
+                    Distance = CurrentDo.Km,
+                    StartLocation = GetLocation(element_from.Address, FromCo),
+                    EndLocation = GetLocation(element_to.Address, ToCo)
+                };
+            }
+
+            LocationDto GetLocation(string address, Coordinate co)
+            {
+                return new LocationDto
+                {
+                    Address = address,
+                    Latitude = co.Lat,
+                    Longitude = co.Lng
+                };
+            }
+
+            PaymentInfo GetPaymentInfo()
+            {
+                return new PaymentInfo
+                {
+                    Charge = CurrentDo.GetCost(),
+                    Fee = CurrentDo.GetCost(),
+                    Method = 0,
+                };
+            }
+
+            ItemInfoDto GetItemInfo()
+            {
+                return new ItemInfoDto
+                {
+                    Weight = CurrentDo.Kg, Length = CurrentDo.Length,
+                    Width = CurrentDo.Width, Height = CurrentDo.Height
+                };
+            }
         }
 
         private void UpdateGeocode()

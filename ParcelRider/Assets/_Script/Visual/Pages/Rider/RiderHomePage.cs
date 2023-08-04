@@ -3,6 +3,7 @@ using AOT.Core;
 using AOT.DataModel;
 using AOT.Views;
 using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,7 @@ namespace Visual.Pages.Rider
         private GameObject obj_jobGuide { get; }
         private Button btn_jobList { get; }
 
-        public RiderHomePage(IView v, Action<string> onOrderSelectedAction, Action onJobListAction,
+        public RiderHomePage(IView v, Action<int> onOrderSelectedAction, Action onJobListAction,
             Rider_UiManager uiManager,
             bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
         {
@@ -29,6 +30,6 @@ namespace Visual.Pages.Rider
             btn_jobList.gameObject.SetActive(!hasJob);
         }
 
-        protected override bool OrderListFilter(DeliveryOrder o) => ((DeliveryOrderStatus)o.Status).IsOpen() && o.Rider?.Id == App.Models.Rider?.Id;
+        protected override bool OrderListFilter(DeliveryOrder o) => (o.State).IsOnProgressing() && o.Rider?.Id == App.Models.Rider?.Id;
     }
 }

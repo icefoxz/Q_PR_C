@@ -5,13 +5,14 @@ using AOT.Core;
 using AOT.DataModel;
 using AOT.Utl;
 using AOT.Views;
+using OrderHelperLib.Contracts;
 
 namespace AOT.Controllers
 {
     public class RiderOrderController : OrderControllerBase
     {
-        private List<(string description, bool justCancel)> ExceptionOps { get; set; } =
-            new List<(string description, bool justCancel)>();
+        private List<(string description, bool resetOrder)> ExceptionOps { get; set; } =
+            new List<(string description, bool resetOrder)>();
 
         public void RiderApplication(Action<bool> callbackAction)
         {
@@ -30,15 +31,15 @@ namespace AOT.Controllers
             //ApiPanel.RegisterRider();
         }
 
-        private DeliveryOrder GetOrder(string orderId) => Models.OrderCollection.GetOrder(orderId);
+        private DeliveryOrder GetOrder(int orderId) => Models.OrderCollection.GetOrder(orderId);
 
-        public void PickItem(string orderId)
+        public void PickItem(int orderId)
         {
             var o = GetOrder(orderId);
             // PickItem
             if (TestMode)
             {
-                o.Status = (int)DeliveryOrder.States.Delivering;
+                o.Status = (int)DeliveryOrderStatus.Delivering;
                 SetCurrent(o);
                 Do_UpdateAll();
                 return;
@@ -51,46 +52,46 @@ namespace AOT.Controllers
             }, msg => MessageWindow.Set("order", msg));
         }
 
-        public void ItemCollection(string orderId)
+        public void ItemCollection(int orderId)
         {
             // ItemCollection
             if(TestMode)
             {
                 var o = GetOrder(orderId);
-                o.Status = (int)DeliveryOrder.States.Collection;
+                o.Status = (int)DeliveryOrderStatus.Delivering;
                 Do_UpdateAll();
             }
         }
 
-        public void Complete(string orderId, Action callbackAction)
+        public void Complete(int orderId, Action callbackAction)
         {
             // Complete
             if (TestMode)
             {
                 var o = GetOrder(orderId);
-                o.Status = (int)DeliveryOrder.States.Complete;
+                o.Status = (int)DeliveryOrderStatus.Completed;
                 Do_UpdateAll();
                 callbackAction?.Invoke();
             }
         }
 
-        public void SetException(string orderId, int optionIndex)
+        public void SetException(int orderId, int optionIndex)
         {
             var o = GetOrder(orderId);
-            o.Status = (int)(ExceptionOps[optionIndex].justCancel
-                ? DeliveryOrder.States.None
-                : DeliveryOrder.States.Exception);
+            o.Status = (int)(ExceptionOps[optionIndex].resetOrder
+                ? DeliveryOrderStatus.Created
+                : DeliveryOrderStatus.Exception);
             Do_UpdateAll();
         }
 
-        public void OrderException(string orderId, Action<string[]> callbackOptions)
+        public void OrderException(int orderId, Action<string[]> callbackOptions)
         {
             var o = GetOrder(orderId);
-            var status = (DeliveryOrder.States)o.Status;
+            var status = (DeliveryOrderStatus)o.Status;
             ExceptionOps.Clear();
             switch (status)
             {
-                case DeliveryOrder.States.Wait:
+                case DeliveryOrderStatus.Created:
                     ExceptionOps.AddRange(new[]
                     {
                         ("Package info does not match", false),
@@ -100,7 +101,7 @@ namespace AOT.Controllers
                         ("Rider cancel", true),
                     });
                     break;
-                case DeliveryOrder.States.Delivering:
+                case DeliveryOrderStatus.Assigned:
                     ExceptionOps.AddRange(new[]
                     {
                         ("Package exception", false),
@@ -108,7 +109,7 @@ namespace AOT.Controllers
                         ("Customer cancel", false),
                     });
                     break;
-                case DeliveryOrder.States.Collection:
+                case DeliveryOrderStatus.Delivering:
                     ExceptionOps.AddRange(new[]
                     {
                         ("Package exception", false),
@@ -116,11 +117,12 @@ namespace AOT.Controllers
                         ("Collector not found", false),
                     });
                     break;
-                case DeliveryOrder.States.Exception:
-                case DeliveryOrder.States.Complete:
-                case DeliveryOrder.States.None:
+                case DeliveryOrderStatus.Exception:
+                case DeliveryOrderStatus.Canceled:
+                case DeliveryOrderStatus.Completed:
+                case DeliveryOrderStatus.Close:
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(status), status.ToString());
+                    throw new ArgumentOutOfRangeException();
             }
 
             callbackOptions(ExceptionOps.Select(e => e.description).ToArray());
@@ -136,35 +138,41 @@ namespace AOT.Controllers
             }
             #endregion
 
-            ApiPanel.Rider_GetDeliveryOrders(50, page, bag =>
+            ApiPanel.Rider_GetDeliveryOrders(50, page, dtos =>
             {
                 Models.OrderCollection.ClearOrders();
-                Models.SetOrderList(bag.Select(o => new DeliveryOrder(o)).ToList());
+                Models.SetOrderList(dtos.Select(o => new DeliveryOrder(o)).ToList());
             }, msg =>
             {
                 MessageWindow.Set("Error", msg);
             });
         }
 
-        public void Do_AssignRider(string orderId)
+        public void Do_AssignRider(int orderId)
         {
             #region TestMode
             if (TestMode)
             {
                 var o = Models.OrderCollection.GetOrder(orderId);
-                o.Rider = App.Models.Rider.ToEntity();
-                o.Status = (int)DeliveryOrder.States.Wait;
+                o.Rider = App.Models.Rider;
+                o.Status = (int)DeliveryOrderStatus.Created;
                 Models.OrderCollection.UpdateOrder(o);
                 return;
             }
             #endregion
-            var id = int.Parse(orderId);
+            var id = orderId;
             ApiPanel.Rider_AssignRider(id, dto =>
             {
                 var o = Models.OrderCollection.GetOrder(orderId);
                 o.Status = (int)dto.Status;
                 Do_UpdateAll();
             }, msg => MessageWindow.Set("Error", msg));
+        }
+
+        public void ViewOrder(int orderId)
+        {
+            var o = Models.OrderCollection.GetOrder(orderId);
+            SetCurrent(o);
         }
     }
 }

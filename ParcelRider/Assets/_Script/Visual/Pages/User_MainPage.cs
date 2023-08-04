@@ -5,7 +5,10 @@ using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.DataModel;
+using AOT.Extensions;
 using AOT.Views;
+using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -66,9 +69,9 @@ namespace Visual.Pages
             private Text text_riderName { get; }
             private Text text_riderPhone { get; }
             private Button btn_order { get; }
-            private string SelectedOrderId { get; set; }
+            private int SelectedOrderId { get; set; }
 
-            public Prefab_Order(IView v, Action<string> onBtnClick) : base(v)
+            public Prefab_Order(IView v, Action<int> onBtnClick) : base(v)
             {
                 prefab_deliveryState = new Prefab_DeliveryState(v.GetObject<View>("prefab_deliveryState"));
                 text_orderId = v.GetObject<Text>("text_orderId");
@@ -85,18 +88,18 @@ namespace Visual.Pages
             
             }
 
-            public void Set(DeliveryOrder o)
+            public void Set(DeliverOrderModel o)
             {
                 SelectedOrderId = o.Id;
-                var state = (DeliveryOrder.States)o.Status;
+                var state = (DeliveryOrderStatus)o.Status;
                 prefab_deliveryState.SetState(state);
-                text_orderId.text = o.Id;
-                text_to.text = ConvertText("to: ", o.To.Address, 15);
-                text_cost.text = o.Package.Price.ToString("F");
-                text_km.text = o.Package.Distance.ToString("F1") + "km";
-                text_volume.text = o.Package.Size.ToString("F1") + "m³";
-                text_contactName.text = o.To.Name;
-                text_contactPhone.text = o.To.Phone;
+                text_orderId.text = o.Id.ToString();
+                text_to.text = ConvertText("to: ", o.DeliveryInfo.StartLocation.Address, 15);
+                text_cost.text = o.PaymentInfo.Charge.ToString("F");
+                text_km.text = o.DeliveryInfo.Distance.ToString("F1") + "km";
+                text_volume.text = o.ItemInfo.Size().ToString("F1") + "m³";
+                text_contactName.text = o.ReceiverInfo.Name;
+                text_contactPhone.text = o.ReceiverInfo.PhoneNumber;
                 text_riderName.text = o.Rider?.Name;
                 text_riderPhone.text = o.Rider?.Phone;
             }
@@ -418,9 +421,9 @@ namespace Visual.Pages
         private class View_historySect : UiBase
         {
             private ListViewUi<Prefab_history> HistoryView { get; }
-            private event Action<string> OnSelectedHistoryAction;
+            private event Action<int> OnSelectedHistoryAction;
         
-            public View_historySect(IView v,Action<string> onSelectedHistoryAction, bool display = true) : base(v, display)
+            public View_historySect(IView v,Action<int> onSelectedHistoryAction, bool display = true) : base(v, display)
             {
                 OnSelectedHistoryAction = onSelectedHistoryAction;
                 HistoryView = new ListViewUi<Prefab_history>(v, "prefab_history", "scroll_history");
@@ -432,12 +435,12 @@ namespace Visual.Pages
                 for (var i = 0; i < dos.Length; i++)
                 {
                     var o = dos[i];
-                    var size = MathF.Pow(o.Package.Height * o.Package.Width * o.Package.Length, 1 / 3f);
+                    var size = MathF.Pow(o.ItemInfo.Height * o.ItemInfo.Width * o.ItemInfo.Length, 1 / 3f);
                     var ui = HistoryView.Instance(v => new Prefab_history(v, () => OnSelectedHistoryAction?.Invoke(o.Id)));
-                    ui.SetInfo(o.Id, state: (DeliveryOrder.States)o.Status, address: o.To.Address,
-                        contactName: o.To.Name,
-                        contactPhone: o.To.Phone, weight: o.Package.Weight, size: size,
-                        point: o.Package.Price, o.Package.Distance);
+                    ui.SetInfo(o.Id, state: (DeliveryOrderStatus)o.Status, address: o.DeliveryInfo.StartLocation.Address,
+                        contactName: o.SenderInfo.User.Name,
+                        contactPhone: o.ReceiverInfo.PhoneNumber, weight: o.ItemInfo.Weight, size: size,
+                        point: o.PaymentInfo.Charge, o.DeliveryInfo.Distance);
                 }
             }
 
@@ -460,9 +463,9 @@ namespace Visual.Pages
                     btn_history.OnClickAdd(onClickAction);
                 }
 
-                public void SetInfo(string orderId,DeliveryOrder.States state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
+                public void SetInfo(int orderId,DeliveryOrderStatus state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
                 {
-                    text_orderId.text = orderId;
+                    text_orderId.text = orderId.ToString();
                     text_toAddress.text = address;
                     view_state.SetState(state);
                     view_contact.Set(contactName, contactPhone);
@@ -483,11 +486,11 @@ namespace Visual.Pages
                         img_closeState = v.GetObject<Image>("img_closeState");
                     }
 
-                    public void SetState(DeliveryOrder.States state)
+                    public void SetState(DeliveryOrderStatus state)
                     {
-                        img_waitState.gameObject.SetActive(state == DeliveryOrder.States.Wait);
-                        img_errState.gameObject.SetActive(state == DeliveryOrder.States.Exception);
-                        img_completeState.gameObject.SetActive(state == DeliveryOrder.States.Complete);
+                        img_waitState.gameObject.SetActive(state == DeliveryOrderStatus.Assigned);
+                        img_errState.gameObject.SetActive(state == DeliveryOrderStatus.Exception);
+                        img_completeState.gameObject.SetActive(state == DeliveryOrderStatus.Completed);
                         img_closeState.gameObject.SetActive(false);
                     }
                 }

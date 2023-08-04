@@ -19,7 +19,7 @@ namespace Visual.Pages
             text_size = v.GetObject<Text>("text_size");
         }
 
-        public void Set(float cost, float km, float kg, float size)
+        public void Set(float cost, float km, float kg, double size)
         {
             UpdateCost(cost);
             UpdateKm(km);
@@ -28,7 +28,7 @@ namespace Visual.Pages
         }
 
         public void UpdateKg(float kg) => text_kg.text = kg.ToString("F1") + "kg";
-        public void UpdateSize(float size) => text_size.text = size.ToString("F2") + "m³";
+        public void UpdateSize(double size) => text_size.text = size.ToString("F2") + "m³";
         public void UpdateCost(float cost) => text_cost.text = cost.ToString("F1");
         public void UpdateKm(float km) => text_km.text = km.ToString("F1") + "km";
     }

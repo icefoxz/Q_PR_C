@@ -5,6 +5,7 @@ using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.DataModel;
+using AOT.Extensions;
 using AOT.Views;
 using UnityEngine.UI;
 
@@ -15,7 +16,7 @@ namespace Visual.Pages.Rider
         protected View_doList view_doList { get; }
         protected UserOrderController UserOrderController => App.GetController<UserOrderController>();
 
-        protected DoListPage(IView v, Action<string> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
+        protected DoListPage(IView v, Action<int> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
             : base(v, uiManager, display)
         {
             view_doList = new View_doList(v.GetObject<View>("view_doList"), onOrderSelectedAction);
@@ -29,7 +30,7 @@ namespace Visual.Pages.Rider
 
         private void UpdateOrderList()
         {
-            var orders = App.Models.OrderCollection.Orders.Where(OrderListFilter).OrderByDescending(o => int.Parse(o.Id))
+            var orders = App.Models.OrderCollection.Orders.Where(OrderListFilter).OrderByDescending(o => o.Id)
                 .ToArray();
             OnOrderListUpdate(orders);
             view_doList.Set(orders);
@@ -47,10 +48,10 @@ namespace Visual.Pages.Rider
     internal class View_doList : UiBase
     {
         private ListViewUi<Prefab_do> DoListView { get; }
-        private Action<string> OnOrderSelected { get; }
+        private Action<int> OnOrderSelected { get; }
         public int Count => DoListView.List.Count;
 
-        public View_doList(IView v, Action<string> onOrderSelected, bool display = true) : base(v, display)
+        public View_doList(IView v, Action<int> onOrderSelected, bool display = true) : base(v, display)
         {
             OnOrderSelected = onOrderSelected;
             DoListView = new ListViewUi<Prefab_do>(v, "prefab_do", "scroll_do");
@@ -62,13 +63,15 @@ namespace Visual.Pages.Rider
             foreach (var order in orders)
             {
                 var ui = DoListView.Instance(v => new Prefab_do(v, () => OnOrderSelected(order.Id)));
-                var f = order.From;
-                var t = order.To;
-                var p = order.Package;
+                var sender = order.SenderInfo.User;
+                var receiver = order.ReceiverInfo;
+                var payment = order.PaymentInfo;
+                var deliver = order.DeliveryInfo;
+                var item = order.ItemInfo;
                 ui.SetId(order.Id);
-                ui.SetFrom(f.Name, f.Phone, f.Address);
-                ui.SetTo(t.Name, t.Phone, t.Address);
-                ui.SetParcelInfo(p.Price, p.Size, p.Weight, p.Distance);
+                ui.SetFrom(sender.Name, sender.Phone, deliver.StartLocation.Address);
+                ui.SetTo(receiver.Name, receiver.PhoneNumber, deliver.EndLocation.Address);
+                ui.SetParcelInfo(payment.Charge, item.Size(), item.Weight, deliver.Distance);
             }
 
             Show();
@@ -92,7 +95,7 @@ namespace Visual.Pages.Rider
                 btn_select.OnClickAdd(onSelectAction);
             }
 
-            public void SetId(string id) => text_id.text = id;
+            public void SetId(int id) => text_id.text = id.ToString();
 
             public void SetFrom(string name, string phone, string address) =>
                 element_infoFrom.Set(name, phone, address);
@@ -100,7 +103,7 @@ namespace Visual.Pages.Rider
             public void SetTo(string name, string phone, string address) =>
                 element_infoTo.Set(name, phone, address);
 
-            public void SetParcelInfo(float point, float size, float weight, float distance) =>
+            public void SetParcelInfo(float point, double size, float weight, float distance) =>
                 view_parcelInfo.Set(point, size, weight, distance);
 
             private class Element_info : UiBase
@@ -139,7 +142,7 @@ namespace Visual.Pages.Rider
                     text_distance = v.GetObject<Text>("text_distance");
                 }
 
-                public void Set(float point, float size, float weight, float distance)
+                public void Set(float point, double size, float weight, float distance)
                 {
                     text_point.text = point.ToString("F");
                     text_size.text = size.ToString("F");

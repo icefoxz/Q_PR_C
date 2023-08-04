@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AOT.Core;
 using AOT.DataModel;
@@ -7,6 +8,7 @@ using AOT.Test;
 using AOT.Utl;
 using AOT.Views;
 using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 
 namespace AOT.Controllers
 {
@@ -15,27 +17,29 @@ namespace AOT.Controllers
         public const float KgToPounds = 2.2046226218f;
         public const float MeterToFeet = 3.280839895f;
         protected AppModels Models => App.Models;
-        
-        public void List_Set(params DeliveryOrder[] orders) => Models.OrderCollection.SetOrders(orders);
+
+        public void List_Set(ICollection<DeliverOrderModel> orders) =>
+            Models.OrderCollection.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
         public void List_Remove(DeliveryOrder order) => Models.OrderCollection.RemoveOrder(order);
         public void List_Clear() => Models.OrderCollection.ClearOrders();
-        public void SetCurrent(DeliveryOrder order) => Models.SetCurrentOrder(order);
+        protected void SetCurrent(DeliveryOrder order) => Models.SetCurrentOrder(order);
     }
 
     public class UserOrderController : OrderControllerBase
     {
         private DeliveryOrder Current => Models.OrderCollection.Current;
 
-        public void Do_Create(DeliveryOrder order, Action<bool, string> callbackAction)
+        public void Do_Create(DeliverOrderModel order, Action<bool, string> callbackAction)
         {
 
             #region TestMode
 
             if (TestMode)
             {
-                SetCurrent(order);
+                var model = new DeliveryOrder(order);
+                SetCurrent(model);
                 var list = Models.OrderCollection.Orders.ToList();
-                list.Add(order);
+                list.Add(model);
                 List_Clear();
                 List_Set(list.ToArray());
                 Do_UpdateAll();
@@ -45,7 +49,7 @@ namespace AOT.Controllers
 
             #endregion
 
-            var dto = order.ToDto();
+            var dto = order;
             ApiPanel.CreateDeliveryOrder(dto, bag =>
             {
                 SetCurrent(new DeliveryOrder(bag));
@@ -78,27 +82,32 @@ namespace AOT.Controllers
             }
             #endregion
 
-            ApiPanel.User_GetDeliveryOrders(50, page, bag =>
+            ApiPanel.User_GetDeliveryOrders(50, page, dtos =>
             {
-                var orders = bag.Select(o => new DeliveryOrder(o)).ToList();
                 List_Clear();
-                List_Set(orders.ToArray());
+                List_Set(dtos);
             }, msg => MessageWindow.Set("Error", msg));
         }
         
-        public void Do_RequestCancel(string orderId, Action<bool> callbackAction)
+        public void Do_RequestCancel(int orderId, Action<bool> callbackAction)
         {
             #region TestMode
             if (TestMode)
             {
                 var o = Models.OrderCollection.GetOrder(orderId);
-                o.Status = (int)DeliveryOrder.States.Exception;
+                o.Status = (int)DeliveryOrderStatus.Exception;
                 SetCurrent(o);
                 callbackAction(true); //todo
                 return;
             }
             #endregion
             //todo : request cancel Api
+        }
+
+        public void ViewOrder(int orderId)
+        {
+            var o = Models.OrderCollection.GetOrder(orderId);
+            SetCurrent(o);
         }
     }
 }

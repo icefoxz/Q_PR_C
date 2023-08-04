@@ -2,7 +2,10 @@ using System;
 using AOT.BaseUis;
 using AOT.Core;
 using AOT.DataModel;
+using AOT.Extensions;
 using AOT.Views;
+using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine.UI;
 
 namespace Visual.Pages
@@ -61,25 +64,25 @@ namespace Visual.Pages
         {
             var o = App.Models.OrderCollection.Current;
             if (o == null) return;
-            text_orderId.text = o.Id;
-            view_packageInfo.Set(o.Package.Price, o.Package.Distance, o.Package.Weight, o.Package.Size);
-            element_contactTo.Set(o.To.Name, o.To.Phone, o.To.Address);
-            element_contactFrom.Set(o.From.Name, o.From.Phone, o.From.Address);
+            text_orderId.text = o.Id.ToString();
+            view_packageInfo.Set(o.PaymentInfo.Charge, o.DeliveryInfo.Distance, o.ItemInfo.Weight, o.ItemInfo.Size());
+            element_contactTo.Set(o.ReceiverInfo.Name, o.ReceiverInfo.PhoneNumber, o.DeliveryInfo.EndLocation.Address);
+            element_contactFrom.Set(o.SenderInfo.User.Name, o.SenderInfo.User.Phone, o.DeliveryInfo.StartLocation.Address);
             text_riderName.text = o.Rider?.Name;
             text_riderPhone.text = o.Rider?.Phone;
-            SetState((DeliveryOrder.States)o.Status);
+            SetState(o.State);
         }
 
-        private void SetState(DeliveryOrder.States state)
+        private void SetState(DeliveryOrderStatus state)
         {
-            btn_cancel.gameObject.SetActive(state == DeliveryOrder.States.None);
-            elemnent_waitState.SetActive(state == DeliveryOrder.States.Wait);
-            elemnent_DeliverState.SetActive(state == DeliveryOrder.States.Delivering);
-            elemnent_dropState.SetActive(state == DeliveryOrder.States.Collection);
-            elemnent_completedState.SetActive(state == DeliveryOrder.States.Complete);
+            btn_cancel.gameObject.SetActive(state == DeliveryOrderStatus.Created);
+            elemnent_waitState.SetActive(state == DeliveryOrderStatus.Created);
+            elemnent_DeliverState.SetActive(state == DeliveryOrderStatus.Assigned);
+            elemnent_dropState.SetActive(state == DeliveryOrderStatus.Delivering);
+            elemnent_completedState.SetActive(state == DeliveryOrderStatus.Completed);
 
-            elemnent_completedState.SetViewActive(state != DeliveryOrder.States.Exception);
-            elemnent_errState.SetViewActive(state == DeliveryOrder.States.Exception);
+            elemnent_completedState.SetViewActive(state != DeliveryOrderStatus.Exception);
+            elemnent_errState.SetViewActive(state == DeliveryOrderStatus.Exception);
         }
 
         private class Element_State : UiBase

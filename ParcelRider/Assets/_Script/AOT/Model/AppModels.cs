@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using AOT.Core;
 using AOT.DataModel;
-using OrderHelperLib.DtoModels.Users;
+using OrderHelperLib.Dtos.DeliveryOrders;
+using OrderHelperLib.Dtos.Users;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace AOT.Model
 {
-    public class AppModels : ModelBase
+    public class AppModels
     {
-        public UserModel User { get; private set; }
-        public RiderModel Rider { get; private set; }
+        public User User { get; private set; }
+        public Rider Rider { get; private set; }
         public DoDataModel OrderCollection { get; private set; } = new DoDataModel();
 
         public void SetOrderList(List<DeliveryOrder> orders)
@@ -20,23 +21,18 @@ namespace AOT.Model
             OrderCollection.SetOrders(orders);
         }
 
-        public void SetCurrentOrder(DeliveryOrder order) => OrderCollection.SetCurrent(order.Id);
+        public void SetCurrentOrder(DeliverOrderModel order) => OrderCollection.SetCurrent(order.Id);
 
-        public void SetRider(UserDto u)
+        public void SetRider(UserModel u)
         {
-            Rider = new RiderModel
-            {
-                Id = u.Id,
-                Name = u.Name,
-                Phone = u.Phone
-            };
-            SendEvent(EventString.Rider_Update);
+            Rider = new Rider { Id = 0, Name = u.Name, Phone = u.Phone };
+            App.SendEvent(EventString.Rider_Update);
         }
 
-        public void SetUser(UserDto user)
+        public void SetUser(UserModel user)
         {
-            User = new UserModel(user);
-            SendEvent(EventString.User_Update);
+            User = new User(user);
+            App.SendEvent(EventString.User_Update);
             if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
                 App.MonoService.StartCoroutine(LoadImage(user.AvatarUrl));
         }
