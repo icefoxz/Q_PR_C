@@ -8,6 +8,9 @@ namespace OrderHelperLib.Dtos.DeliveryOrders;
 public record SenderInfoDto
 {
     // 发件人Id(如果有账号的话))
-    public string? SenderUserId { get; set; }
+    public string? UserId { get; set; }
     public UserModel? User { get; set; }
+    public string Name { get; set; }
+    public string PhoneNumber { get; set; }
+    public string NormalizedPhoneNumber { get; set; }
 }

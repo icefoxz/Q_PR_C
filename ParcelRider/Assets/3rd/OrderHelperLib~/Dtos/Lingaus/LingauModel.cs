@@ -3,7 +3,7 @@
 /// <summary>
 /// 令凹币
 /// </summary>
-public record LingauModel : IntDto
+public record LingauModel : Dto<string>
 {
     /// <summary>
     /// 余额

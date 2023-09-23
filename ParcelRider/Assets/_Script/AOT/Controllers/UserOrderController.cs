@@ -50,13 +50,12 @@ namespace AOT.Controllers
             #endregion
 
             var dto = order;
-            ApiPanel.CreateDeliveryOrder(dto, bag =>
+            ApiPanel.CreateDeliveryOrder(dto, doModel =>
             {
-                SetCurrent(new DeliveryOrder(bag));
+                SetCurrent(new DeliveryOrder(doModel));
                 callbackAction?.Invoke(true, string.Empty);
             }, msg =>
             {
-                SetCurrent(null);
                 callbackAction?.Invoke(false, msg);
             });
         }

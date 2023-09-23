@@ -146,7 +146,9 @@ namespace Visual.Pages
                 SenderInfo = new SenderInfoDto
                 {
                     User = App.Models.User,
-                    SenderUserId = App.Models.User.Id,
+                    UserId = App.Models.User.Id,
+                    PhoneNumber = element_from.Phone,
+                    Name = element_from.Contact,
                 },
                 ReceiverInfo = new ReceiverInfoDto
                 {
