@@ -168,6 +168,10 @@ namespace AOT.Core
             ServiceContainer.Reg(new PictureController(MonoService), AppLaunch.TestMode);
         }
 
-        public static void SendEvent(string eventName, params object[] args) => MessagingManager.SendParams(eventName, args);
+        public static void SendEvent(string eventName, params object[] args)
+        {
+            args ??= Array.Empty<object>();
+            MessagingManager.SendParams(eventName, args);
+        }
     }
 }

@@ -67,7 +67,7 @@ namespace AOT.Model
         public DeliveryOrder GetOrder(int id) => Orders.FirstOrDefault(o => o.Id == id);
 
         // 发送事件
-        private void SendEvent(string eventString) => App.MessagingManager.Send(eventString, null);
+        private void SendEvent(string eventString) => App.SendEvent(eventString, null);
 
         public void ClearOrders()
         {
