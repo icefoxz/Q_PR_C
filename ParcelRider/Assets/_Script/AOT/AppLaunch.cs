@@ -16,6 +16,7 @@ namespace AOT
         [SerializeField] private ApiPanel _apiPanel;
         [SerializeField] private bool _startUi;
         [SerializeField] private bool _testMode;
+        [SerializeField] private TestApiContainer _testApiContainer;
         public static bool TestMode { get; private set; }
         public static bool IsUserMode { get; private set; }
 
@@ -25,6 +26,7 @@ namespace AOT
             IsUserMode = _uiManager.IsUserMode;
             App.Run(res: _res, canvas: _mainCanvas, uiManager: _uiManager.Get(), monoService: _monoService, startUi: _startUi);
             _apiPanel.Init(_serverUrl);
+            _testApiContainer.Init();
         }
 
         [Serializable]private class UiManagerField

@@ -131,7 +131,7 @@ namespace AOT.Utl
             }, failedCallbackAction);
 
         // Login
-        public static void User_Login(string username, string password, Action<Login_Result> callbackAction, Action<string> failedCallbackAction)
+        public static void User_Login(string username, string password, Action<Login_Result> successCallbackAction, Action<string> failedCallbackAction)
         {
             var content = new User_LoginDto
             {
@@ -142,7 +142,7 @@ namespace AOT.Utl
             {
                 var obj = bag.Get<Login_Result>(0);
                 Caller.RegAccessToken(obj.access_token);
-                callbackAction?.Invoke(obj);
+                successCallbackAction?.Invoke(obj);
             }, msg => failedCallbackAction?.Invoke(msg));
         }
         public static void Rider_Login(string username, string password, Action<Login_Result> callbackAction, Action<string> failedCallbackAction)

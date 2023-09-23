@@ -2,6 +2,7 @@
 using AOT.Core;
 using AOT.Test;
 using AOT.Utl;
+using OrderHelperLib;
 using OrderHelperLib.Dtos.Users;
 using OrderHelperLib.Req_Models.Users;
 
@@ -21,54 +22,74 @@ namespace AOT.Controllers
         public void RequestLogin(string username, string password,
             Action<(bool isSuccess, string message)> callback)
         {
-            #region TestMode
-            if (TestMode)
-            {
-                App.Models.SetUser(new UserModel
+            Call(testConvertFunc: args => ((bool)args[0], (string)args[1]),
+                arg =>
                 {
-                    Username = username,
-                    Name = "Test User",
-                });
-                callback?.Invoke((true, string.Empty));
-                return;
-            }
-            #endregion
+                    var (isSuccess, message) = arg;
+                    if (isSuccess)
+                    {
+                        DeserializeSetModel(message);
+                        message = string.Empty;
+                    }
 
-            ApiPanel.User_Login(username, password, obj =>
-            {
-                App.Models.SetUser(obj.User);
-                callback?.Invoke((true, string.Empty));
-            }, msg =>
-                callback?.Invoke((false, msg)));
+                    callback((isSuccess, message));
+                },
+                () =>
+                {
+                    #region ServerRequest
+
+                    ApiPanel.User_Login(username, password,
+                        successCallbackAction: result =>
+                        {
+                            OnSuccessSetModel(result.User);
+                            callback?.Invoke((true, string.Empty));
+                        }, failedCallbackAction: msg => callback?.Invoke((false, msg)));
+
+                    #endregion
+                });
+
         }
+
+        private void DeserializeSetModel(string text)
+        {
+            var bag = DataBag.Deserialize(text);
+            var user = bag.Get<UserModel>(0);
+            OnSuccessSetModel(user);
+        }
+
+        private void OnSuccessSetModel(UserModel user) => App.Models.SetUser(user);
 
         public void RequestGoogle(Action<bool> callback)
         {
-            #region TestMode
-            if (TestMode)
+            Call(args => ((bool)args[0], (string)args[1]), arg =>
             {
-                callback(true);
-                return;
-            }
-            #endregion
-
-            if (!GoogleSignInManager.IsInit)
-                GoogleSignInManager.Init();
-            GoogleSignInManager.GoogleSignInClick(user =>
-            {
-                if (user == null)
+                var (isSuccess, message) = arg;
+                if (isSuccess)
                 {
-                    callback?.Invoke(false);
-                    return;
+                    DeserializeSetModel(message);
                 }
 
-                App.Models.SetUser(new UserModel()
+                callback(isSuccess);
+            }, () =>
+            {
+                if (!GoogleSignInManager.IsInit)
+                    GoogleSignInManager.Init();
+                GoogleSignInManager.GoogleSignInClick(user =>
                 {
-                    Username = user.Email,
-                    Name = user.DisplayName,
-                    AvatarUrl = user.PhotoUrl.ToString(),
+                    if (user == null)
+                    {
+                        callback?.Invoke(false);
+                        return;
+                    }
+
+                    OnSuccessSetModel(new UserModel()
+                    {
+                        Username = user.Email,
+                        Name = user.DisplayName,
+                        AvatarUrl = user.PhotoUrl.ToString(),
+                    });
+                    callback?.Invoke(true);
                 });
-                callback?.Invoke(true);
             });
         }
 
