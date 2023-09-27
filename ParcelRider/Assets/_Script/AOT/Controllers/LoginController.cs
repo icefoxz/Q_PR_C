@@ -95,32 +95,35 @@ namespace AOT.Controllers
 
         public void RequestFacebook(Action<bool> callback)
         {
-            #region TestMode
-            if (TestMode)
+            Call(args => ((bool)args[0], (string)args[1]), arg =>
             {
-                callback(true);
-                return;
-            }
-            #endregion
-
-            FacebookSignInManager.OnLoginButtonClicked(arg =>
-            {
-                var (success, name, email, avatarUrl) = arg;
-                if (!success)
+                var (isSuccess, message) = arg;
+                if (isSuccess)
                 {
-                    callback?.Invoke(false);
-                    return;
+                    DeserializeSetModel(message);
                 }
-
-                App.Models.SetUser(new UserModel()
+                callback(isSuccess);
+            }, () =>
+            {
+                FacebookSignInManager.OnLoginButtonClicked(arg =>
                 {
-                    Username = email,
-                    Name = name,
-                    AvatarUrl = avatarUrl,
+                    var (success, name, email, avatarUrl) = arg;
+                    if (!success)
+                    {
+                        callback?.Invoke(false);
+                        return;
+                    }
+
+                    App.Models.SetUser(new UserModel()
+                    {
+                        Username = email,
+                        Name = name,
+                        AvatarUrl = avatarUrl,
+                    });
+                    callback?.Invoke(true);
                 });
-                callback?.Invoke(true);
             });
-        }
+        } 
 
         public void RequestRegister(User_RegDto registerModel,
             Action<(bool isSuccess, string message)> onCallbackAction)
