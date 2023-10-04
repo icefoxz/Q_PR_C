@@ -27,15 +27,13 @@ public class TestApiContainer : MonoBehaviour
         }, userOrderController);
         RegGen(nameof(userOrderController.Do_Payment), () =>
         {
-            var isSuccess = true;
-            var message = string.Empty;
-            return new object[] { isSuccess, message};
+            var (isSuccess, message) = OrderParcelSo.PaymentOrderService();
+            return new object[] { isSuccess, message };
         }, userOrderController);
         RegGen(nameof(userOrderController.Do_Create), () =>
         {
-            var isSuccess = true;
-            var message = string.Empty;
-            return new object[] { };
+            var (isSuccess, message) = OrderParcelSo.CreateOrderService();
+            return new object[] { isSuccess, message };
         },userOrderController);
     }
 

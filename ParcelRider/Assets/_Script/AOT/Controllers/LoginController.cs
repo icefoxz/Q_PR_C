@@ -114,7 +114,7 @@ namespace AOT.Controllers
                         return;
                     }
 
-                    App.Models.SetUser(new UserModel()
+                    OnSuccessSetModel(new UserModel()
                     {
                         Username = email,
                         Name = name,
