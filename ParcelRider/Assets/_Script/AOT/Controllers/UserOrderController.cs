@@ -54,11 +54,11 @@ namespace AOT.Controllers
                     var bag = DataBag.Deserialize(message);
                     var dOrder = bag.Get<DeliveryOrder>(0);
                     var model = new DeliveryOrder(dOrder);
-                    SetCurrent(model);
                     var list = Models.OrderCollection.Orders.ToList();
                     list.Add(model);
                     List_Clear();
                     List_Set(list.ToArray());
+                    SetCurrent(model);
                     Do_UpdateAll();
                     message = string.Empty;
                 }
@@ -80,7 +80,7 @@ namespace AOT.Controllers
 
         public void Do_Payment(PaymentMethods payment, Action<bool, string> callbackAction)
         {
-            Call(args => ((bool)args[0], (string)args[1], (PaymentMethods)args[2]), arg =>
+            Call(new object[] { payment },args => ((bool)args[0], (string)args[1], (PaymentMethods)args[2]), arg =>
             {
                 var (success, message, payMethod) = arg;
                 if (success)

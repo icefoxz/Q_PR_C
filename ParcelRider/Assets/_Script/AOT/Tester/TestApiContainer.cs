@@ -27,9 +27,10 @@ public class TestApiContainer : MonoBehaviour
             var (isSuccess, status, ordId)  = OrderParcelSo.GetOrderService(orderId);
             return new object[] { isSuccess, status, ordId };
         }, userOrderController);
-        RegGen(nameof(userOrderController.Do_Payment), _ =>
+        RegGen(nameof(userOrderController.Do_Payment), args =>
         {
-            var (isSuccess, message, payMethod) = OrderParcelSo.PaymentOrderService();
+            var payM = (PaymentMethods)args[0];
+            var (isSuccess, message, payMethod) = OrderParcelSo.PaymentOrderService(payM);
             return new object[] { isSuccess, message, payMethod };
         }, userOrderController);
         RegGen(nameof(userOrderController.Do_Create), args =>

@@ -12,7 +12,7 @@ public class OrderParcelSo : ScriptableObject
 {
     [SerializeField] private OrderModelField _orderModel;
     public (bool isSuccess, string message) CreateOrderService(DeliverOrderModel order) => _orderModel.CreateOrderResponse(order);
-    public (bool isSuccess, string message, PaymentMethods methods) PaymentOrderService() => _orderModel.OrderPaymentResponse();
+    public (bool isSuccess, string message, PaymentMethods methods) PaymentOrderService(PaymentMethods payM) => _orderModel.OrderPaymentResponse(payM);
     public (bool isSuccess, DeliveryOrderStatus status, int OrdId) GetOrderService(int orderId) => _orderModel.CancelOrderResponse(orderId);
     [Serializable]private class OrderModelField
     {
@@ -39,8 +39,9 @@ public class OrderParcelSo : ScriptableObject
             //order.Id = 0; //struct: newOrder.Id != 0; //class: newOrder.Id == 0;
             return (true, DataBag.Serialize(newOrder));
         }
-        public (bool isSuccess, string databag, PaymentMethods methods) OrderPaymentResponse()
+        public (bool isSuccess, string databag, PaymentMethods methods) OrderPaymentResponse(PaymentMethods payM)
         {
+            PayMethods = payM;
             if (!PaymentMade) return (false, "Payment Unsuccess, try again", PayMethods);
             return (true, "Payment Success", PayMethods);
         }

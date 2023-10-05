@@ -64,7 +64,7 @@ namespace AOT.Controllers
 
         public void RequestGoogle(Action<bool> callback)
         {
-            Call(null, args => ((bool)args[0], (string)args[1]), arg =>
+            Call(args => ((bool)args[0], (string)args[1]), arg =>
             {
                 var (isSuccess, message) = arg;
                 if (isSuccess)
@@ -98,7 +98,7 @@ namespace AOT.Controllers
 
         public void RequestFacebook(Action<bool> callback)
         {
-            Call(null, args => ((bool)args[0], (string)args[1]), arg =>
+            Call(args => ((bool)args[0], (string)args[1]), arg =>
             {
                 var (isSuccess, message) = arg;
                 if (isSuccess)
