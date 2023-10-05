@@ -22,7 +22,10 @@ namespace AOT.Controllers
         public void RequestLogin(string username, string password,
             Action<(bool isSuccess, string message)> callback)
         {
-            Call(testConvertFunc: args => ((bool)args[0], (string)args[1]),
+            Call(new object[]
+            {
+                username, password
+            }, testConvertFunc: args => ((bool)args[0], (string)args[1]),
                 arg =>
                 {
                     var (isSuccess, message) = arg;
@@ -61,7 +64,7 @@ namespace AOT.Controllers
 
         public void RequestGoogle(Action<bool> callback)
         {
-            Call(args => ((bool)args[0], (string)args[1]), arg =>
+            Call(null, args => ((bool)args[0], (string)args[1]), arg =>
             {
                 var (isSuccess, message) = arg;
                 if (isSuccess)
@@ -95,7 +98,7 @@ namespace AOT.Controllers
 
         public void RequestFacebook(Action<bool> callback)
         {
-            Call(args => ((bool)args[0], (string)args[1]), arg =>
+            Call(null, args => ((bool)args[0], (string)args[1]), arg =>
             {
                 var (isSuccess, message) = arg;
                 if (isSuccess)

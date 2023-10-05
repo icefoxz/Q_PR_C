@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AOT.Controllers;
@@ -69,6 +69,7 @@ namespace AOT.Core
                 riderOrderController.List_Set(testList);
             }
 
+            #region TestRandomGenerateOrder
             List<DeliverOrderModel> GenerateRandomOrders(int count)
             {
                 var random = new System.Random();
@@ -141,6 +142,7 @@ namespace AOT.Core
 
                 return orders;
             }
+            #endregion
         }
 
 

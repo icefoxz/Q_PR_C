@@ -27,7 +27,7 @@ namespace AOT.Controllers
 
         public void List_Update()
         {
-            Call(args => (string)args[0], arg =>
+            Call(null, args => (string)args[0], arg =>
             {
                 var bag = DataBag.Deserialize(arg);
                 List<DeliverOrderModel> list = bag.Get<List<DeliverOrderModel>>(0);
@@ -45,14 +45,15 @@ namespace AOT.Controllers
 
         public void Do_Create(DeliverOrderModel order, Action<bool, string> callbackAction)
         {
-            Call(args => ((bool)args[0], (string)args[1]),
+            Call(new object[] { order }, args => ((bool)args[0], (string)args[1]),
                 arg =>
             {
                 var (isSuccess, message) = arg;
                 if (isSuccess)
                 {
-                    DeserializeDeliveryOrderModel(message);
-                    var model = new DeliveryOrder(order);
+                    var bag = DataBag.Deserialize(message);
+                    var dOrder = bag.Get<DeliveryOrder>(0);
+                    var model = new DeliveryOrder(dOrder);
                     SetCurrent(model);
                     var list = Models.OrderCollection.Orders.ToList();
                     list.Add(model);
@@ -77,26 +78,14 @@ namespace AOT.Controllers
             });
         }
 
-        private void DeserializeDeliveryOrderModel(string message)
-        {
-            var bag = DataBag.Deserialize(message);
-            var order = bag.Get<DeliverOrderModel>(0);
-            ReadOnlySetOrder(order);
-        }
-
-        private void ReadOnlySetOrder(DeliverOrderModel order)
-        {
-            Models.SetCurrentOrder(order);
-        }
-
         public void Do_Payment(PaymentMethods payment, Action<bool, string> callbackAction)
         {
-            Call(args => ((bool)args[0], (string)args[1]), arg =>
+            Call(args => ((bool)args[0], (string)args[1], (PaymentMethods)args[2]), arg =>
             {
-                var (success, message) = arg;
+                var (success, message, payMethod) = arg;
                 if (success)
                 {
-                    Current.SetPaymentMethod(payment);
+                    Current.SetPaymentMethod(payMethod);
                     message = string.Empty;
                 }
                 callbackAction(success, message);
@@ -124,12 +113,12 @@ namespace AOT.Controllers
         
         public void Do_RequestCancel(int orderId, Action<bool> callbackAction)
         {
-            Call(args => ((bool)args[0], (DeliveryOrderStatus)args[1]), arg =>
+            Call(new object[] {orderId},args => ((bool)args[0], (DeliveryOrderStatus)args[1], (int)args[2]), arg =>
             {
-                var (success, status) = arg;
+                var (success, status, ordId) = arg;
                 if (success)
                 {
-                    var o = Models.OrderCollection.GetOrder(orderId);
+                    var o = Models.OrderCollection.GetOrder(ordId);
                     o.Status = (int)status;
                     SetCurrent(o);
                 }

@@ -10,8 +10,8 @@ namespace AOT.Test
         /// <summary>
         /// key = methodName, value = responseAction
         /// </summary>
-        private Dictionary<string, Func<object[]>> _testers = new Dictionary<string, Func<object[]>>();
-        public void RegTester(Func<object[]> responseAction, string methodName)
+        private Dictionary<string, Func<object[], object[]>> _testers = new Dictionary<string, Func<object[], object[]>>();
+        public void RegTester(Func<object[], object[]> responseAction, string methodName)
         {
             if (methodName == null) throw new Exception("methodName is null!");
             _testers.Add(methodName, responseAction);
@@ -26,13 +26,15 @@ namespace AOT.Test
         /// <param name="methodName"></param>
         /// <exception cref="Exception"></exception>
         protected void Call<T>(Func<object[], T> testConvertFunc, Action<T> testModeCallback,
-            Action reqAction, [CallerMemberName] string methodName = null)
+            Action reqAction, [CallerMemberName] string methodName = null) => Call(null, testConvertFunc, testModeCallback, reqAction, methodName);
+        protected void Call<T>(object[] args, Func<object[], T> testConvertFunc, Action<T> testModeCallback,
+        Action reqAction, [CallerMemberName] string methodName = null)
         {
             if (TestMode)
             {
                 if (!_testers.TryGetValue(methodName, out var responseAction))
                     throw new Exception($"No tester found for {methodName}!");
-                testModeCallback?.Invoke(testConvertFunc(responseAction()));
+                testModeCallback?.Invoke(testConvertFunc(responseAction(args)));
                 return;
             }
 
