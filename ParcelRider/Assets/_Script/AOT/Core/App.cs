@@ -39,7 +39,7 @@ namespace AOT.Core
             private set => _monoService = value;
         }
 
-        public static void Run(Res res, Canvas canvas, UiManagerBase uiManager, MonoService monoService,bool startUi)
+        public static void Run(Res res, MonoService monoService)
         {
             if (IsRunning)
                 throw new NotImplementedException("App is running!");
@@ -49,7 +49,6 @@ namespace AOT.Core
             Models = new AppModels();
             ControllerReg();
             TestData();
-            UiInit(canvas, uiManager, startUi);
         }
 
         private static void TestData()
@@ -146,7 +145,7 @@ namespace AOT.Core
         }
 
 
-        private static void UiInit(Canvas canvas, UiManagerBase uiManager,bool startUi)
+        public static void UiInit(Canvas canvas, UiManagerBase uiManager,bool startUi)
         {
             UiBuilder = new UiBuilder(canvas, Res);
             UiManager = uiManager;
