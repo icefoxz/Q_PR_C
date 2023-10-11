@@ -20,10 +20,9 @@ namespace AOT.Controllers
         protected AppModels Models => App.Models;
 
         public void List_Set(ICollection<DeliverOrderModel> orders) =>
-            Models.OrderCollection.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
-        public void List_Remove(DeliveryOrder order) => Models.OrderCollection.RemoveOrder(order);
-        public void List_Clear() => Models.OrderCollection.ClearOrders();
-        protected void SetCurrent(DeliveryOrder order) => Models.SetCurrentOrder(order);
+            Models.ActiveOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
+        public void List_Remove(DeliveryOrder order) => Models.ActiveOrders.RemoveOrder(order.Id);
+        protected void SetActiveCurrent(DeliveryOrder order) => Models.ActiveOrders.SetCurrent(order.Id);
 
         public void List_Update()
         {
@@ -41,8 +40,6 @@ namespace AOT.Controllers
 
     public class UserOrderController : OrderControllerBase
     {
-        private DeliveryOrder Current => Models.OrderCollection.Current;
-
         public void Do_Create(DeliverOrderModel order, Action<bool, string> callbackAction)
         {
             Call(new object[] { order }, args => ((bool)args[0], (string)args[1]),
@@ -54,11 +51,10 @@ namespace AOT.Controllers
                     var bag = DataBag.Deserialize(message);
                     var dOrder = bag.Get<DeliveryOrder>(0);
                     var model = new DeliveryOrder(dOrder);
-                    var list = Models.OrderCollection.Orders.ToList();
+                    var list = Models.ActiveOrders.Orders.ToList();
                     list.Add(model);
-                    List_Clear();
                     List_Set(list.ToArray());
-                    SetCurrent(model);
+                    SetActiveCurrent(model);
                     Do_UpdateAll();
                     message = string.Empty;
                 }
@@ -69,7 +65,7 @@ namespace AOT.Controllers
                 var dto = order;
                 ApiPanel.CreateDeliveryOrder(dto, doModel =>
                 {
-                    SetCurrent(new DeliveryOrder(doModel));
+                    SetActiveCurrent(new DeliveryOrder(doModel));
                     callbackAction?.Invoke(true, string.Empty);
                 }, msg =>
                 {
@@ -85,7 +81,8 @@ namespace AOT.Controllers
                 var (success, message, payMethod) = arg;
                 if (success)
                 {
-                    Current.SetPaymentMethod(payMethod);
+                    var current = App.Models.ActiveOrders.GetCurrent();
+                    current.SetPaymentMethod(payMethod);
                     message = string.Empty;
                 }
                 callbackAction(success, message);
@@ -97,18 +94,17 @@ namespace AOT.Controllers
 
         public void Do_UpdateAll(int page = 1)
         {
-            #region TestMode
-            if (TestMode)
+            Call(args => args[0], arg =>
             {
                 return;
-            }
-            #endregion
-
-            ApiPanel.User_GetDeliveryOrders(50, page, dtos =>
+            }, 
+            () =>
             {
-                List_Clear();
-                List_Set(dtos);
-            }, msg => MessageWindow.Set("Error", msg));
+                ApiPanel.User_GetDeliveryOrders(50, page, dtos =>
+                {
+                    List_Set(dtos);
+                }, msg => MessageWindow.Set("Error", msg));
+            });
         }
         
         public void Do_RequestCancel(int orderId, Action<bool> callbackAction)
@@ -118,9 +114,9 @@ namespace AOT.Controllers
                 var (success, status, ordId) = arg;
                 if (success)
                 {
-                    var o = Models.OrderCollection.GetOrder(ordId);
+                    var o = Models.ActiveOrders.GetOrder(ordId);
                     o.Status = (int)status;
-                    SetCurrent(o);
+                    SetActiveCurrent(o);
                 }
                 callbackAction(success);
             }, () =>
@@ -131,8 +127,13 @@ namespace AOT.Controllers
 
         public void ViewOrder(int orderId)
         {
-            var o = Models.OrderCollection.GetOrder(orderId);
-            SetCurrent(o);
+            var o = Models.ActiveOrders.GetOrder(orderId);
+            SetActiveCurrent(o);
+        }
+
+        public void ViewHistory(int orderId)
+        {
+            Models.History.SetCurrent(orderId);
         }
     }
 }

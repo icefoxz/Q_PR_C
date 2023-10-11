@@ -1,50 +1,59 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AOT.Core;
 using AOT.DataModel;
-using OrderHelperLib.Dtos.DeliveryOrders;
 
 namespace AOT.Model
 {
     /// <summary>
     /// 订单集合, 用于存储订单列表和当前订单
     /// </summary>
-    public class DoDataModel 
+    public abstract class DoDataModel 
     {
         // 订单列表
         private List<DeliveryOrder> _orders = new List<DeliveryOrder>();
         public IReadOnlyList<DeliveryOrder> Orders => _orders;
-
+        protected abstract void SendCurrentOrderUpdateEvent();
+        protected abstract void SendOrdersUpdateEvent();
         // 当前订单
-        private DeliveryOrder _current;
-        public DeliveryOrder? Current => _current;
+        public DeliveryOrder GetCurrent()
+        {
+            return GetOrder(_currentId);
+        }
 
+        private int _currentId = -1;
         public void SetCurrent(int orderId)
         {
             var o = GetOrder(orderId);
-            _current = o;
-            SendEvent(EventString.CurrentOrder_Update);
-            SendEvent(EventString.Orders_Update);
+            if (o == null) throw new NullReferenceException($"Unable to find {orderId}");
+            _currentId = orderId;
+            SendCurrentOrderUpdateEvent();
+            SendOrdersUpdateEvent();
         }
 
-        // 增加订单
+        // 设置订单
         public void SetOrders(ICollection<DeliveryOrder> orders)
         {
+            _currentId = -1;
+            _orders.Clear();
             _orders.AddRange(orders);
-            SendEvent(EventString.Orders_Update);
+            SendCurrentOrderUpdateEvent();
+            SendOrdersUpdateEvent();
         }
 
         // 删除订单
-        public void RemoveOrder(DeliveryOrder order)
+        public void RemoveOrder(int id)
         {
-            var o = GetOrder(order.Id);
-            if (!_orders.Remove(order)) return;
-            SendEvent(EventString.Orders_Update);
-            // 当前订单被删除
-            if (o == Current)
+             // 当前订单被删除
+             var o = GetOrder(id);
+            if (o == null) throw new NullReferenceException($"No order {id}");
+            _orders.Remove(o);
+            SendOrdersUpdateEvent();
+            if (id == _currentId)
             {
-                _current = null;
-                SendEvent(EventString.CurrentOrder_Update);
+                _currentId = -1;
+                SendCurrentOrderUpdateEvent();
             }
         }
 
@@ -53,13 +62,11 @@ namespace AOT.Model
         {
             var o = GetOrder(order.Id);
             var index = _orders.IndexOf(o);
-            if (index == -1) return;
             _orders[index] = order;
-            SendEvent(EventString.Orders_Update);
-            if (o == Current)
+            SendOrdersUpdateEvent();
+            if (order.Id == _currentId)
             {
-                _current = order;
-                SendEvent(EventString.CurrentOrder_Update);
+                SendCurrentOrderUpdateEvent();
             }
         }
 
@@ -67,14 +74,30 @@ namespace AOT.Model
         public DeliveryOrder GetOrder(int id) => Orders.FirstOrDefault(o => o.Id == id);
 
         // 发送事件
-        private void SendEvent(string eventString) => App.SendEvent(eventString, null);
+        protected void SendEvent(string eventString) => App.SendEvent(eventString, null);
+    }
 
-        public void ClearOrders()
+    public class ActiveDoModel : DoDataModel
+    {
+        protected override void SendCurrentOrderUpdateEvent()
         {
-            _current = null;
-            _orders.Clear();
             SendEvent(EventString.CurrentOrder_Update);
+        }
+
+        protected override void SendOrdersUpdateEvent()
+        {
             SendEvent(EventString.Orders_Update);
+        }
+    }
+    public class HistoryDoModel : DoDataModel
+    {
+        protected override void SendCurrentOrderUpdateEvent()
+        {
+            SendEvent(EventString.HistoryCurrentOrder_Update);
+        }
+        protected override void SendOrdersUpdateEvent()
+        {
+            SendEvent(EventString.HistoryOrders_Update);
         }
     }
 }

@@ -13,15 +13,13 @@ namespace AOT.Model
     {
         public User User { get; private set; }
         public Rider Rider { get; private set; }
-        public DoDataModel OrderCollection { get; private set; } = new DoDataModel();
+        public DoDataModel ActiveOrders { get; private set; } = new ActiveDoModel();
+        public DoDataModel History { get; private set; } = new HistoryDoModel();
 
         public void SetOrderList(List<DeliveryOrder> orders)
         {
-            OrderCollection.ClearOrders();
-            OrderCollection.SetOrders(orders);
+            ActiveOrders.SetOrders(orders);
         }
-
-        public void SetCurrentOrder(DeliverOrderModel order) => OrderCollection.SetCurrent(order.Id);
 
         public void SetRider(UserModel u)
         {

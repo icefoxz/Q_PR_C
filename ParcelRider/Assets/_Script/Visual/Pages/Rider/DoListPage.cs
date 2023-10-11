@@ -30,7 +30,7 @@ namespace Visual.Pages.Rider
 
         private void UpdateOrderList()
         {
-            var orders = App.Models.OrderCollection.Orders.Where(OrderListFilter).OrderByDescending(o => o.Id)
+            var orders = App.Models.ActiveOrders.Orders.Where(OrderListFilter).OrderByDescending(o => o.Id)
                 .ToArray();
             OnOrderListUpdate(orders);
             view_doList.Set(orders);

@@ -7,5 +7,7 @@
         public const string CurrentOrder_Update = "Order_Update"; // (单个选中)Order 更新
 
         public const string Orders_Update = "Orders_Update"; // order 列表更新
+        public const string HistoryCurrentOrder_Update = "HistoryCurrentOrder_Update";
+        public const string HistoryOrders_Update = "HistoryOrders_Update";
     }
 }

@@ -62,7 +62,7 @@ namespace Visual.Pages
 
         private void UpdateOrder()
         {
-            var o = App.Models.OrderCollection.Current;
+            var o = App.Models.ActiveOrders.GetCurrent();
             if (o == null) return;
             text_orderId.text = o.Id.ToString();
             view_packageInfo.Set(o.PaymentInfo.Charge, o.DeliveryInfo.Distance, o.ItemInfo.Weight, o.ItemInfo.Size());

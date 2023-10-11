@@ -146,7 +146,7 @@ namespace Visual.Pages
         public void ViewOrder(int orderId)
         {
             UserOrderController.ViewOrder(orderId);
-            var o = App.Models.OrderCollection.GetOrder(orderId);
+            var o = App.Models.ActiveOrders.GetCurrent();
             var orderStatus = (DeliveryOrderStatus)o.Status;
             User_OrderViewPage.DisplayCurrentOrder(onCancelRequestAction: orderStatus.IsClosed() ? null : OnCancelRequestAction(orderId));
 
