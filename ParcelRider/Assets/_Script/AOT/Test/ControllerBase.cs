@@ -46,6 +46,6 @@ namespace AOT.Test
             TestMode = isTestMode;
         }
 
-        protected bool TestMode { get; private set; }
+        private bool TestMode { get; set; }
     }
 }

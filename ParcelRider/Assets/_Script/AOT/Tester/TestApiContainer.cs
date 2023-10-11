@@ -21,48 +21,62 @@ public class TestApiContainer : MonoBehaviour
     {
         var userOrderController = App.GetController<UserOrderController>();
 
-        RegGen(nameof(userOrderController.Do_RequestCancel), args =>
+        RegTester(nameof(userOrderController.Do_RequestCancel), args =>
         {
             var orderId = (int)args[0];
             var (isSuccess, status, ordId)  = OrderParcelSo.GetOrderService(orderId);
             return new object[] { isSuccess, status, ordId };
         }, userOrderController);
-        RegGen(nameof(userOrderController.Do_Payment), args =>
+        RegTester(nameof(userOrderController.Do_Payment), args =>
         {
             var payM = (PaymentMethods)args[0];
             var (isSuccess, message, payMethod) = OrderParcelSo.PaymentOrderService(payM);
             return new object[] { isSuccess, message, payMethod };
         }, userOrderController);
-        RegGen(nameof(userOrderController.Do_Create), args =>
+        RegTester(nameof(userOrderController.Do_Create), args =>
         {
             var order = (DeliverOrderModel)args[0];
             var (isSuccess, message) = OrderParcelSo.CreateOrderService(order);
             return new object[] { isSuccess, message };
         },userOrderController);
+        RegTester(nameof(userOrderController.Do_UpdateAll), args =>
+        {
+            return new object[] {1};
+        }, userOrderController);
     }
 
     private void RegLoginService()
     {
         var userLoginController = App.GetController<LoginController>();
 
-        RegGen(nameof(userLoginController.RequestLogin), args =>
+        RegTester(nameof(userLoginController.RequestLogin), args =>
         {
             var username = args[0].ToString();
             var password = args[1].ToString();
             var (isSuccess, message) = LoginServiceSo.GetLoginService();
             return new object[] { isSuccess, message };
         }, userLoginController);
-        RegGen(nameof(userLoginController.RequestGoogle), _ =>
+        RegTester(nameof(userLoginController.RequestGoogle), _ =>
         {
             var (isSuccess, message) = LoginServiceSo.GetLoginService();
             return new object[] { isSuccess, message };
         },userLoginController);
-        RegGen(nameof(userLoginController.RequestFacebook), _ =>
+        RegTester(nameof(userLoginController.RequestFacebook), _ =>
         {
             var (isSuccess, message) = LoginServiceSo.GetLoginService();
             return new object[] { isSuccess, message };
         }, userLoginController);
+        RegTester(nameof(userLoginController.RequestRegister), _ =>
+        {
+            var (isSuccess, message) = LoginServiceSo.GetLoginService();
+            return new object[] { isSuccess, message };
+        }, userLoginController);
+        RegTester(nameof(userLoginController.CheckLoginStatus), _ =>
+        {
+            var isSuccess = true;
+            return new object[] { isSuccess };
+        }, userLoginController);
     }
 
-    private void RegGen(string method, Func<object[], object[]> func, ControllerBase controller) => controller.RegTester(func, method);
+    private void RegTester(string method, Func<object[], object[]> func, ControllerBase controller) => controller.RegTester(func, method);
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using AOT.Core;
 using AOT.Test;
 using AOT.Utl;
@@ -131,8 +131,8 @@ namespace AOT.Controllers
         public void RequestRegister(User_RegDto registerModel,
             Action<(bool isSuccess, string message)> onCallbackAction)
         {
-            #region TestMode
-            if (TestMode)
+            
+            Call(args => args[0], arg =>
             {
                 App.Models.SetUser(new UserModel()
                 {
@@ -142,29 +142,30 @@ namespace AOT.Controllers
                 });
                 onCallbackAction?.Invoke((true, "Login success!"));
                 return;
-            }
-            #endregion
-            //onCallbackAction?.Invoke((true, "Login success!"));
-
-            ApiPanel.User_Register(registerModel, obj =>
+            }, () =>
             {
-                App.Models.SetUser(obj.User);
-                onCallbackAction?.Invoke((true, "Login success!"));
-            }, msg =>
-                onCallbackAction?.Invoke((false, msg)));
+                ApiPanel.User_Register(registerModel, obj =>
+                {
+                    App.Models.SetUser(obj.User);
+                    onCallbackAction?.Invoke((true, "Login success!"));
+                }, msg =>
+                    onCallbackAction?.Invoke((false, msg)));
+            });
         }
 
         public void CheckLoginStatus(Action<bool> onLoginAction)
         {
-            #region TestMode
-            if(TestMode)
+            Call(args => (bool)args[0], arg =>
             {
-                onLoginAction(true);
-                return;
-            }
-            #endregion
-            var hasUserIdentity = App.Models.User != null;
-            onLoginAction?.Invoke(hasUserIdentity);
+                var isSuccess = arg;
+                if (isSuccess)
+                    return;
+                onLoginAction(isSuccess);
+            }, () =>
+            {
+                var hasUserIdentity = App.Models.User != null;
+                onLoginAction?.Invoke(hasUserIdentity);
+            });
         }
 
     }
