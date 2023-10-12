@@ -47,6 +47,7 @@ namespace Visual.Pages
 
             btn_close.OnClickAdd(Hide);
             App.MessagingManager.RegEvent(EventString.CurrentOrder_Update, _ => UpdateOrder());
+            App.MessagingManager.RegEvent(EventString.HistoryCurrentOrder_Update, _=> UpdateHistory());
         }
 
         public void DisplayCurrentOrder(Action onCancelRequestAction)
@@ -59,7 +60,11 @@ namespace Visual.Pages
             UpdateOrder();
             Show();
         }
-
+        public void DisplayHistoryOrder()
+        {
+            UpdateHistory();
+            Show();
+        }
         private void UpdateOrder()
         {
             var o = App.Models.ActiveOrders.GetCurrent();
@@ -71,6 +76,18 @@ namespace Visual.Pages
             text_riderName.text = o.Rider?.Name;
             text_riderPhone.text = o.Rider?.Phone;
             SetState(o.State);
+        }
+        private void UpdateHistory()
+        {
+            var h = App.Models.History.GetCurrent();
+            if (h == null) return;
+            text_orderId.text = h.Id.ToString();
+            view_packageInfo.Set(h.PaymentInfo.Charge, h.DeliveryInfo.Distance, h.ItemInfo.Weight, h.ItemInfo.Size());
+            element_contactTo.Set(h.ReceiverInfo.Name, h.ReceiverInfo.PhoneNumber, h.DeliveryInfo.EndLocation.Address);
+            element_contactFrom.Set(h.SenderInfo.User.Name, h.SenderInfo.User.Phone, h.DeliveryInfo.StartLocation.Address);
+            text_riderName.text = h.Rider?.Name;
+            text_riderPhone.text = h.Rider?.Phone;
+            SetState(h.State);
         }
 
         private void SetState(DeliveryOrderStatus state)

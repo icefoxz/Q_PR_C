@@ -60,12 +60,12 @@ namespace AOT.Core
             if (AppLaunch.IsUserMode)
             {
                 var userOrderController = GetController<UserOrderController>();
-                userOrderController.List_Set(testList);
+                userOrderController.List_ActiveOrderSet(testList);
             }
             else
             {
                 var riderOrderController = GetController<RiderOrderController>();
-                riderOrderController.List_Set(testList);
+                riderOrderController.List_ActiveOrderSet(testList);
             }
 
             #region TestRandomGenerateOrder

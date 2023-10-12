@@ -10,6 +10,7 @@ public class TestApiContainer : MonoBehaviour
 {
     public LoginServiceSo LoginServiceSo;
     public OrderParcelSo OrderParcelSo;
+    public HistoryOrderSo HistoryOrderSo;
 
     public void Init()
     {
@@ -42,6 +43,11 @@ public class TestApiContainer : MonoBehaviour
         RegTester(nameof(userOrderController.Do_UpdateAll), args =>
         {
             return new object[] {1};
+        }, userOrderController);
+        RegTester(nameof(userOrderController.Do_UpdateHistory), args =>
+        {
+            var message = HistoryOrderSo.GetHistoryList();
+            return new object[] { message };
         }, userOrderController);
     }
 

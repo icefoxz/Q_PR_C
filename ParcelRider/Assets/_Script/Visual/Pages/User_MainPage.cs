@@ -27,7 +27,7 @@ namespace Visual.Pages
             OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
             view_packagePlayer = new View_packagePlayer(v.GetObject<View>("view_packagePlayer"),
                 uiManager, a => uiManager.NewPackage(a.point, a.kg, a.length, a.width, a.height));
-            view_historySect = new View_historySect(v.GetObject<View>("view_historySect"), ui => uiManager.ViewOrder(ui));
+            view_historySect = new View_historySect(v.GetObject<View>("view_historySect"), ui => uiManager.ViewHistory(ui));
             RegEvents();
             Hide();//listView代码会导致view active,所以这里要隐藏
         }
@@ -35,6 +35,7 @@ namespace Visual.Pages
         private void RegEvents()
         {
             App.MessagingManager.RegEvent(EventString.Orders_Update, _ => RefreshOrderList());
+            App.MessagingManager.RegEvent(EventString.HistoryOrders_Update, _ => RefreshHistoryList());
         }
 
         private void RefreshOrderList()
@@ -49,9 +50,12 @@ namespace Visual.Pages
                     var ui = OrderListView.Instance(v => new Prefab_Order(v, id => Mgr.ViewOrder(id)));
                     ui.Set(o);
                 }
-
-                view_historySect.UpdateHistories(orders.Where(o => o.Status < 0).ToArray());
             }
+        }
+        private void RefreshHistoryList()
+        {
+            var orders = App.Models.History.Orders.ToArray();
+            view_historySect.UpdateHistories(orders);
         }
 
         protected override void OnUiShow() => RefreshOrderList();

@@ -73630,7 +73630,7 @@ MonoBehaviour:
   _monoService: {fileID: 1096816974}
   _serverUrl: http://localhost:7236/api/
   _apiPanel: {fileID: 1952502456}
-  _startUi: 1
+  _autoStartUi: 1
   _testMode: 1
   _testApiContainer: {fileID: 1462860354}
 --- !u!4 &1401088898
@@ -75874,6 +75874,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   LoginServiceSo: {fileID: 11400000, guid: d7224ce40147c4f488cd2195be94a3dc, type: 2}
   OrderParcelSo: {fileID: 11400000, guid: ce31b0417c8a005479ded61584c90ecb, type: 2}
+  HistoryOrderSo: {fileID: 11400000, guid: 71cb2044bf19c7a4c9f9f98e6f2df003, type: 2}
 --- !u!1 &1465191164
 GameObject:
   m_ObjectHideFlags: 0

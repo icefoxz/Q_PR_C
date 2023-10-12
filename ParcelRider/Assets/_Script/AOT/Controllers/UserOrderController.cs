@@ -19,8 +19,10 @@ namespace AOT.Controllers
         public const float MeterToFeet = 3.280839895f;
         protected AppModels Models => App.Models;
 
-        public void List_Set(ICollection<DeliverOrderModel> orders) =>
+        public void List_ActiveOrderSet(ICollection<DeliverOrderModel> orders) =>
             Models.ActiveOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
+        public void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders) =>
+            Models.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
         public void List_Remove(DeliveryOrder order) => Models.ActiveOrders.RemoveOrder(order.Id);
         protected void SetActiveCurrent(DeliveryOrder order) => Models.ActiveOrders.SetCurrent(order.Id);
 
@@ -30,7 +32,7 @@ namespace AOT.Controllers
             {
                 var bag = DataBag.Deserialize(arg);
                 List<DeliverOrderModel> list = bag.Get<List<DeliverOrderModel>>(0);
-                List_Set(list);
+                List_ActiveOrderSet(list);
             }, () =>
             {
 
@@ -53,7 +55,7 @@ namespace AOT.Controllers
                     var model = new DeliveryOrder(dOrder);
                     var list = Models.ActiveOrders.Orders.ToList();
                     list.Add(model);
-                    List_Set(list.ToArray());
+                    List_ActiveOrderSet(list.ToArray());
                     SetActiveCurrent(model);
                     Do_UpdateAll();
                     message = string.Empty;
@@ -102,11 +104,23 @@ namespace AOT.Controllers
             {
                 ApiPanel.User_GetDeliveryOrders(50, page, dtos =>
                 {
-                    List_Set(dtos);
+                    List_ActiveOrderSet(dtos);
                 }, msg => MessageWindow.Set("Error", msg));
             });
         }
-        
+        public void Do_UpdateHistory(int page = 1)
+        {
+            Call(args => (string)args[0], arg =>
+            {
+                var bag = DataBag.Deserialize(arg);
+                List<DeliverOrderModel> list = bag.Get<List<DeliverOrderModel>>(0);
+                List_HistoryOrderSet(list);
+            }, () =>
+            {
+                //todo : request history api
+            });
+        }
+
         public void Do_RequestCancel(int orderId, Action<bool> callbackAction)
         {
             Call(new object[] {orderId},args => ((bool)args[0], (DeliveryOrderStatus)args[1], (int)args[2]), arg =>
@@ -117,6 +131,9 @@ namespace AOT.Controllers
                     var o = Models.ActiveOrders.GetOrder(ordId);
                     o.Status = (int)status;
                     SetActiveCurrent(o);
+                    var h = App.Models.History.Orders.ToList();
+                    h.Add(o);
+                    List_HistoryOrderSet(h.ToArray());
                 }
                 callbackAction(success);
             }, () =>

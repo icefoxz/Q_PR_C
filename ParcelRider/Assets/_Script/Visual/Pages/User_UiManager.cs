@@ -163,10 +163,15 @@ namespace Visual.Pages
                     });
                 };
         }
-
+        public void ViewHistory(int orderId)
+        {
+            UserOrderController.ViewHistory(orderId);
+            User_OrderViewPage.DisplayHistoryOrder();
+        }
         private void Login_Init()
         {
             UserOrderController.Do_UpdateAll();
+            UserOrderController.Do_UpdateHistory();
             User_MainPage.Show();
         }
 
