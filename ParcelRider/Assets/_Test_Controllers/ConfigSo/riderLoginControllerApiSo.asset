@@ -9,12 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5cea342894884f44d8f635b0d42b0b9d, type: 3}
-  m_Name: orderControllerApiSo
+  m_Script: {fileID: 11500000, guid: e5a902f199ed52a4ab7aaead22c7699c, type: 3}
+  m_Name: riderLoginControllerApiSo
   m_EditorClassIdentifier: 
-  _orderModel:
-    PaymentMade: 1
-    Status: -3
-    PayMethods: 0
-    OrderId: 9371
-    UserId: Tan
+  _loginMode:
+    NoSuchRider: 0
+    IsPasswordFailed: 0
+    Id: 0001
+    UserName: alibaba
+    Name: Ali Bin Aba
+    Phone: 0123456789

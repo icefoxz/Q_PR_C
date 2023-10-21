@@ -2,6 +2,7 @@
 using AOT.Core;
 using AOT.Test;
 using AOT.Utl;
+using OrderHelperLib;
 using OrderHelperLib.Dtos.Users;
 
 namespace AOT.Controllers
@@ -10,25 +11,31 @@ namespace AOT.Controllers
     {
         public void Rider_RequestLogin(string username, string password, Action<(bool isSuccess, string message)> callback)
         {
-            #region TestMode
-            if(TestMode)
+            Call(new object[] { username }, args => ((bool)args[0], (string)args[1]), arg =>
             {
-                App.Models.SetRider(new UserModel()
+                var (isSuccess, message) = arg;
+                if (isSuccess)
                 {
-                    Id = "1",
-                    Name = "Test",
-                    Phone = "0123456789"
-                });
-                callback.Invoke((true, string.Empty));
-                return;
-            }
-            #endregion
-            ApiPanel.Rider_Login(username, password, result =>
+                    var bag = DataBag.Deserialize(message);
+                    var rider = bag.Get<UserModel>(0);
+                    App.Models.SetRider(new UserModel()
+                    {
+                        Id = rider.Id,
+                        Name = rider.Name,
+                        Phone = rider.Phone
+                    });
+                    message = string.Empty;
+                }
+                callback((isSuccess, message));
+            }, () =>
             {
-                App.Models.SetRider(result.User);
-                callback?.Invoke((true, string.Empty));
-            }, msg =>
-                callback?.Invoke((false, msg)));
+                ApiPanel.Rider_Login(username, password, result =>
+                {
+                    App.Models.SetRider(result.User);
+                    callback?.Invoke((true, string.Empty));
+                }, msg =>
+                    callback?.Invoke((false, msg)));
+            });
         }
     }
 }

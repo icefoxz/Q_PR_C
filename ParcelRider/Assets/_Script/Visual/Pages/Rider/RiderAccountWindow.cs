@@ -25,6 +25,20 @@ namespace Visual.Pages.Rider
             element_inputPhone = new Element_input(v.GetObject<View>("element_inputPhone"));
             view_avatar = new View_avatar(v.GetObject<View>("view_avatar"), () => { });
             btn_close.OnClickAdd(Hide);
+            RegEvent();
+        }
+
+        private void RegEvent()
+        {
+            App.MessagingManager.RegEvent(EventString.Rider_Update, _ =>
+            {
+                var rider = App.Models.Rider;
+                if (rider != null)
+                {
+                    element_inputName.SetText(rider.Name);
+                    element_inputPhone.SetText(rider.Phone);
+                }
+            });
         }
 
         private class Element_input : UiBase

@@ -5,7 +5,9 @@ using AOT.Core;
 using AOT.DataModel;
 using AOT.Utl;
 using AOT.Views;
+using OrderHelperLib;
 using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 
 namespace AOT.Controllers
 {
@@ -16,63 +18,100 @@ namespace AOT.Controllers
 
         public void RiderApplication(Action<bool> callbackAction)
         {
-            #region TestMode
-
-            if (TestMode)
-            {
-                callbackAction(true);
-                return;
-            }
-
-            #endregion
-
-            // RiderApplication
-
-            //ApiPanel.RegisterRider();
+            //Call(args => (bool)args[0], arg =>
+            //{
+            //    var success = arg;
+            //    callbackAction(success);
+            //    return;
+            //}, () =>
+            //{
+            //    // RiderApplication
+            //
+            //    //ApiPanel.RegisterRider();
+            //});
         }
 
-        private DeliveryOrder GetOrder(int orderId) => Models.OrderCollection.GetOrder(orderId);
+        private DeliveryOrder GetOrder(int orderId) => Models.ActiveOrders.GetCurrent();
 
         public void PickItem(int orderId)
         {
-            var o = GetOrder(orderId);
+            var oo = GetOrder(orderId);
             // PickItem
-            if (TestMode)
+            //if (TestMode)
+            //{
+            //    o.Status = (int)DeliveryOrderStatus.Delivering;
+            //    SetActiveCurrent(o);
+            //    Do_UpdateAll();
+            //    return;
+            //}
+            Call(new object[] { oo }, args => ((bool)args[0], (string)args[1]), arg =>
             {
-                o.Status = (int)DeliveryOrderStatus.Delivering;
-                SetCurrent(o);
-                Do_UpdateAll();
+                var (success, message) = arg;
+                if (success)
+                {
+                    var bag = DataBag.Deserialize(message);
+                    var order = bag.Get<DeliveryOrder>(0);
+                    oo.Status = order.Status;
+                    SetActiveCurrent(oo);
+                    Do_UpdateAll();
+                }
                 return;
-            }
-
-            ApiPanel.Rider_PickItem(o, dto =>
+            }, () =>
             {
-                SetCurrent(new DeliveryOrder(dto));
-                Do_UpdateAll();
-            }, msg => MessageWindow.Set("order", msg));
+                ApiPanel.Rider_PickItem(oo, dto =>
+                {
+                    SetActiveCurrent(new DeliveryOrder(dto));
+                    Do_UpdateAll();
+                }, msg => MessageWindow.Set("order", msg));
+            });
         }
 
         public void ItemCollection(int orderId)
         {
             // ItemCollection
-            if(TestMode)
+            //if(TestMode)
+            //{
+            //    var o = GetOrder(orderId);
+            //    o.Status = (int)DeliveryOrderStatus.Delivering;
+            //    Do_UpdateAll();
+            //}
+            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
             {
-                var o = GetOrder(orderId);
-                o.Status = (int)DeliveryOrderStatus.Delivering;
-                Do_UpdateAll();
-            }
+                var (success, status, oId) = arg;
+                UpdateOrder(status, oId);
+                return;
+            }, () =>
+            {
+
+            });
+        }
+
+        private void UpdateOrder(int status, int oId)
+        {
+            var o = GetOrder(oId);
+                //Models.ActiveOrders.GetCurrent;
+            o.Status = status;
+            SetActiveCurrent(o);
+            Do_UpdateAll();
         }
 
         public void Complete(int orderId, Action callbackAction)
         {
             // Complete
-            if (TestMode)
+            Call(new object[] { orderId }, args => ((int)args[0], (int)args[1]), arg =>
             {
-                var o = GetOrder(orderId);
-                o.Status = (int)DeliveryOrderStatus.Completed;
-                Do_UpdateAll();
+                var (status, ordId) = arg;
+                var o = Models.ActiveOrders.GetOrder(ordId);
+                o.Status = status;
+                SetActiveCurrent(o);
+                var h = Models.History.Orders.ToList();
+                h.Add(o);
+                List_HistoryOrderSet(h.ToArray());
                 callbackAction?.Invoke();
-            }
+            }, () =>
+            {
+
+            });
         }
 
         public void SetException(int orderId, int optionIndex)
@@ -130,49 +169,60 @@ namespace AOT.Controllers
 
         public void Do_UpdateAll(int page = 1)
         {
-            #region TestMode
-            if (TestMode)
+            // #region TestMode
+            // if (TestMode)
+            // {
+            //     Models.ActiveOrders.UpdateOrder(Models.ActiveOrders.Orders.First());
+            //     return;
+            // }
+            // #endregion
+            Call(args => args[0], arg =>
             {
-                Models.OrderCollection.UpdateOrder(Models.OrderCollection.Orders.First());
+                //var message = arg;
+                //var bag = DataBag.Deserialize(message);
+                //var model = bag.Get<DeliveryOrder>(0);
+                //var list = new List<DeliveryOrder>();
+                //list.Add(model);
+                //Models.SetOrderList(list);
+                var o = Models.ActiveOrders.Orders;
+                if (o.Count != 0)
+                    Models.ActiveOrders.UpdateOrder(o.First());
                 return;
-            }
-            #endregion
-
-            ApiPanel.Rider_GetDeliveryOrders(50, page, dtos =>
+            }, () =>
             {
-                Models.OrderCollection.ClearOrders();
-                Models.SetOrderList(dtos.Select(o => new DeliveryOrder(o)).ToList());
-            }, msg =>
-            {
-                MessageWindow.Set("Error", msg);
+                ApiPanel.Rider_GetDeliveryOrders(50, page, dtos =>
+                {
+                    Models.SetOrderList(dtos.Select(o => new DeliveryOrder(o)).ToList());
+                }, msg =>
+                {
+                    MessageWindow.Set("Error", msg);
+                });
             });
         }
 
         public void Do_AssignRider(int orderId)
         {
-            #region TestMode
-            if (TestMode)
+            Call(new object[] { orderId },args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
             {
-                var o = Models.OrderCollection.GetOrder(orderId);
-                o.Rider = App.Models.Rider;
-                o.Status = (int)DeliveryOrderStatus.Created;
-                Models.OrderCollection.UpdateOrder(o);
+                var (success, status, oId) = arg;
+                UpdateOrder(status, oId);
                 return;
-            }
-            #endregion
-            var id = orderId;
-            ApiPanel.Rider_AssignRider(id, dto =>
+            }, () =>
             {
-                var o = Models.OrderCollection.GetOrder(orderId);
-                o.Status = (int)dto.Status;
-                Do_UpdateAll();
-            }, msg => MessageWindow.Set("Error", msg));
+                var id = orderId;
+                ApiPanel.Rider_AssignRider(id, dto =>
+                {
+                    var o = Models.ActiveOrders.GetCurrent();
+                    o.Status = (int)dto.Status;
+                    Do_UpdateAll();
+                }, msg => MessageWindow.Set("Error", msg));
+            });
         }
 
         public void ViewOrder(int orderId)
         {
-            var o = Models.OrderCollection.GetOrder(orderId);
-            SetCurrent(o);
+            var o = Models.ActiveOrders.GetOrder(orderId);
+            SetActiveCurrent(o);
         }
     }
 }

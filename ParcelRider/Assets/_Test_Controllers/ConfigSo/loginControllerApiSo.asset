@@ -15,7 +15,7 @@ MonoBehaviour:
   _loginModel:
     NoSuchUser: 0
     IsPasswordFailed: 0
-    Username: Amy
-    Name: Amy Tan
-    Email: Amy@mimi.com
+    Username: Sunny
+    Name: Sunny Tan
+    Email: Sunny@mimi.com
     Phone: 125367124
