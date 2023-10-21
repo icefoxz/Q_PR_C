@@ -19,7 +19,7 @@ namespace AOT.Controllers
         public const float MeterToFeet = 3.280839895f;
         protected AppModels Models => App.Models;
 
-        public void List_ActiveOrderSet(ICollection<DeliverOrderModel> orders) =>
+        public void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders) =>
             Models.ActiveOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
         public void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders) =>
             Models.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
@@ -32,7 +32,7 @@ namespace AOT.Controllers
             {
                 var bag = DataBag.Deserialize(arg);
                 List<DeliverOrderModel> list = bag.Get<List<DeliverOrderModel>>(0);
-                List_ActiveOrderSet(list);
+                List_ActiveOrder_Set(list);
             }, () =>
             {
 
@@ -55,9 +55,9 @@ namespace AOT.Controllers
                     var model = new DeliveryOrder(dOrder);
                     var list = Models.ActiveOrders.Orders.ToList();
                     list.Add(model);
-                    List_ActiveOrderSet(list.ToArray());
+                    List_ActiveOrder_Set(list.ToArray());
                     SetActiveCurrent(model);
-                    Do_UpdateAll();
+                    //Do_UpdateAll();
                     message = string.Empty;
                 }
                 callbackAction(isSuccess, message);
@@ -98,13 +98,16 @@ namespace AOT.Controllers
         {
             Call(args => args[0], arg =>
             {
+                var bag = DataBag.Deserialize(arg);
+                var list = bag.Get<List<DeliverOrderModel>>(0);
+                List_ActiveOrder_Set(list.ToArray());
                 return;
             }, 
             () =>
             {
                 ApiPanel.User_GetDeliveryOrders(50, page, dtos =>
                 {
-                    List_ActiveOrderSet(dtos);
+                    List_ActiveOrder_Set(dtos);
                 }, msg => MessageWindow.Set("Error", msg));
             });
         }
