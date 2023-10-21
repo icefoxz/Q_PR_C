@@ -48,24 +48,24 @@ namespace AOT.Core
             MonoService = monoService;
             Models = new AppModels();
             ControllerReg();
-            TestData();
+            //TestData();
         }
 
         private static void TestData()
         {
             //add testing orders
-            var testList = GenerateRandomOrders(2);
+            var testList = GenerateRandomOrders(5);
                 Models.SetUser(new UserModel() { Id = "TestUser" });
 
             if (AppLaunch.IsUserMode)
             {
                 var userOrderController = GetController<UserOrderController>();
-                userOrderController.List_ActiveOrderSet(testList);
+                userOrderController.List_ActiveOrder_Set(testList);
             }
             else
             {
                 var riderOrderController = GetController<RiderOrderController>();
-                riderOrderController.List_ActiveOrderSet(testList);
+                riderOrderController.List_ActiveOrder_Set(testList);
             }
 
             #region TestRandomGenerateOrder
