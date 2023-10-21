@@ -21,22 +21,22 @@ public class OrderParcelSo : ScriptableObject
         public PaymentMethods PayMethods;
         public int OrderId;
         public string UserId;
-        public string ReceiverInfo;
-        public DeliverOrderModel orderModel;
         
         public (bool isSuccess, DeliveryOrderStatus databag, int OrdId) CancelOrderResponse(int orderId)
         {
             OrderId = orderId;
             return (true, Status, OrderId);
         }
-        public (bool isScuccess, string databag) CreateOrderResponse(DeliverOrderModel order)
+        public (bool isSuccess, string message) CreateOrderResponse(DeliverOrderModel order)
         {
+            var random = new System.Random();
             var newOrder = order with
             {
-                Id = OrderId,
+                Id = random.Next(1000, 9999),
                 UserId = UserId,
             };
             //order.Id = 0; //struct: newOrder.Id != 0; //class: newOrder.Id == 0;
+            OrderId = newOrder.Id;
             return (true, DataBag.Serialize(newOrder));
         }
         public (bool isSuccess, string databag, PaymentMethods methods) OrderPaymentResponse(PaymentMethods payM)

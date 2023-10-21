@@ -8,7 +8,9 @@ public class LoginServiceSo : ScriptableObject
 {
     [SerializeField] private UserModelField _loginModel;
 
-    public (bool isSuccess, string message) GetLoginService() => _loginModel.Response();
+    public (bool isSuccess, string message) ThirdPartyLoginService() => _loginModel.ThirdPartyResponse();
+    public (bool isSuccess, string message) UserLoginService(string username) => _loginModel.UserLoginResponse(username);
+
     [Serializable]private class UserModelField
     {
         public bool NoSuchUser;
@@ -18,10 +20,21 @@ public class LoginServiceSo : ScriptableObject
         public string Email;
         public string Phone;
 
-        public (bool isSuccess,string databag) Response()
+        public (bool isSuccess,string databag) ThirdPartyResponse()
         {
-            if (NoSuchUser) return (false, "User not found!");
             if (IsPasswordFailed) return (false, "Password is wrong!");
+            return (true, DataBag.Serialize(new UserModel
+            {
+                Username = Username,
+                Name = Name,
+                Email = Email,
+                Phone = Phone
+            }));
+        }
+        internal (bool isSuccess, string message) UserLoginResponse(string username)
+        {
+            if (username != Username) return (false, "User not found!");
+            if(IsPasswordFailed) return (false, "Password is wrong!");
             return (true, DataBag.Serialize(new UserModel
             {
                 Username = Username,
