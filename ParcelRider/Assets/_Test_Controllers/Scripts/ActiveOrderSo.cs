@@ -15,9 +15,12 @@ public class ActiveOrderSo : ScriptableObject
     public string GetActiveOrderList() => _activeModel.GetActiveOrderList();
     public void SetNewOrder(DeliverOrderModel order) => _activeModel.SetNewOrderToList(order);
     public void CancelOrder(int orderId) => _activeModel.CancelOrderToList(orderId);
+    public void SetPayment(PaymentMethods payM) => _activeModel.SetPayment(payM);
+
     [Serializable] private class ActiveOrderField
     {
         public int Count;
+        public int CurrentId;
         public List<DeliverOrderModel> deliverOrderModels = new List<DeliverOrderModel>();
         public string DoList;
         public string GetActiveOrderList()
@@ -107,6 +110,7 @@ public class ActiveOrderSo : ScriptableObject
         public void SetNewOrderToList(DeliverOrderModel order)
         {
             SetList();
+            CurrentId = order.Id;
             deliverOrderModels.Add(order);
             SetNewList(deliverOrderModels);
         }
@@ -116,10 +120,20 @@ public class ActiveOrderSo : ScriptableObject
             var order = deliverOrderModels.FirstOrDefault(o => o.Id == orderId);
             deliverOrderModels.Remove(order);
             SetNewList(deliverOrderModels);
+            CurrentId = -1;
         }
-        public void UpdateOrder(int orderId)
+        public void SetPayment(PaymentMethods payM)
         {
+            var order = GetOrder(CurrentId);
+            var index = deliverOrderModels.IndexOf(order);
+            deliverOrderModels[index].PaymentInfo.Method = payM;
+            SetNewList(deliverOrderModels);
+        }
 
+        private DeliverOrderModel GetOrder(int currentId)
+        {
+            var order = deliverOrderModels.FirstOrDefault(o=> o.Id == currentId);
+            return order;
         }
 
         private void SetList()
@@ -137,6 +151,7 @@ public class ActiveOrderSo : ScriptableObject
             var data = DataBag.Serialize(deliverOrderModels);
             DoList = data;
         }
+
     }
 }
 

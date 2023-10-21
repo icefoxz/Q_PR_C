@@ -41,6 +41,7 @@ public class TestApiContainer : MonoBehaviour
         {
             var payM = (PaymentMethods)args[0];
             var (isSuccess, message, payMethod) = OrderParcelSo.PaymentOrderService(payM);
+            ActiveOrderSo.SetPayment(payM);
             return new object[] { isSuccess, message, payMethod };
         }, userOrderController);
         RegTester(nameof(userOrderController.Do_Create), args =>
