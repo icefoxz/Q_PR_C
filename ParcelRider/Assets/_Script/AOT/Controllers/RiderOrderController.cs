@@ -36,24 +36,12 @@ namespace AOT.Controllers
         public void PickItem(int orderId)
         {
             var oo = GetOrder(orderId);
-            // PickItem
-            //if (TestMode)
-            //{
-            //    o.Status = (int)DeliveryOrderStatus.Delivering;
-            //    SetActiveCurrent(o);
-            //    Do_UpdateAll();
-            //    return;
-            //}
-            Call(new object[] { oo }, args => ((bool)args[0], (string)args[1]), arg =>
+            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
             {
-                var (success, message) = arg;
+                var (success, status, oId) = arg;
                 if (success)
                 {
-                    var bag = DataBag.Deserialize(message);
-                    var order = bag.Get<DeliveryOrder>(0);
-                    oo.Status = order.Status;
-                    SetActiveCurrent(oo);
-                    Do_UpdateAll();
+                    UpdateOrder(status, oId);
                 }
                 return;
             }, () =>
@@ -68,13 +56,6 @@ namespace AOT.Controllers
 
         public void ItemCollection(int orderId)
         {
-            // ItemCollection
-            //if(TestMode)
-            //{
-            //    var o = GetOrder(orderId);
-            //    o.Status = (int)DeliveryOrderStatus.Delivering;
-            //    Do_UpdateAll();
-            //}
             Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
             {
                 var (success, status, oId) = arg;
@@ -89,24 +70,17 @@ namespace AOT.Controllers
         private void UpdateOrder(int status, int oId)
         {
             var o = GetOrder(oId);
-                //Models.ActiveOrders.GetCurrent;
             o.Status = status;
             SetActiveCurrent(o);
-            Do_UpdateAll();
         }
 
         public void Complete(int orderId, Action callbackAction)
         {
             // Complete
-            Call(new object[] { orderId }, args => ((int)args[0], (int)args[1]), arg =>
+            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
             {
-                var (status, ordId) = arg;
-                var o = Models.ActiveOrders.GetOrder(ordId);
-                o.Status = status;
-                SetActiveCurrent(o);
-                var h = Models.History.Orders.ToList();
-                h.Add(o);
-                List_HistoryOrderSet(h.ToArray());
+                var (success, status, ordId) = arg;
+                UpdateOrder(status, ordId);
                 callbackAction?.Invoke();
             }, () =>
             {
@@ -169,24 +143,13 @@ namespace AOT.Controllers
 
         public void Do_UpdateAll(int page = 1)
         {
-            // #region TestMode
-            // if (TestMode)
-            // {
-            //     Models.ActiveOrders.UpdateOrder(Models.ActiveOrders.Orders.First());
-            //     return;
-            // }
-            // #endregion
             Call(args => args[0], arg =>
             {
-                //var message = arg;
-                //var bag = DataBag.Deserialize(message);
-                //var model = bag.Get<DeliveryOrder>(0);
-                //var list = new List<DeliveryOrder>();
-                //list.Add(model);
-                //Models.SetOrderList(list);
-                var o = Models.ActiveOrders.Orders;
-                if (o.Count != 0)
-                    Models.ActiveOrders.UpdateOrder(o.First());
+                var message = arg;
+                var bag = DataBag.Deserialize(message);
+                var list = bag.Get<List<DeliverOrderModel>>(0);
+                var toList = new List<DeliveryOrder>();
+                List_ActiveOrder_Set(list);
                 return;
             }, () =>
             {

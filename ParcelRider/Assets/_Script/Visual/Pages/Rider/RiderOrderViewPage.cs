@@ -72,7 +72,9 @@ namespace Visual.Pages.Rider
 
         public void ShowCurrentOrder()
         {
-            var order = App.Models.ActiveOrders.GetCurrent() ?? throw new Exception("No order set to current!");
+            var order = App.Models.ActiveOrders.GetCurrent();
+            //throw new Exception("No order set to current!");
+            if (order == null) return;
             OrderId = order.Id;
             var sender = order.SenderInfo.User;
             var receiver = order.ReceiverInfo;

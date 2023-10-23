@@ -18,12 +18,7 @@ namespace AOT.Controllers
                 {
                     var bag = DataBag.Deserialize(message);
                     var rider = bag.Get<UserModel>(0);
-                    App.Models.SetRider(new UserModel()
-                    {
-                        Id = rider.Id,
-                        Name = rider.Name,
-                        Phone = rider.Phone
-                    });
+                    App.Models.SetRider(rider);
                     message = string.Empty;
                 }
                 callback((isSuccess, message));

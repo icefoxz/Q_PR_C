@@ -14,9 +14,7 @@ public class TestApiContainer : MonoBehaviour
     public OrderParcelSo OrderParcelSo;
     public HistoryOrderSo HistoryOrderSo;
     public ActiveOrderSo ActiveOrderSo;
-
     public RiderLoginServiceSo RiderLoginServiceSo;
-    public CrossModeOrderServiceSo CrossOrderServiceSo; 
 
     public void Init()
     {
@@ -114,31 +112,32 @@ public class TestApiContainer : MonoBehaviour
         var riderOrderService = App.GetController<RiderOrderController>();
         RegTester(nameof(riderOrderService.PickItem), args=>
         {
-            var orderId = (DeliveryOrder)args[0];
-            var (isSuccess, message) = CrossOrderServiceSo.PickItem(orderId);
-            return new object[] { isSuccess, message };
+            var orderId = (int)args[0];
+            var (isSuccess, status, ordId) = ActiveOrderSo.ItemPicked(orderId);
+            return new object[] { isSuccess, status, ordId };
         },riderOrderService);
         RegTester(nameof(riderOrderService.ItemCollection), args =>
         {
             var orderId = (int)args[0];
-            var (isSuccess, status, oId) = CrossOrderServiceSo.ItemCollection(orderId);
+            var (isSuccess, status, oId) = ActiveOrderSo.ItemCollected(orderId);
             return new object[] { isSuccess, status, oId };
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Complete), args =>
         {
             var orderId = (int)args[0];
-            var (status, ordId) = CrossOrderServiceSo.Complete(orderId);
-            return new object[] { status, ordId };
+            var (isSuccess, status, ordId) = ActiveOrderSo.DeliveryComplete(orderId);
+
+            return new object[] {isSuccess, status, ordId };
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_UpdateAll), _ =>
         {
-            var message = CrossOrderServiceSo.GetOrders();
+            var message = ActiveOrderSo.GetActiveOrderList();
             return new object[] { message };
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_AssignRider), args=>
         {
             var orderId = (int)args[0];
-            var (isSuccess, status, ordId) = CrossOrderServiceSo.AssignRider(orderId);
+            var (isSuccess, status, ordId) = ActiveOrderSo.OrderAssigned(orderId);
             return new object[] { isSuccess, status, ordId };
         }, riderOrderService);
     }

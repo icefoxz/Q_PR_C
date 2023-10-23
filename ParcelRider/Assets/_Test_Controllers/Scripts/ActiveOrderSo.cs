@@ -17,11 +17,17 @@ public class ActiveOrderSo : ScriptableObject
     public void CancelOrder(int orderId) => _activeModel.CancelOrderToList(orderId);
     public void SetPayment(PaymentMethods payM) => _activeModel.SetPayment(payM);
 
+    //Update order status
+    public (bool isSuccess, int status, int ordId) OrderAssigned(int orderId) => _activeModel.OrderAssignedResponse(orderId);
+    public (bool isSuccess, int status, int ordId) ItemPicked(int orderId) => _activeModel.ItemPickedResponse(orderId);
+    public (bool isSuccess, int status, int oId) ItemCollected(int orderId) => _activeModel.ItemCollectedResponse(orderId);
+    public (bool isSuccess, int status, int ordId) DeliveryComplete(int orderId) => _activeModel.DeliveryCompleteResponse(orderId);
+
     [Serializable] private class ActiveOrderField
     {
         public int Count;
         public int CurrentId;
-        public List<DeliverOrderModel> deliverOrderModels = new List<DeliverOrderModel>();
+        public List<DeliverOrderModel> deliverOrders = new List<DeliverOrderModel>();
         public string DoList;
         public string GetActiveOrderList()
         {
@@ -99,8 +105,8 @@ public class ActiveOrderSo : ScriptableObject
                     }
                     return orders;
                 }
-                deliverOrderModels.AddRange(hOrder);
-                var data = DataBag.Serialize(deliverOrderModels);
+                deliverOrders.AddRange(hOrder);
+                var data = DataBag.Serialize(deliverOrders);
                 DoList = data;
             }
             Debug.Log("Get data from SO");
@@ -109,42 +115,41 @@ public class ActiveOrderSo : ScriptableObject
 
         public void SetNewOrderToList(DeliverOrderModel order)
         {
-            SetList();
+            DeserializeList();
             CurrentId = order.Id;
-            deliverOrderModels.Add(order);
-            SetNewList(deliverOrderModels);
+            deliverOrders.Add(order);
+            SetNewList(deliverOrders);
         }
         public void CancelOrderToList(int orderId)
         {
-            SetList();
-            var order = deliverOrderModels.FirstOrDefault(o => o.Id == orderId);
-            deliverOrderModels.Remove(order);
-            SetNewList(deliverOrderModels);
+            DeserializeList();
+            var order = deliverOrders.FirstOrDefault(o => o.Id == orderId);
+            deliverOrders.Remove(order);
+            SetNewList(deliverOrders);
             CurrentId = -1;
         }
         public void SetPayment(PaymentMethods payM)
         {
             var order = GetOrder(CurrentId);
-            var index = deliverOrderModels.IndexOf(order);
-            deliverOrderModels[index].PaymentInfo.Method = payM;
-            SetNewList(deliverOrderModels);
+            var index = deliverOrders.IndexOf(order);
+            deliverOrders[index].PaymentInfo.Method = payM;
+            SetNewList(deliverOrders);
         }
 
         private DeliverOrderModel GetOrder(int currentId)
         {
-            var order = deliverOrderModels.FirstOrDefault(o=> o.Id == currentId);
+            var order = deliverOrders.FirstOrDefault(o=> o.Id == currentId);
             return order;
         }
 
-        private void SetList()
+        private void DeserializeList()
         {
             var bag = DataBag.Deserialize(DoList);
             var DoData = bag.Get<List<DeliverOrderModel>>(0);
-            deliverOrderModels.Clear();
+            deliverOrders.Clear();
             DoList = string.Empty;
-            deliverOrderModels.AddRange(DoData);
+            deliverOrders.AddRange(DoData);
         }
-
 
         private void SetNewList(List<DeliverOrderModel> deliverOrderModels)
         {
@@ -152,6 +157,51 @@ public class ActiveOrderSo : ScriptableObject
             DoList = data;
         }
 
+        #region Update Order Status
+        public (bool isSuccess, int status, int ordId) OrderAssignedResponse(int orderId)
+        {
+            DeserializeList();
+            var order = GetOrder(orderId);
+            var index = deliverOrders.IndexOf(GetOrder(orderId));
+            var assigned = (int)DeliveryOrderStatus.Assigned;
+            deliverOrders[index].Status = assigned;
+            SetNewList(deliverOrders);
+            return (true, deliverOrders[index].Status, order.Id);
+        }
+
+        internal (bool isSuccess, int status, int ordId) ItemPickedResponse(int orderId)
+        {
+            DeserializeList();
+            var order = GetOrder(orderId);
+            var index = deliverOrders.IndexOf(GetOrder(orderId));
+            var assigned = (int)DeliveryOrderStatus.Delivering;
+            deliverOrders[index].Status = assigned;
+            SetNewList(deliverOrders);
+            return (true, deliverOrders[index].Status, order.Id);
+        }
+
+        internal (bool isSuccess, int status, int oId) ItemCollectedResponse(int orderId)
+        {
+            DeserializeList();
+            var order = GetOrder(orderId);
+            var index = deliverOrders.IndexOf(GetOrder(orderId));
+            var assigned = (int)DeliveryOrderStatus.Completed;
+            deliverOrders[index].Status = assigned;
+            SetNewList(deliverOrders);
+            return (true, deliverOrders[index].Status, order.Id);
+        }
+
+        internal (bool isSuccess, int status, int ordId) DeliveryCompleteResponse(int orderId)
+        {
+            DeserializeList();
+            var order = GetOrder(orderId);
+            var index = deliverOrders.IndexOf(GetOrder(orderId));
+            var assigned = (int)DeliveryOrderStatus.Close;
+            deliverOrders[index].Status = assigned;
+            SetNewList(deliverOrders);
+            return (true, deliverOrders[index].Status, order.Id);
+        }
+        #endregion
     }
 }
 
