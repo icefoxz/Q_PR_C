@@ -18,7 +18,7 @@ public class ActiveOrderSo : ScriptableObject
     public void SetPayment(PaymentMethods payM) => _activeModel.SetPayment(payM);
 
     //Update order status
-    public (bool isSuccess, int status, int ordId) OrderAssigned(int orderId) => _activeModel.OrderAssignedResponse(orderId);
+    public (bool isSuccess, int status, int ordId) OrderAssigned(DeliverOrderModel order) => _activeModel.OrderAssignedResponse(order);
     public (bool isSuccess, int status, int ordId) ItemPicked(int orderId) => _activeModel.ItemPickedResponse(orderId);
     public (bool isSuccess, int status, int oId) ItemCollected(int orderId) => _activeModel.ItemCollectedResponse(orderId);
     public (bool isSuccess, int status, int ordId) DeliveryComplete(int orderId) => _activeModel.DeliveryCompleteResponse(orderId);
@@ -28,6 +28,7 @@ public class ActiveOrderSo : ScriptableObject
         public int Count;
         public int CurrentId;
         public List<DeliverOrderModel> deliverOrders = new List<DeliverOrderModel>();
+        [TextArea(5,20)]
         public string DoList;
         public string GetActiveOrderList()
         {
@@ -158,11 +159,13 @@ public class ActiveOrderSo : ScriptableObject
         }
 
         #region Update Order Status
-        public (bool isSuccess, int status, int ordId) OrderAssignedResponse(int orderId)
+        public (bool isSuccess, int status, int ordId) OrderAssignedResponse(DeliverOrderModel order)
         {
             DeserializeList();
-            var order = GetOrder(orderId);
-            var index = deliverOrders.IndexOf(GetOrder(orderId));
+            var getOrder = GetOrder(order.Id);
+            var index = deliverOrders.IndexOf(getOrder);
+            deliverOrders[index].RiderId = order.RiderId;
+            deliverOrders[index].Rider = order.Rider;
             var assigned = (int)DeliveryOrderStatus.Assigned;
             deliverOrders[index].Status = assigned;
             SetNewList(deliverOrders);

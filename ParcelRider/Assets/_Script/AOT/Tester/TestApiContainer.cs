@@ -136,8 +136,11 @@ public class TestApiContainer : MonoBehaviour
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_AssignRider), args=>
         {
-            var orderId = (int)args[0];
-            var (isSuccess, status, ordId) = ActiveOrderSo.OrderAssigned(orderId);
+            var order = (DeliverOrderModel)args[0];
+            var newOrder = RiderLoginServiceSo.SetRiderInfo(order);
+            var data = DataBag.Deserialize(newOrder);
+            var newData = data.Get<DeliverOrderModel>(0);
+            var (isSuccess, status, ordId) = ActiveOrderSo.OrderAssigned(newData);
             return new object[] { isSuccess, status, ordId };
         }, riderOrderService);
     }

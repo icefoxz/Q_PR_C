@@ -165,10 +165,12 @@ namespace AOT.Controllers
 
         public void Do_AssignRider(int orderId)
         {
-            Call(new object[] { orderId },args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
+            var order = GetOrder(orderId);
+            Call(new object[] { order },args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
             {
                 var (success, status, oId) = arg;
                 UpdateOrder(status, oId);
+                Do_UpdateAll();
                 return;
             }, () =>
             {

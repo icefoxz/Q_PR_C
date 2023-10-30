@@ -15,7 +15,8 @@ MonoBehaviour:
   _loginMode:
     NoSuchRider: 0
     IsPasswordFailed: 0
-    Id: 0001
+    R_Id: 1684387
+    UserId: s8888
     UserName: alibaba
     Name: Ali Bin Aba
     Phone: 0123456789
