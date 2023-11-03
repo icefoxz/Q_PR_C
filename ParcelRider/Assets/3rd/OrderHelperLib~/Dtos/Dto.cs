@@ -12,3 +12,7 @@ public record Dto<T> where T : IConvertible
 public record IntDto : Dto<int>
 {
 }
+
+public record StringDto : Dto<string>
+{
+}

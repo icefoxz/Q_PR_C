@@ -1,9 +1,10 @@
-﻿using OrderHelperLib.Dtos.Riders;
+﻿using Delivery.Domains.OrderEntitys;
+using OrderHelperLib.Dtos.Riders;
 using OrderHelperLib.Dtos.Users;
 
 namespace OrderHelperLib.Dtos.DeliveryOrders;
 
-public record DeliverOrderModel : IntDto
+public record DeliverOrderModel : StringDto
 {
     // 执行用户Id
     public string UserId { get; set; }
@@ -22,10 +23,10 @@ public record DeliverOrderModel : IntDto
     //运送信息
     public DeliveryInfoDto DeliveryInfo { get; set; }
     //骑手信息
-    public int? RiderId { get; set; }
+    public string? RiderId { get; set; }
     public RiderModel? Rider { get; set; }
     //付款信息
     public PaymentInfo? PaymentInfo { get; set; }
     //订单状态, 正数 = 进行中, 负数 = 已完成
-    public int Status { get; set; }
+    public string Status { get; set; }
 }

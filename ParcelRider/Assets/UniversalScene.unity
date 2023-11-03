@@ -73624,7 +73624,7 @@ MonoBehaviour:
   _res: {fileID: 2098635533}
   _mainCanvas: {fileID: 1623062855}
   _uiManager:
-    _mode: 0
+    _mode: 1
     _user: {fileID: 1299781214}
     _rider: {fileID: 1314627824}
   _monoService: {fileID: 1096816974}

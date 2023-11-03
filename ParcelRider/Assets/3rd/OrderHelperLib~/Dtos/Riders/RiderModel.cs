@@ -1,6 +1,6 @@
 ﻿namespace OrderHelperLib.Dtos.Riders;
 
-public record RiderModel : IntDto
+public record RiderModel : StringDto
 {
     /// <summary>
     /// 名字

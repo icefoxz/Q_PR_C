@@ -18,6 +18,10 @@ public record ItemInfoDto
     /// </summary>
     public double Volume { get; set; }
     /// <summary>
+    /// 价值
+    /// </summary>
+    public double Value{get; set; }
+    /// <summary>
     /// 长, 单位是米
     /// </summary>
     public float Length { get; set; }
