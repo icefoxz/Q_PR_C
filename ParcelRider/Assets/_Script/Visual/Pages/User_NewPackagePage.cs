@@ -185,7 +185,7 @@ namespace Visual.Pages
                 {
                     Charge = CurrentDo.GetCost(),
                     Fee = CurrentDo.GetCost(),
-                    Method = 0,
+                    Method = 0.ToString(),
                 };
             }
 

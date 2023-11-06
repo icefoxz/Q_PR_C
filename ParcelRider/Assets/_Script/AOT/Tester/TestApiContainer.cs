@@ -30,7 +30,7 @@ public class TestApiContainer : MonoBehaviour
 
         RegTester(nameof(userOrderController.Do_RequestCancel), args =>
         {
-            var orderId = (int)args[0];
+            var orderId = args[0].ToString();
             var (isSuccess, status, ordId)  = OrderParcelSo.GetOrderService(orderId);
             ActiveOrderSo.CancelOrder(orderId);
             return new object[] { isSuccess, status, ordId };
@@ -112,19 +112,19 @@ public class TestApiContainer : MonoBehaviour
         var riderOrderService = App.GetController<RiderOrderController>();
         RegTester(nameof(riderOrderService.PickItem), args=>
         {
-            var orderId = (int)args[0];
+            var orderId = args[0].ToString();
             var (isSuccess, status, ordId) = ActiveOrderSo.ItemPicked(orderId);
             return new object[] { isSuccess, status, ordId };
         },riderOrderService);
         RegTester(nameof(riderOrderService.ItemCollection), args =>
         {
-            var orderId = (int)args[0];
+            var orderId = args[0].ToString();
             var (isSuccess, status, oId) = ActiveOrderSo.ItemCollected(orderId);
             return new object[] { isSuccess, status, oId };
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Complete), args =>
         {
-            var orderId = (int)args[0];
+            var orderId = args[0].ToString();
             var (isSuccess, status, ordId) = ActiveOrderSo.DeliveryComplete(orderId);
 
             return new object[] {isSuccess, status, ordId };

@@ -31,12 +31,12 @@ namespace AOT.Controllers
             //});
         }
 
-        private DeliveryOrder GetOrder(int orderId) => Models.ActiveOrders.GetCurrent();
+        private DeliveryOrder GetOrder(string orderId) => Models.ActiveOrders.GetCurrent();
 
-        public void PickItem(int orderId)
+        public void PickItem(string orderId)
         {
             var oo = GetOrder(orderId);
-            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
+            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], args[2].ToString()), arg =>
             {
                 var (success, status, oId) = arg;
                 if (success)
@@ -54,9 +54,9 @@ namespace AOT.Controllers
             });
         }
 
-        public void ItemCollection(int orderId)
+        public void ItemCollection(string orderId)
         {
-            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
+            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], args[2].ToString()), arg =>
             {
                 var (success, status, oId) = arg;
                 UpdateOrder(status, oId);
@@ -67,17 +67,17 @@ namespace AOT.Controllers
             });
         }
 
-        private void UpdateOrder(int status, int oId)
+        private void UpdateOrder(int status, string oId)
         {
             var o = GetOrder(oId);
             o.Status = status;
             SetActiveCurrent(o);
         }
 
-        public void Complete(int orderId, Action callbackAction)
+        public void Complete(string orderId, Action callbackAction)
         {
             // Complete
-            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
+            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], args[2].ToString()), arg =>
             {
                 var (success, status, ordId) = arg;
                 UpdateOrder(status, ordId);
@@ -88,7 +88,7 @@ namespace AOT.Controllers
             });
         }
 
-        public void SetException(int orderId, int optionIndex)
+        public void SetException(string orderId, int optionIndex)
         {
             var o = GetOrder(orderId);
             o.Status = (int)(ExceptionOps[optionIndex].resetOrder
@@ -97,7 +97,7 @@ namespace AOT.Controllers
             Do_UpdateAll();
         }
 
-        public void OrderException(int orderId, Action<string[]> callbackOptions)
+        public void OrderException(string orderId, Action<string[]> callbackOptions)
         {
             var o = GetOrder(orderId);
             var status = (DeliveryOrderStatus)o.Status;
@@ -163,10 +163,10 @@ namespace AOT.Controllers
             });
         }
 
-        public void Do_AssignRider(int orderId)
+        public void Do_AssignRider(string orderId)
         {
             var order = GetOrder(orderId);
-            Call(new object[] { order },args => ((bool)args[0], (int)args[1], (int)args[2]), arg =>
+            Call(new object[] { order },args => ((bool)args[0], (int)args[1], args[2].ToString()), arg =>
             {
                 var (success, status, oId) = arg;
                 UpdateOrder(status, oId);
@@ -178,13 +178,13 @@ namespace AOT.Controllers
                 ApiPanel.Rider_AssignRider(id, dto =>
                 {
                     var o = Models.ActiveOrders.GetCurrent();
-                    o.Status = (int)dto.Status;
+                    o.Status = dto.Status;
                     Do_UpdateAll();
                 }, msg => MessageWindow.Set("Error", msg));
             });
         }
 
-        public void ViewOrder(int orderId)
+        public void ViewOrder(string orderId)
         {
             var o = Models.ActiveOrders.GetOrder(orderId);
             SetActiveCurrent(o);

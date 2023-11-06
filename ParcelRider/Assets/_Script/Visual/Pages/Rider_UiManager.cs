@@ -83,7 +83,7 @@ namespace Visual.Pages
         }
 
         // Display OrderViewPage
-        private void OrderCurrentSelected(int orderId)
+        private void OrderCurrentSelected(string orderId)
         {
             RiderOrderController.ViewOrder(orderId);
             RiderOrderViewPage.ShowCurrentOrder();
@@ -115,7 +115,7 @@ namespace Visual.Pages
         private void Logout()=> RiderLoginPage.Show();
 
         //OrderViewPage -> OrderExceptionPage
-        private void OrderException(int orderId) => RiderOrderController.OrderException(orderId, options => OrderExceptionPage.SetOptions(orderId, options));
+        private void OrderException(string orderId) => RiderOrderController.OrderException(orderId, options => OrderExceptionPage.SetOptions(orderId, options));
 
     }
 }

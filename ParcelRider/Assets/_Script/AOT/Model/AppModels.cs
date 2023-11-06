@@ -23,7 +23,7 @@ namespace AOT.Model
 
         public void SetRider(UserModel u)
         {
-            Rider = new Rider { Id = 0, Name = u.Name, Phone = u.Phone };
+            Rider = new Rider { Id = 0.ToString(), Name = u.Name, Phone = u.Phone };
             App.SendEvent(EventString.Rider_Update);
         }
 

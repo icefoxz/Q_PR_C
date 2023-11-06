@@ -16,7 +16,7 @@ namespace Visual.Pages.Rider
         protected View_doList view_doList { get; }
         protected UserOrderController UserOrderController => App.GetController<UserOrderController>();
 
-        protected DoListPage(IView v, Action<int> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
+        protected DoListPage(IView v, Action<string> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
             : base(v, uiManager, display)
         {
             view_doList = new View_doList(v.GetObject<View>("view_doList"), onOrderSelectedAction);
@@ -48,10 +48,10 @@ namespace Visual.Pages.Rider
     internal class View_doList : UiBase
     {
         private ListViewUi<Prefab_do> DoListView { get; }
-        private Action<int> OnOrderSelected { get; }
+        private Action<string> OnOrderSelected { get; }
         public int Count => DoListView.List.Count;
 
-        public View_doList(IView v, Action<int> onOrderSelected, bool display = true) : base(v, display)
+        public View_doList(IView v, Action<string> onOrderSelected, bool display = true) : base(v, display)
         {
             OnOrderSelected = onOrderSelected;
             DoListView = new ListViewUi<Prefab_do>(v, "prefab_do", "scroll_do");
@@ -95,7 +95,7 @@ namespace Visual.Pages.Rider
                 btn_select.OnClickAdd(onSelectAction);
             }
 
-            public void SetId(int id) => text_id.text = id.ToString();
+            public void SetId(string id) => text_id.text = id.ToString();
 
             public void SetFrom(string name, string phone, string address) =>
                 element_infoFrom.Set(name, phone, address);

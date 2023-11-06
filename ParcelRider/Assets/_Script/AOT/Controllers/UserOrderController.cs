@@ -124,15 +124,15 @@ namespace AOT.Controllers
             });
         }
 
-        public void Do_RequestCancel(int orderId, Action<bool> callbackAction)
+        public void Do_RequestCancel(string orderId, Action<bool> callbackAction)
         {
-            Call(new object[] {orderId},args => ((bool)args[0], (DeliveryOrderStatus)args[1], (int)args[2]), arg =>
+            Call(new object[] {orderId},args => ((bool)args[0], (DeliveryOrderStatus)args[1], args[2].ToString()), arg =>
             {
                 var (success, status, ordId) = arg;
                 if (success)
                 {
                     var o = Models.ActiveOrders.GetOrder(ordId);
-                    o.Status = (int)status;
+                    o.Status = ((int)status);
                     SetActiveCurrent(o);
                     var h = App.Models.History.Orders.ToList();
                     h.Add(o);
@@ -145,13 +145,13 @@ namespace AOT.Controllers
             });
         }
 
-        public void ViewOrder(int orderId)
+        public void ViewOrder(string orderId)
         {
             var o = Models.ActiveOrders.GetOrder(orderId);
             SetActiveCurrent(o);
         }
 
-        public void ViewHistory(int orderId)
+        public void ViewHistory(string orderId)
         {
             Models.History.SetCurrent(orderId);
         }

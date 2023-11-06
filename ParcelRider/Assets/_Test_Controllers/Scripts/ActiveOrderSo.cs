@@ -14,19 +14,19 @@ public class ActiveOrderSo : ScriptableObject
     [SerializeField] private ActiveOrderField _activeModel;
     public string GetActiveOrderList() => _activeModel.GetActiveOrderList();
     public void SetNewOrder(DeliverOrderModel order) => _activeModel.SetNewOrderToList(order);
-    public void CancelOrder(int orderId) => _activeModel.CancelOrderToList(orderId);
+    public void CancelOrder(string orderId) => _activeModel.CancelOrderToList(orderId);
     public void SetPayment(PaymentMethods payM) => _activeModel.SetPayment(payM);
 
     //Update order status
-    public (bool isSuccess, int status, int ordId) OrderAssigned(DeliverOrderModel order) => _activeModel.OrderAssignedResponse(order);
-    public (bool isSuccess, int status, int ordId) ItemPicked(int orderId) => _activeModel.ItemPickedResponse(orderId);
-    public (bool isSuccess, int status, int oId) ItemCollected(int orderId) => _activeModel.ItemCollectedResponse(orderId);
-    public (bool isSuccess, int status, int ordId) DeliveryComplete(int orderId) => _activeModel.DeliveryCompleteResponse(orderId);
+    public (bool isSuccess, int status, string ordId) OrderAssigned(DeliverOrderModel order) => _activeModel.OrderAssignedResponse(order);
+    public (bool isSuccess, int status, string ordId) ItemPicked(string orderId) => _activeModel.ItemPickedResponse(orderId);
+    public (bool isSuccess, int status, string oId) ItemCollected(string orderId) => _activeModel.ItemCollectedResponse(orderId);
+    public (bool isSuccess, int status, string ordId) DeliveryComplete(string orderId) => _activeModel.DeliveryCompleteResponse(orderId);
 
     [Serializable] private class ActiveOrderField
     {
         public int Count;
-        public int CurrentId;
+        public string CurrentId;
         public List<DeliverOrderModel> deliverOrders = new List<DeliverOrderModel>();
         [TextArea(5,20)]
         public string DoList;
@@ -45,7 +45,7 @@ public class ActiveOrderSo : ScriptableObject
                     {
                         var order = new DeliverOrderModel
                         {
-                            Id = random.Next(1000, 9999),
+                            Id = random.Next(1000, 9999).ToString(),
                             UserId = $"User{random.Next(1000, 9999)}",
                             User = new UserModel
                             {
@@ -64,7 +64,7 @@ public class ActiveOrderSo : ScriptableObject
                             {
                                 Charge = random.Next(1, 100),
                                 Fee = random.Next(1, 100),
-                                Method = PaymentMethods.UserCredit
+                                Method = PaymentMethods.UserCredit.ToString()
                             },
                             DeliveryInfo = new DeliveryInfoDto
                             {
@@ -96,7 +96,7 @@ public class ActiveOrderSo : ScriptableObject
                                 Name = $"Name{random.Next(1000, 9999)}"
                             },
                             Tags = new List<TagDto>(),
-                            RiderId = random.Next(1, 100),
+                            RiderId = random.Next(1, 100).ToString(),
                             Rider = new RiderModel
                             {
                                 //
@@ -121,25 +121,25 @@ public class ActiveOrderSo : ScriptableObject
             deliverOrders.Add(order);
             SetNewList(deliverOrders);
         }
-        public void CancelOrderToList(int orderId)
+        public void CancelOrderToList(string orderId)
         {
             DeserializeList();
             var order = deliverOrders.FirstOrDefault(o => o.Id == orderId);
             deliverOrders.Remove(order);
             SetNewList(deliverOrders);
-            CurrentId = -1;
+            CurrentId = null;
         }
         public void SetPayment(PaymentMethods payM)
         {
             var order = GetOrder(CurrentId);
             var index = deliverOrders.IndexOf(order);
-            deliverOrders[index].PaymentInfo.Method = payM;
+            deliverOrders[index].PaymentInfo.Method = payM.ToString();
             SetNewList(deliverOrders);
         }
 
-        private DeliverOrderModel GetOrder(int currentId)
+        private DeliverOrderModel GetOrder(string currentId)
         {
-            var order = deliverOrders.FirstOrDefault(o=> o.Id == currentId);
+            var order = deliverOrders.FirstOrDefault(o=> o.Id == currentId.ToString());
             return order;
         }
 
@@ -159,7 +159,7 @@ public class ActiveOrderSo : ScriptableObject
         }
 
         #region Update Order Status
-        public (bool isSuccess, int status, int ordId) OrderAssignedResponse(DeliverOrderModel order)
+        public (bool isSuccess, int status, string ordId) OrderAssignedResponse(DeliverOrderModel order)
         {
             DeserializeList();
             var getOrder = GetOrder(order.Id);
@@ -172,7 +172,7 @@ public class ActiveOrderSo : ScriptableObject
             return (true, deliverOrders[index].Status, order.Id);
         }
 
-        internal (bool isSuccess, int status, int ordId) ItemPickedResponse(int orderId)
+        internal (bool isSuccess, int status, string ordId) ItemPickedResponse(string orderId)
         {
             DeserializeList();
             var order = GetOrder(orderId);
@@ -183,7 +183,7 @@ public class ActiveOrderSo : ScriptableObject
             return (true, deliverOrders[index].Status, order.Id);
         }
 
-        internal (bool isSuccess, int status, int oId) ItemCollectedResponse(int orderId)
+        internal (bool isSuccess, int status, string oId) ItemCollectedResponse(string orderId)
         {
             DeserializeList();
             var order = GetOrder(orderId);
@@ -194,7 +194,7 @@ public class ActiveOrderSo : ScriptableObject
             return (true, deliverOrders[index].Status, order.Id);
         }
 
-        internal (bool isSuccess, int status, int ordId) DeliveryCompleteResponse(int orderId)
+        internal (bool isSuccess, int status, string ordId) DeliveryCompleteResponse(string orderId)
         {
             DeserializeList();
             var order = GetOrder(orderId);

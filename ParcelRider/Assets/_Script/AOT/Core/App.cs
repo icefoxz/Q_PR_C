@@ -78,7 +78,7 @@ namespace AOT.Core
                 {
                     var order = new DeliverOrderModel
                     {
-                        Id = random.Next(1000, 9999), // Random order id
+                        Id = random.Next(1000, 9999).ToString(), // Random order id
                         UserId = $"User{random.Next(1000, 9999)}", // Random user id
                         User = new UserModel
                         {
@@ -97,7 +97,7 @@ namespace AOT.Core
                         {
                             Charge = random.Next(1, 100), // Random Charge
                             Fee = random.Next(1, 100), // Random Fee
-                            Method = PaymentMethods.UserCredit // Random payment method
+                            Method = PaymentMethods.UserCredit.ToString() // Random payment method
                         },
                         DeliveryInfo = new DeliveryInfoDto
                         {
@@ -129,7 +129,7 @@ namespace AOT.Core
                             Name = $"Name{random.Next(1000, 9999)}" // Random name
                         },
                         Tags = new List<TagDto>(),
-                        RiderId = random.Next(1, 100), // Random RiderId
+                        RiderId = random.Next(1, 100).ToString(), // Random RiderId
                         Rider = new RiderModel
                         {
                             /* Assign properties as required */

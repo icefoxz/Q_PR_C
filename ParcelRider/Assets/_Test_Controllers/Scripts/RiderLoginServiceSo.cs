@@ -41,12 +41,12 @@ public class RiderLoginServiceSo : ScriptableObject
         {
             var newOrder = order with
             {
-                RiderId = 0001,
+                RiderId = 0001.ToString(),
                 Rider = new RiderModel
                 {
                     Name = null,
                     Phone = null,
-                    Id = 0
+                    Id = 0.ToString()
                 }
             };
             return(DataBag.Serialize(newOrder));

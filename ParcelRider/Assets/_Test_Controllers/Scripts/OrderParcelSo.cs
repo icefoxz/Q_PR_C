@@ -1,10 +1,7 @@
+using System;
 using OrderHelperLib;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
-using OrderHelperLib.Dtos.Users;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "OrderSo", menuName = "TestServices/OrderSo")]
@@ -13,16 +10,16 @@ public class OrderParcelSo : ScriptableObject
     [SerializeField] private OrderModelField _orderModel;
     public (bool isSuccess, string message) CreateOrderService(DeliverOrderModel order) => _orderModel.CreateOrderResponse(order);
     public (bool isSuccess, string message, PaymentMethods methods) PaymentOrderService(PaymentMethods payM) => _orderModel.OrderPaymentResponse(payM);
-    public (bool isSuccess, DeliveryOrderStatus status, int OrdId) GetOrderService(int orderId) => _orderModel.CancelOrderResponse(orderId);
+    public (bool isSuccess, DeliveryOrderStatus status, string OrdId) GetOrderService(string orderId) => _orderModel.CancelOrderResponse(orderId);
     [Serializable]private class OrderModelField
     {
         public bool PaymentMade;
         public DeliveryOrderStatus Status;
         public PaymentMethods PayMethods;
-        public int OrderId;
+        public string OrderId;
         public string UserId;
         
-        public (bool isSuccess, DeliveryOrderStatus databag, int OrdId) CancelOrderResponse(int orderId)
+        public (bool isSuccess, DeliveryOrderStatus databag, string OrdId) CancelOrderResponse(string orderId)
         {
             OrderId = orderId;
             return (true, Status, OrderId);
@@ -32,7 +29,7 @@ public class OrderParcelSo : ScriptableObject
             var random = new System.Random();
             var newOrder = order with
             {
-                Id = random.Next(1000, 9999),
+                Id = random.Next(1000, 9999).ToString(),
                 UserId = UserId,
             };
             //order.Id = 0; //struct: newOrder.Id != 0; //class: newOrder.Id == 0;

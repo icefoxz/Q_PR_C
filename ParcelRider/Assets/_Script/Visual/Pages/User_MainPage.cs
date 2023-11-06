@@ -73,9 +73,9 @@ namespace Visual.Pages
             private Text text_riderName { get; }
             private Text text_riderPhone { get; }
             private Button btn_order { get; }
-            private int SelectedOrderId { get; set; }
+            private string SelectedOrderId { get; set; }
 
-            public Prefab_Order(IView v, Action<int> onBtnClick) : base(v)
+            public Prefab_Order(IView v, Action<string> onBtnClick) : base(v)
             {
                 prefab_deliveryState = new Prefab_DeliveryState(v.GetObject<View>("prefab_deliveryState"));
                 text_orderId = v.GetObject<Text>("text_orderId");
@@ -425,9 +425,9 @@ namespace Visual.Pages
         private class View_historySect : UiBase
         {
             private ListViewUi<Prefab_history> HistoryView { get; }
-            private event Action<int> OnSelectedHistoryAction;
+            private event Action<string> OnSelectedHistoryAction;
         
-            public View_historySect(IView v,Action<int> onSelectedHistoryAction, bool display = true) : base(v, display)
+            public View_historySect(IView v,Action<string> onSelectedHistoryAction, bool display = true) : base(v, display)
             {
                 OnSelectedHistoryAction = onSelectedHistoryAction;
                 HistoryView = new ListViewUi<Prefab_history>(v, "prefab_history", "scroll_history");
@@ -467,7 +467,7 @@ namespace Visual.Pages
                     btn_history.OnClickAdd(onClickAction);
                 }
 
-                public void SetInfo(int orderId,DeliveryOrderStatus state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
+                public void SetInfo(string orderId,DeliveryOrderStatus state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
                 {
                     text_orderId.text = orderId.ToString();
                     text_toAddress.text = address;

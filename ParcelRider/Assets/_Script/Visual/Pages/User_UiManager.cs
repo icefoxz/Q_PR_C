@@ -4,6 +4,7 @@ using AOT.Core;
 using AOT.DataModel;
 using AOT.Views;
 using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using Visual.Pages.Rider;
 using Visual.Sects;
@@ -143,14 +144,14 @@ namespace Visual.Pages
             User_NewPackagePage.Set(kg: kg, length: length, width: width, height: height);
         }
 
-        public void ViewOrder(int orderId)
+        public void ViewOrder(string orderId)
         {
             UserOrderController.ViewOrder(orderId);
             var o = App.Models.ActiveOrders.GetCurrent();
             var orderStatus = (DeliveryOrderStatus)o.Status;
             User_OrderViewPage.DisplayCurrentOrder(onCancelRequestAction: orderStatus.IsClosed() ? null : OnCancelRequestAction(orderId));
 
-            Action OnCancelRequestAction(int i) =>
+            Action OnCancelRequestAction(string i) =>
                 () =>
                 {
                     ConfirmWindow.Set(title: "Cancel Order?", onConfirmAction: () =>
@@ -163,7 +164,7 @@ namespace Visual.Pages
                     });
                 };
         }
-        public void ViewHistory(int orderId)
+        public void ViewHistory(string orderId)
         {
             UserOrderController.ViewHistory(orderId);
             User_OrderViewPage.DisplayHistoryOrder();

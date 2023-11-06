@@ -1,5 +1,4 @@
-﻿using Delivery.Domains.OrderEntitys;
-using OrderHelperLib.Dtos.Riders;
+﻿using OrderHelperLib.Dtos.Riders;
 using OrderHelperLib.Dtos.Users;
 
 namespace OrderHelperLib.Dtos.DeliveryOrders;
@@ -28,5 +27,5 @@ public record DeliverOrderModel : StringDto
     //付款信息
     public PaymentInfo? PaymentInfo { get; set; }
     //订单状态, 正数 = 进行中, 负数 = 已完成
-    public string Status { get; set; }
+    public int Status { get; set; }
 }

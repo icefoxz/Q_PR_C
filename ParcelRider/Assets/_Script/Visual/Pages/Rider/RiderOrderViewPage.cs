@@ -25,12 +25,12 @@ namespace Visual.Pages.Rider
         private View_images ViewImages { get; }
         private Button btn_exception { get; }
         private Button btn_close { get; }
-        private int OrderId { get; set; }
+        private string OrderId { get; set; }
         private List<Sprite> images { get; set; } = new List<Sprite>();
         private PictureController PictureController => App.GetController<PictureController>();
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public RiderOrderViewPage(IView v, Action<int> onExceptionAction,
+        public RiderOrderViewPage(IView v, Action<string> onExceptionAction,
             Rider_UiManager uiManager) : base(v, uiManager)
         {
             text_orderId = v.GetObject<Text>("text_orderId");
@@ -57,10 +57,10 @@ namespace Visual.Pages.Rider
             App.MessagingManager.RegEvent(EventString.CurrentOrder_Update, _ => ShowCurrentOrder());
         }
 
-        private void Complete_ApiReq(int orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
-        private void Collection_ApiReq(int orderId) => ConfirmWindow.Set(() => RiderOrderController.ItemCollection(orderId), "Collection?");
-        private void PickItem_ApiReq(int orderId) => ConfirmWindow.Set(() => RiderOrderController.PickItem(orderId), "Pick Item?");
-        private void TakeOrder_ApiReq(int orderId) => ConfirmWindow.Set(() => RiderOrderController.Do_AssignRider(orderId), "Take Order?");
+        private void Complete_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
+        private void Collection_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.ItemCollection(orderId), "Collection?");
+        private void PickItem_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.PickItem(orderId), "Pick Item?");
+        private void TakeOrder_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.Do_AssignRider(orderId), "Take Order?");
 
         private void OnPictureTaken(Texture2D texture)
         {

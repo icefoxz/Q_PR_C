@@ -15,7 +15,7 @@ namespace AOT.DataModel
 
         public void SetPaymentMethod(PaymentMethods paymentMethod)
         {
-            PaymentInfo.Method = paymentMethod;
+            PaymentInfo.Method = paymentMethod.ToString();
         }
     }
 }

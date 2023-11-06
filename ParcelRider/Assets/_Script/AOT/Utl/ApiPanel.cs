@@ -194,7 +194,7 @@ namespace AOT.Utl
         //public static void AssignRider(DeliveryAssignmentDto assignmentDto,
         //    Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(AssignRiderApi,
         //    assignmentDto, msg => callbackAction?.Invoke((true, msg)), msg => callbackAction?.Invoke((false, msg)));
-        public static void Rider_AssignRider(int orderId, Action<DeliverOrderModel> successAction, Action<string> failedAction)
+        public static void Rider_AssignRider(string orderId, Action<DeliverOrderModel> successAction, Action<string> failedAction)
         {
             CallBag(Rider_AssignRiderApi, DataBag.Serialize(orderId),
                 bag => successAction?.Invoke(bag.Get<DeliverOrderModel>(0)), failedAction);

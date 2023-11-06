@@ -33,7 +33,7 @@ public class LoginServiceSo : ScriptableObject
         }
         internal (bool isSuccess, string message) UserLoginResponse(string username)
         {
-            if (username != Username) return (false, "User not found!");
+            if (!username.Equals(Username,StringComparison.InvariantCultureIgnoreCase)) return (false, "User not found!");
             if(IsPasswordFailed) return (false, "Password is wrong!");
             return (true, DataBag.Serialize(new UserModel
             {

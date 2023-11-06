@@ -7,7 +7,7 @@ namespace Visual.Pages.Rider
 {
     internal class RiderJobListPage : DoListPage
     {
-        public RiderJobListPage(IView v, Action<int> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
+        public RiderJobListPage(IView v, Action<string> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
         {
         }
 

@@ -14,7 +14,7 @@ namespace Visual.Pages.Rider
         private GameObject obj_jobGuide { get; }
         private Button btn_jobList { get; }
 
-        public RiderHomePage(IView v, Action<int> onOrderSelectedAction, Action onJobListAction,
+        public RiderHomePage(IView v, Action<string> onOrderSelectedAction, Action onJobListAction,
             Rider_UiManager uiManager,
             bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
         {

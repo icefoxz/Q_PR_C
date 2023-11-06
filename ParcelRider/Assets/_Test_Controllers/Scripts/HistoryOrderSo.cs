@@ -29,7 +29,7 @@ public class HistoryOrderSo : ScriptableObject
                 {
                     var order = new DeliverOrderModel
                     {
-                        Id = random.Next(1000, 9999),
+                        Id = random.Next(1000, 9999).ToString(),
                         UserId = $"User{random.Next(1000, 9999)}",
                         User = new UserModel
                         {
@@ -48,7 +48,7 @@ public class HistoryOrderSo : ScriptableObject
                         {
                             Charge = random.Next(1,100),
                             Fee = random.Next(1, 100),
-                            Method = PaymentMethods.UserCredit
+                            Method = PaymentMethods.UserCredit.ToString()
                         },
                         DeliveryInfo = new DeliveryInfoDto
                         {
@@ -80,7 +80,7 @@ public class HistoryOrderSo : ScriptableObject
                             Name = $"Name{random.Next(1000, 9999)}"
                         },
                         Tags = new List<TagDto>(),
-                        RiderId = random.Next(1, 100),
+                        RiderId = random.Next(1, 100).ToString(),
                         Rider = new RiderModel
                         {
                             //
