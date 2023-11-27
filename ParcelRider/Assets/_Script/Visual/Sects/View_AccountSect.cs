@@ -20,11 +20,11 @@ namespace Visual.Sects
 
         public View_AccountSect(IView v, Action onAccountAction, Action logoutAction) : base(v)
         {
-            text_name = v.GetObject<Text>("text_name");
-            img_ico = v.GetObject<Image>("img_ico");
-            btn_account = v.GetObject<Button>("btn_account");
-            btn_logout = v.GetObject<Button>("btn_logout");
-            view_lingau = new View_Lingau(v.GetObject<View>("view_lingau"), null);
+            text_name = v.Get<Text>("text_name");
+            img_ico = v.Get<Image>("img_ico");
+            btn_account = v.Get<Button>("btn_account");
+            btn_logout = v.Get<Button>("btn_logout");
+            view_lingau = new View_Lingau(v.Get<View>("view_lingau"), null);
             btn_account.OnClickAdd(onAccountAction);
             btn_logout.OnClickAdd(logoutAction);
             RegEvents();
@@ -61,9 +61,9 @@ namespace Visual.Sects
         private Text text_value { get; }
         public View_Lingau(IView v,Action onclickAction) : base(v)
         {
-            img_lingau = v.GetObject<Image>("img_lingau");
-            text_value = v.GetObject<Text>("text_value");
-            btn_lingau = v.GetObject<Button>("btn_lingau");
+            img_lingau = v.Get<Image>("img_lingau");
+            text_value = v.Get<Text>("text_value");
+            btn_lingau = v.Get<Button>("btn_lingau");
             btn_lingau.OnClickAdd(onclickAction);
         }
 

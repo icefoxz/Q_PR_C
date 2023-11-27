@@ -20,9 +20,9 @@ namespace AOT.Views
         RectTransform RectTransform { get; }
         GameObject GameObject { get; }
         GameObject[] GetObjects();
-        GameObject GetObject(string objName);
-        T GetObject<T>(string objName);
-        T GetObject<T>(int index);
+        GameObject Get(string objName);
+        T Get<T>(string objName);
+        T Get<T>(int index);
         Coroutine StartCo(IEnumerator enumerator);
         void StopCo(IEnumerator enumerator);
         void StopAllCo();

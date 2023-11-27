@@ -25,42 +25,42 @@ namespace Visual.Pages.Rider
         private View_images ViewImages { get; }
         private Button btn_exception { get; }
         private Button btn_close { get; }
-        private string OrderId { get; set; }
+        private long OrderId { get; set; }
         private List<Sprite> images { get; set; } = new List<Sprite>();
         private PictureController PictureController => App.GetController<PictureController>();
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public RiderOrderViewPage(IView v, Action<string> onExceptionAction,
+        public RiderOrderViewPage(IView v, Action<long> onExceptionAction,
             Rider_UiManager uiManager) : base(v, uiManager)
         {
-            text_orderId = v.GetObject<Text>("text_orderId");
-            text_riderName = v.GetObject<Text>("text_riderName");
-            text_riderPhone = v.GetObject<Text>("text_riderPhone");
-            view_packageInfo = new View_packageInfo(v.GetObject<View>("view_packageInfo"));
-            view_states = new View_states(v.GetObject<View>("view_states"));
-            ViewImages = new View_images(v: v.GetObject<View>("view_images"),
+            text_orderId = v.Get<Text>("text_orderId");
+            text_riderName = v.Get<Text>("text_riderName");
+            text_riderPhone = v.Get<Text>("text_riderPhone");
+            view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
+            view_states = new View_states(v.Get<View>("view_states"));
+            ViewImages = new View_images(v: v.Get<View>("view_images"),
                 onImageSelectedAction: ImageSelected_PromptImageWindow,
                 onGalleryAction: () => PictureController.OpenGallery(OnPictureTaken),
                 onCameraAction: () => PictureController.OpenCamera(OnPictureTaken));
-            element_contactTo = new Element_contact(v.GetObject<View>("element_contactTo"));
-            element_contactFrom = new Element_contact(v.GetObject<View>("element_contactFrom"));
-            view_riderOptions = new View_riderOptions(v.GetObject<View>("view_riderOptions")
+            element_contactTo = new Element_contact(v.Get<View>("element_contactTo"));
+            element_contactFrom = new Element_contact(v.Get<View>("element_contactFrom"));
+            view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions")
                 , () => TakeOrder_ApiReq(OrderId)
                 , () => PickItem_ApiReq(OrderId)
                 , () => Collection_ApiReq(OrderId)
                 , () => Complete_ApiReq(OrderId));
-            btn_exception = v.GetObject<Button>("btn_exception");
+            btn_exception = v.Get<Button>("btn_exception");
             btn_exception.OnClickAdd(() => onExceptionAction(OrderId));
-            btn_close = v.GetObject<Button>("btn_close");
+            btn_close = v.Get<Button>("btn_close");
             btn_close.OnClickAdd(() => Hide());
 
             App.MessagingManager.RegEvent(EventString.CurrentOrder_Update, _ => ShowCurrentOrder());
         }
 
-        private void Complete_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
-        private void Collection_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.ItemCollection(orderId), "Collection?");
-        private void PickItem_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.PickItem(orderId), "Pick Item?");
-        private void TakeOrder_ApiReq(string orderId) => ConfirmWindow.Set(() => RiderOrderController.Do_AssignRider(orderId), "Take Order?");
+        private void Complete_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
+        private void Collection_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.ItemCollection(orderId), "Collection?");
+        private void PickItem_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.PickItem(orderId), "Pick Item?");
+        private void TakeOrder_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.Do_AssignRider(orderId), "Take Order?");
 
         private void OnPictureTaken(Texture2D texture)
         {
@@ -108,11 +108,11 @@ namespace Visual.Pages.Rider
 
             public View_states(IView v, bool display = true) : base(v, display)
             {
-                element_stateWait = new Element_state(v.GetObject<View>("element_stateWait"));
-                element_stateDelivering = new Element_state(v.GetObject<View>("element_stateDelivering"));
-                element_stateCollection = new Element_state(v.GetObject<View>("element_stateCollection"));
-                element_stateComplete = new Element_state(v.GetObject<View>("element_stateComplete"));
-                element_stateException = new Element_state(v.GetObject<View>("element_stateException"));
+                element_stateWait = new Element_state(v.Get<View>("element_stateWait"));
+                element_stateDelivering = new Element_state(v.Get<View>("element_stateDelivering"));
+                element_stateCollection = new Element_state(v.Get<View>("element_stateCollection"));
+                element_stateComplete = new Element_state(v.Get<View>("element_stateComplete"));
+                element_stateException = new Element_state(v.Get<View>("element_stateException"));
             }
 
             public void SetState(DeliveryOrderStatus state)
@@ -131,7 +131,7 @@ namespace Visual.Pages.Rider
                 private Image Img_active { get; }
                 public Element_state(IView v) : base(v)
                 {
-                    Img_active = v.GetObject<Image>("img_active");
+                    Img_active = v.Get<Image>("img_active");
                 }
 
                 public void SetActive(bool active)
@@ -157,10 +157,10 @@ namespace Visual.Pages.Rider
                 Action onCollectionAction,
                 Action onCompleteAction, bool display = true) : base(v, display)
             {
-                btn_takeOrder = v.GetObject<Button>("btn_takeOrder");
-                btn_pickItem = v.GetObject<Button>("btn_pickItem");
-                btn_collection = v.GetObject<Button>("btn_collection");
-                btn_complete = v.GetObject<Button>("btn_complete");
+                btn_takeOrder = v.Get<Button>("btn_takeOrder");
+                btn_pickItem = v.Get<Button>("btn_pickItem");
+                btn_collection = v.Get<Button>("btn_collection");
+                btn_complete = v.Get<Button>("btn_complete");
                 btn_takeOrder.OnClickAdd(onTakeOrderAction);
                 btn_pickItem.OnClickAdd(onPickItemAction);
                 btn_collection.OnClickAdd(onCollectionAction);
@@ -184,9 +184,9 @@ namespace Visual.Pages.Rider
 
             public Element_contact(IView v) : base(v)
             {
-                text_name = v.GetObject<Text>("text_name");
-                text_phone = v.GetObject<Text>("text_phone");
-                text_address = v.GetObject<Text>("text_address");
+                text_name = v.Get<Text>("text_name");
+                text_phone = v.Get<Text>("text_phone");
+                text_address = v.Get<Text>("text_address");
             }
 
             public void Set(string name, string phone, string address)
@@ -210,9 +210,9 @@ namespace Visual.Pages.Rider
                 Action onCameraAction) : base(v)
             {
                 OnImageSelected = onImageSelectedAction;
-                btn_camera = v.GetObject<Button>("btn_camera");
+                btn_camera = v.Get<Button>("btn_camera");
                 btn_camera.OnClickAdd(onCameraAction);
-                btn_gallery = v.GetObject<Button>("btn_gallery");
+                btn_gallery = v.Get<Button>("btn_gallery");
                 btn_gallery.OnClickAdd(onGalleryAction);
                 ImageListView = new ListViewUi<Prefab_image>(v, "prefab_image", "scroll_image");
             }
@@ -236,8 +236,8 @@ namespace Visual.Pages.Rider
 
                 public Prefab_image(IView v,Sprite image ,Action onclickAction, bool display = true) : base(v, display)
                 {
-                    img_item = v.GetObject<Image>("img_item");
-                    btn_image = v.GetObject<Button>("btn_image");
+                    img_item = v.Get<Image>("img_item");
+                    btn_image = v.Get<Button>("btn_image");
                     img_item.sprite = image;
                     btn_image.OnClickAdd(onclickAction);
                 }

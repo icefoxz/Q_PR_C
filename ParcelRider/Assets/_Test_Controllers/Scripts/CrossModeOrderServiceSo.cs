@@ -52,7 +52,7 @@ public class CrossModeOrderServiceSo : ScriptableObject
         public (int status, int ordId) Complete(int orderId)
         {
             OrderId = orderId;
-            return ((int)DeliveryOrderStatus.Close , OrderId);
+            return ((int)DeliveryOrderStatus.Closed , OrderId);
         }
     }
 }

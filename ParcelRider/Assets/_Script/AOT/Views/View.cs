@@ -17,7 +17,7 @@ namespace AOT.Views
         private RectTransform _rectTransform;
         public event Action OnDisableEvent;
         public event Action OnEnableEvent;
-        public event Action<IView> OnResetUi;
+
         public RectTransform RectTransform
         {
             get
@@ -39,15 +39,15 @@ namespace AOT.Views
         public IReadOnlyDictionary<string, GameObject> GetMap() => _components.ToDictionary(c => c.name, c => c);
         public GameObject GameObject => gameObject;
         public GameObject[] GetObjects() => _components.ToArray();
-        public GameObject GetObject(string objName)
+        public GameObject Get(string objName)
         {
             var obj = _components.FirstOrDefault(c => c.name == objName);
             if (!obj) throw new NullReferenceException($"View.{name} 找不到物件名：{objName}");
             return obj;
         }
-        public T GetObject<T>(string objName)
+        public T Get<T>(string objName)
         {
-            var obj = GetObject(objName).GetComponent<T>();
+            var obj = Get(objName).GetComponent<T>();
             //if (obj == null)
             //{
             //    obj = GetObject(objName).GetComponent<T>();
@@ -64,7 +64,7 @@ namespace AOT.Views
             return obj;
         }
 
-        public T GetObject<T>(int index) => CheckNull(_components[index].GetComponent<T>());
+        public T Get<T>(int index) => CheckNull(_components[index].GetComponent<T>());
         void OnDisable() => OnDisableEvent?.Invoke();
         void OnEnable() => OnEnableEvent?.Invoke();
         #region ForDebug

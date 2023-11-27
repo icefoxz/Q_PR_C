@@ -36,9 +36,9 @@ namespace Visual.Sects
             float yPosAlign) : base(v)
         {
             OnAddressConfirmAction = onAddressConfirmAction;
-            input_autofill = v.GetObject<InputField>("input_autofill");
+            input_autofill = v.Get<InputField>("input_autofill");
             AutofillListView = new ListViewUi<Prefab_Address>(v, "prefab_autofill", "scroll_autofill");
-            btn_x = v.GetObject<Button>("btn_x");
+            btn_x = v.Get<Button>("btn_x");
             ContentHeight = contentHeight;
             ContentPadding = contentPadding;
             Charlimit = charlimit;
@@ -121,8 +121,8 @@ namespace Visual.Sects
 
             public Prefab_Address(IView v, Action onclickAction) : base(v)
             {
-                text_address = v.GetObject<Text>("text_address");
-                btn_address = v.GetObject<Button>("btn_address");
+                text_address = v.Get<Text>("text_address");
+                btn_address = v.Get<Button>("btn_address");
                 btn_address.OnClickAdd(onclickAction);
             }
 

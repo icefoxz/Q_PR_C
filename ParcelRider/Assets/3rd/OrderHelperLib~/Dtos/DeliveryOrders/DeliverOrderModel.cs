@@ -3,7 +3,7 @@ using OrderHelperLib.Dtos.Users;
 
 namespace OrderHelperLib.Dtos.DeliveryOrders;
 
-public record DeliverOrderModel : StringDto
+public record DeliverOrderModel : LongDto
 {
     // 执行用户Id
     public string UserId { get; set; }
@@ -28,4 +28,8 @@ public record DeliverOrderModel : StringDto
     public PaymentInfo? PaymentInfo { get; set; }
     //订单状态, 正数 = 进行中, 负数 = 已完成
     public int Status { get; set; }
+    //订单子状态
+    public int SubState { get; set; }
+    //订单状态名称
+    public string? StatusName { get; set; }
 }

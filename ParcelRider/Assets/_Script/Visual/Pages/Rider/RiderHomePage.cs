@@ -14,12 +14,12 @@ namespace Visual.Pages.Rider
         private GameObject obj_jobGuide { get; }
         private Button btn_jobList { get; }
 
-        public RiderHomePage(IView v, Action<string> onOrderSelectedAction, Action onJobListAction,
+        public RiderHomePage(IView v, Action<long> onOrderSelectedAction, Action onJobListAction,
             Rider_UiManager uiManager,
             bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
         {
-            obj_jobGuide = v.GetObject("obj_jobGuide");
-            btn_jobList = v.GetObject<Button>("btn_jobList");
+            obj_jobGuide = v.Get("obj_jobGuide");
+            btn_jobList = v.Get<Button>("btn_jobList");
             btn_jobList.OnClickAdd(onJobListAction.Invoke);
         }
 

@@ -19,10 +19,10 @@ namespace Visual.Pages
         {
             OnLoggedInEvent += onLoggedInAction;
             OnLoggedInEvent += Hide;
-            view_regSect = new View_RegSect(v.GetObject<View>("view_regSect"),
+            view_regSect = new View_RegSect(v.Get<View>("view_regSect"),
                 () => LoginController.RequestRegister(view_regSect.GetRegisterModel(), OnRegisterCallback)
             );
-            view_loginSect = new View_loginSect(v: v.GetObject<View>("view_loginSect"), onLoginAction: arg =>
+            view_loginSect = new View_loginSect(v: v.Get<View>("view_loginSect"), onLoginAction: arg =>
                 {
                     var (username, password) = arg;
                     LoginController.RequestLogin(username, password, OnLoginCallback);
@@ -80,13 +80,13 @@ namespace Visual.Pages
                 Action onFacebookAction,
                 Action onRegAction) : base(v)
             {
-                input_username = v.GetObject<InputField>("input_username");
-                input_password = v.GetObject<InputField>("input_password");
-                btn_login = v.GetObject<Button>("btn_login");
-                btn_google = v.GetObject<Button>("btn_google");
-                btn_facebook = v.GetObject<Button>("btn_facebook");
-                btn_register = v.GetObject<Button>("btn_register");
-                text_errMsg = v.GetObject<Text>("text_errMsg");
+                input_username = v.Get<InputField>("input_username");
+                input_password = v.Get<InputField>("input_password");
+                btn_login = v.Get<Button>("btn_login");
+                btn_google = v.Get<Button>("btn_google");
+                btn_facebook = v.Get<Button>("btn_facebook");
+                btn_register = v.Get<Button>("btn_register");
+                text_errMsg = v.Get<Text>("text_errMsg");
                 btn_login.OnClickAdd(() =>
                 {
                     SetMessage();
@@ -150,15 +150,15 @@ namespace Visual.Pages
 
             public View_RegSect(IView v,Action onRegisterAction) : base(v, false)
             {
-                element_input_username = new Element_input(v.GetObject<View>("element_input_username"), value => OnValueChange(value,Inputs.Username));
-                element_input_phone = new Element_input(v.GetObject<View>("element_input_phone"), value => OnValueChange(value,Inputs.Phone));
-                element_input_name = new Element_input(v.GetObject<View>("element_input_name"), value => OnValueChange(value, Inputs.Name));
-                element_input_email = new Element_input(v.GetObject<View>("element_input_email"), value => OnValueChange(value, Inputs.Email));
-                element_input_password = new Element_input(v.GetObject<View>("element_input_password"), value => OnValueChange(value, Inputs.Password));
-                element_input_rePassword = new Element_input(v.GetObject<View>("element_input_rePassword"), value => OnValueChange(value, Inputs.RePassword));
-                text_errMessage = v.GetObject<Text>("text_errMessage");
-                btn_register = v.GetObject<Button>("btn_register");
-                btn_x = v.GetObject<Button>("btn_x");
+                element_input_username = new Element_input(v.Get<View>("element_input_username"), value => OnValueChange(value,Inputs.Username));
+                element_input_phone = new Element_input(v.Get<View>("element_input_phone"), value => OnValueChange(value,Inputs.Phone));
+                element_input_name = new Element_input(v.Get<View>("element_input_name"), value => OnValueChange(value, Inputs.Name));
+                element_input_email = new Element_input(v.Get<View>("element_input_email"), value => OnValueChange(value, Inputs.Email));
+                element_input_password = new Element_input(v.Get<View>("element_input_password"), value => OnValueChange(value, Inputs.Password));
+                element_input_rePassword = new Element_input(v.Get<View>("element_input_rePassword"), value => OnValueChange(value, Inputs.RePassword));
+                text_errMessage = v.Get<Text>("text_errMessage");
+                btn_register = v.Get<Button>("btn_register");
+                btn_x = v.Get<Button>("btn_x");
                 btn_register.onClick.AddAction(onRegisterAction);
                 btn_x.onClick.AddAction(Hide);
 
@@ -252,8 +252,8 @@ namespace Visual.Pages
                 public bool IsValid { get; private  set; }
                 public Element_input(IView v,Action<string> onValueChanged) : base(v)
                 {
-                    input_value = v.GetObject<InputField>("input_value");
-                    img_selected = v.GetObject<Image>("img_selected");
+                    input_value = v.Get<InputField>("input_value");
+                    img_selected = v.Get<Image>("img_selected");
                     input_value.onValueChanged.AddListener(value => onValueChanged(value));
                     IsValid = false;
                 }

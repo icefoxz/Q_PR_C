@@ -28,22 +28,22 @@ namespace Visual.Pages
 
         public User_OrderViewPage(IView v, UiManagerBase uiManager) : base(v, uiManager)
         {
-            text_orderId = v.GetObject<Text>("text_orderId");
-            btn_close = v.GetObject<Button>("btn_close");
-            btn_cancel = v.GetObject<Button>("btn_cancel");
-            text_riderName = v.GetObject<Text>("text_riderName");
-            text_riderPhone = v.GetObject<Text>("text_riderPhone");
+            text_orderId = v.Get<Text>("text_orderId");
+            btn_close = v.Get<Button>("btn_close");
+            btn_cancel = v.Get<Button>("btn_cancel");
+            text_riderName = v.Get<Text>("text_riderName");
+            text_riderPhone = v.Get<Text>("text_riderPhone");
 
-            elemnent_waitState = new Element_State(v.GetObject<View>("element_waitState"));
-            elemnent_DeliverState = new Element_State(v.GetObject<View>("element_deliverState"));
-            elemnent_dropState = new Element_State(v.GetObject<View>("element_dropState"));
-            elemnent_completedState = new Element_State(v.GetObject<View>("element_completedState"));
-            elemnent_errState = new Element_State(v.GetObject<View>("element_errState"));
+            elemnent_waitState = new Element_State(v.Get<View>("element_waitState"));
+            elemnent_DeliverState = new Element_State(v.Get<View>("element_deliverState"));
+            elemnent_dropState = new Element_State(v.Get<View>("element_dropState"));
+            elemnent_completedState = new Element_State(v.Get<View>("element_completedState"));
+            elemnent_errState = new Element_State(v.Get<View>("element_errState"));
 
-            element_contactTo = new Element_contact(v.GetObject<View>("element_contactTo"));
-            element_contactFrom = new Element_contact(v.GetObject<View>("element_contactFrom"));
+            element_contactTo = new Element_contact(v.Get<View>("element_contactTo"));
+            element_contactFrom = new Element_contact(v.Get<View>("element_contactFrom"));
 
-            view_packageInfo = new View_packageInfo(v.GetObject<View>("view_packageInfo"));
+            view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
 
             btn_close.OnClickAdd(Hide);
             App.MessagingManager.RegEvent(EventString.CurrentOrder_Update, _ => UpdateOrder());
@@ -107,7 +107,7 @@ namespace Visual.Pages
             private Image Img_active { get; }
             public Element_State(IView v) : base(v)
             {
-                Img_active = v.GetObject<Image>("img_active");
+                Img_active = v.Get<Image>("img_active");
             }
 
             public void SetActive(bool active)
@@ -126,9 +126,9 @@ namespace Visual.Pages
 
             public Element_contact(IView v) : base(v)
             {
-                text_name = v.GetObject<Text>("text_name");
-                text_phone = v.GetObject<Text>("text_phone");
-                text_address = v.GetObject<Text>("text_address");
+                text_name = v.Get<Text>("text_name");
+                text_phone = v.Get<Text>("text_phone");
+                text_address = v.Get<Text>("text_address");
             }
 
             public void Set(string name, string phone, string address)

@@ -12,8 +12,8 @@ namespace Visual.Pages
 
         public PaymentPage(IView v, User_UiManager uiManager) : base(v, uiManager)
         {
-            btn_pay = v.GetObject<Button>("btn_pay");
-            btn_cancel = v.GetObject<Button>("btn_cancel");
+            btn_pay = v.Get<Button>("btn_pay");
+            btn_cancel = v.Get<Button>("btn_cancel");
             btn_cancel.OnClickAdd(() => GameObject.SetActive(false));
         }
 

@@ -78,7 +78,7 @@ namespace AOT.Core
                 {
                     var order = new DeliverOrderModel
                     {
-                        Id = random.Next(1000, 9999).ToString(), // Random order id
+                        Id = random.Next(1000, 9999), // Random order id
                         UserId = $"User{random.Next(1000, 9999)}", // Random user id
                         User = new UserModel
                         {

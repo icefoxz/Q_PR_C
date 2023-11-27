@@ -13,10 +13,10 @@ namespace Visual.Pages
 
         public View_packageInfo(IView v) : base(v)
         {
-            text_cost = v.GetObject<Text>("text_cost");
-            text_km = v.GetObject<Text>("text_km");
-            text_kg = v.GetObject<Text>("text_kg");
-            text_size = v.GetObject<Text>("text_size");
+            text_cost = v.Get<Text>("text_cost");
+            text_km = v.Get<Text>("text_km");
+            text_kg = v.Get<Text>("text_kg");
+            text_size = v.Get<Text>("text_size");
         }
 
         public void Set(float cost, float km, float kg, double size)

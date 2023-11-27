@@ -25,9 +25,9 @@ namespace Visual.Pages
         {
             Mgr = uiManager;
             OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
-            view_packagePlayer = new View_packagePlayer(v.GetObject<View>("view_packagePlayer"),
+            view_packagePlayer = new View_packagePlayer(v.Get<View>("view_packagePlayer"),
                 uiManager, a => uiManager.NewPackage(a.point, a.kg, a.length, a.width, a.height));
-            view_historySect = new View_historySect(v.GetObject<View>("view_historySect"), ui => uiManager.ViewHistory(ui));
+            view_historySect = new View_historySect(v.Get<View>("view_historySect"), ui => uiManager.ViewHistory(ui));
             RegEvents();
             Hide();//listView代码会导致view active,所以这里要隐藏
         }
@@ -73,21 +73,21 @@ namespace Visual.Pages
             private Text text_riderName { get; }
             private Text text_riderPhone { get; }
             private Button btn_order { get; }
-            private string SelectedOrderId { get; set; }
+            private long SelectedOrderId { get; set; }
 
-            public Prefab_Order(IView v, Action<string> onBtnClick) : base(v)
+            public Prefab_Order(IView v, Action<long> onBtnClick) : base(v)
             {
-                prefab_deliveryState = new Prefab_DeliveryState(v.GetObject<View>("prefab_deliveryState"));
-                text_orderId = v.GetObject<Text>("text_orderId");
-                text_to = v.GetObject<Text>("text_to");
-                text_cost = v.GetObject<Text>("text_cost");
-                text_volume = v.GetObject<Text>("text_volume");
-                text_km = v.GetObject<Text>("text_km");
-                text_contactName = v.GetObject<Text>("text_contactName");
-                text_contactPhone = v.GetObject<Text>("text_contactPhone");
-                text_riderName = v.GetObject<Text>("text_riderName");
-                text_riderPhone = v.GetObject<Text>("text_riderPhone");
-                btn_order = v.GetObject<Button>("btn_order");
+                prefab_deliveryState = new Prefab_DeliveryState(v.Get<View>("prefab_deliveryState"));
+                text_orderId = v.Get<Text>("text_orderId");
+                text_to = v.Get<Text>("text_to");
+                text_cost = v.Get<Text>("text_cost");
+                text_volume = v.Get<Text>("text_volume");
+                text_km = v.Get<Text>("text_km");
+                text_contactName = v.Get<Text>("text_contactName");
+                text_contactPhone = v.Get<Text>("text_contactPhone");
+                text_riderName = v.Get<Text>("text_riderName");
+                text_riderPhone = v.Get<Text>("text_riderPhone");
+                btn_order = v.Get<Button>("btn_order");
                 btn_order.OnClickAdd(() => onBtnClick?.Invoke(SelectedOrderId));
             
             }
@@ -132,17 +132,17 @@ namespace Visual.Pages
             public View_packagePlayer(IView v,IUiManager uiManager,Action<(float point,float kg, float length, float width, float height)> onPackageSetAction) : base(v)
             {
                 UiManager = uiManager;
-                view_sizeSwitch = new View_sizeSwitch(v.GetObject<View>("view_sizeSwitch"),UpdateSize);
-                element_input_height = new Element_input(v.GetObject<View>("element_input_height"),UpdateSize);
-                element_input_width = new Element_input(v.GetObject<View>("element_input_width"),UpdateSize);
-                element_input_length = new Element_input(v.GetObject<View>("element_input_length"),UpdateSize);
-                element_input_weight = new Element_input(v.GetObject<View>("element_input_weight"),
+                view_sizeSwitch = new View_sizeSwitch(v.Get<View>("view_sizeSwitch"),UpdateSize);
+                element_input_height = new Element_input(v.Get<View>("element_input_height"),UpdateSize);
+                element_input_width = new Element_input(v.Get<View>("element_input_width"),UpdateSize);
+                element_input_length = new Element_input(v.Get<View>("element_input_length"),UpdateSize);
+                element_input_weight = new Element_input(v.Get<View>("element_input_weight"),
                     () => OnWeightValueChanged(element_input_weight.Value));
-                view_info = new View_info(v.GetObject<View>("view_info"));
-                view_weightSwitch = new View_weightSwitch(v.GetObject<View>("view_weightSwitch"), OnWeightSwitch);
-                btn_setPackage = v.GetObject<Button>("btn_setPackage");
+                view_info = new View_info(v.Get<View>("view_info"));
+                view_weightSwitch = new View_weightSwitch(v.Get<View>("view_weightSwitch"), OnWeightSwitch);
+                btn_setPackage = v.Get<Button>("btn_setPackage");
                 btn_setPackage.OnClickAdd(() => PlayCreationPackage(onPackageSetAction));
-                view_cubePlayer = new View_cubePlayer(v.GetObject<View>("view_cubePlayer"));
+                view_cubePlayer = new View_cubePlayer(v.Get<View>("view_cubePlayer"));
                 OnWeightSwitch();
                 ResetValues();
             }
@@ -223,9 +223,9 @@ namespace Visual.Pages
                 public Weights Current => (Weights)_weightSwitch;
                 public View_weightSwitch(IView v, Action onSwitch,bool display = true) : base(v, display)
                 {
-                    btn_kg = v.GetObject<Button>("btn_kg");
-                    btn_gram = v.GetObject<Button>("btn_gram");
-                    btn_pound = v.GetObject<Button>("btn_pound");
+                    btn_kg = v.Get<Button>("btn_kg");
+                    btn_gram = v.Get<Button>("btn_gram");
+                    btn_pound = v.Get<Button>("btn_pound");
                     btn_kg.OnClickAdd(() =>
                     {
                         WeightSwitch();
@@ -268,10 +268,10 @@ namespace Visual.Pages
                 public float Value => float.TryParse(input_value.text, out var f) ? f : 0;
                 public Element_input(IView v,Action onValueChanged, bool display = true) : base(v, display)
                 {
-                    input_value = v.GetObject<InputField>("input_value");
-                    text_label = v.GetObject<Text>("text_label");
-                    btn_add = v.GetObject<Button>("btn_add");
-                    btn_sub = v.GetObject<Button>("btn_sub");
+                    input_value = v.Get<InputField>("input_value");
+                    text_label = v.Get<Text>("text_label");
+                    btn_add = v.Get<Button>("btn_add");
+                    btn_sub = v.Get<Button>("btn_sub");
                     btn_add.OnClickAdd(() =>
                     {
                         AddValue(1);
@@ -313,9 +313,9 @@ namespace Visual.Pages
 
                 public View_info(IView v, bool display = true) : base(v, display)
                 {
-                    text_point = v.GetObject<Text>("text_point");
-                    text_weight = v.GetObject<Text>("text_weight");
-                    text_size = v.GetObject<Text>("text_size");
+                    text_point = v.Get<Text>("text_point");
+                    text_weight = v.Get<Text>("text_weight");
+                    text_size = v.Get<Text>("text_size");
                 }
                 public void SetKg(float kg)
                 {
@@ -352,9 +352,9 @@ namespace Visual.Pages
                 public Sizes Current => (Sizes)_current;
                 public View_sizeSwitch(IView v,Action onSwitch ,bool display = true) : base(v, display)
                 {
-                    btn_meter = v.GetObject<Button>("btn_meter");
-                    btn_feet = v.GetObject<Button>("btn_feet");
-                    btn_centimeter = v.GetObject<Button>("btn_centimeter");
+                    btn_meter = v.Get<Button>("btn_meter");
+                    btn_feet = v.Get<Button>("btn_feet");
+                    btn_centimeter = v.Get<Button>("btn_centimeter");
                     btn_meter.OnClickAdd(() =>
                     {
                         SwitchSize();
@@ -393,10 +393,12 @@ namespace Visual.Pages
                 private GameObject obj_cube { get; }
                 private Animation cubeAnim { get; }
                 private GameObject obj_particle { get; }
+                private Transform trans_parent { get; }
                 public View_cubePlayer(IView v) : base(v)
                 {
-                    obj_cube = v.GetObject("obj_cube");
-                    obj_particle = v.GetObject("obj_particle");
+                    obj_cube = v.Get("obj_cube");
+                    obj_particle = v.Get("obj_particle");
+                    trans_parent = v.Get<Transform>("trans_parent");
                     cubeAnim = obj_cube.GetComponent<Animation>();
                 }
 
@@ -415,9 +417,14 @@ namespace Visual.Pages
 
                 public IEnumerator PlayCubeSpin()
                 {
-                    cubeAnim.Play();
+                    var o = trans_parent.localPosition;
+                    var p = new Vector3(o.x, o.y, -350);
+                    trans_parent.localPosition = p;
+                    cubeAnim.Play("CubeSpin");
+                    //cubeAnim.Play();
                     obj_particle.gameObject.SetActive(true);
                     yield return new WaitForSeconds(1);
+                    trans_parent.localPosition = o;
                 }
             }
         }
@@ -425,9 +432,9 @@ namespace Visual.Pages
         private class View_historySect : UiBase
         {
             private ListViewUi<Prefab_history> HistoryView { get; }
-            private event Action<string> OnSelectedHistoryAction;
+            private event Action<long> OnSelectedHistoryAction;
         
-            public View_historySect(IView v,Action<string> onSelectedHistoryAction, bool display = true) : base(v, display)
+            public View_historySect(IView v,Action<long> onSelectedHistoryAction, bool display = true) : base(v, display)
             {
                 OnSelectedHistoryAction = onSelectedHistoryAction;
                 HistoryView = new ListViewUi<Prefab_history>(v, "prefab_history", "scroll_history");
@@ -458,16 +465,16 @@ namespace Visual.Pages
                 private Button btn_history { get; }
                 public Prefab_history(IView v, Action onClickAction ,bool display = true) : base(v, display)
                 {
-                    text_orderId = v.GetObject<Text>("text_orderId");
-                    text_toAddress = v.GetObject<Text>("text_toAddress");
-                    view_state = new View_state(v.GetObject<View>("view_state"));
-                    view_contact = new View_contact(v.GetObject<View>("view_contact"));
-                    view_parcelInfo = new View_parcelInfo(v.GetObject<View>("view_parcelInfo"));
-                    btn_history = v.GetObject<Button>("btn_history");
+                    text_orderId = v.Get<Text>("text_orderId");
+                    text_toAddress = v.Get<Text>("text_toAddress");
+                    view_state = new View_state(v.Get<View>("view_state"));
+                    view_contact = new View_contact(v.Get<View>("view_contact"));
+                    view_parcelInfo = new View_parcelInfo(v.Get<View>("view_parcelInfo"));
+                    btn_history = v.Get<Button>("btn_history");
                     btn_history.OnClickAdd(onClickAction);
                 }
 
-                public void SetInfo(string orderId,DeliveryOrderStatus state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
+                public void SetInfo(long orderId,DeliveryOrderStatus state, string address, string contactName, string contactPhone, float weight, float size, float point, float distance)
                 {
                     text_orderId.text = orderId.ToString();
                     text_toAddress.text = address;
@@ -484,10 +491,10 @@ namespace Visual.Pages
                     private Image img_closeState { get; }
                     public View_state(IView v, bool display = true) : base(v, display)
                     {
-                        img_waitState = v.GetObject<Image>("img_waitState");
-                        img_errState = v.GetObject<Image>("img_errState");
-                        img_completeState = v.GetObject<Image>("img_completeState");
-                        img_closeState = v.GetObject<Image>("img_closeState");
+                        img_waitState = v.Get<Image>("img_waitState");
+                        img_errState = v.Get<Image>("img_errState");
+                        img_completeState = v.Get<Image>("img_completeState");
+                        img_closeState = v.Get<Image>("img_closeState");
                     }
 
                     public void SetState(DeliveryOrderStatus state)
@@ -507,10 +514,10 @@ namespace Visual.Pages
                     private Text text_distance { get; }
                     public View_parcelInfo(IView v, bool display = true) : base(v, display)
                     {
-                        text_point = v.GetObject<Text>("text_point");
-                        text_weight = v.GetObject<Text>("text_weight");
-                        text_size = v.GetObject<Text>("text_size");
-                        text_distance = v.GetObject<Text>("text_distance");
+                        text_point = v.Get<Text>("text_point");
+                        text_weight = v.Get<Text>("text_weight");
+                        text_size = v.Get<Text>("text_size");
+                        text_distance = v.Get<Text>("text_distance");
                     }
 
                     public void Set(float point, float weight, float size, float distance)
@@ -528,8 +535,8 @@ namespace Visual.Pages
                     private Text text_phone { get; }
                     public View_contact(IView v, bool display = true) : base(v, display)
                     {
-                        text_name = v.GetObject<Text>("text_name");
-                        text_phone = v.GetObject<Text>("text_phone");
+                        text_name = v.Get<Text>("text_name");
+                        text_phone = v.Get<Text>("text_phone");
                     }
                     public void Set(string name, string phone)
                     {

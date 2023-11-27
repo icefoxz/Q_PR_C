@@ -16,10 +16,10 @@ namespace Visual.Pages.Rider
         protected View_doList view_doList { get; }
         protected UserOrderController UserOrderController => App.GetController<UserOrderController>();
 
-        protected DoListPage(IView v, Action<string> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
+        protected DoListPage(IView v, Action<long> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
             : base(v, uiManager, display)
         {
-            view_doList = new View_doList(v.GetObject<View>("view_doList"), onOrderSelectedAction);
+            view_doList = new View_doList(v.Get<View>("view_doList"), onOrderSelectedAction);
             RegEvents();
         }
 
@@ -48,10 +48,10 @@ namespace Visual.Pages.Rider
     internal class View_doList : UiBase
     {
         private ListViewUi<Prefab_do> DoListView { get; }
-        private Action<string> OnOrderSelected { get; }
+        private Action<long> OnOrderSelected { get; }
         public int Count => DoListView.List.Count;
 
-        public View_doList(IView v, Action<string> onOrderSelected, bool display = true) : base(v, display)
+        public View_doList(IView v, Action<long> onOrderSelected, bool display = true) : base(v, display)
         {
             OnOrderSelected = onOrderSelected;
             DoListView = new ListViewUi<Prefab_do>(v, "prefab_do", "scroll_do");
@@ -87,15 +87,15 @@ namespace Visual.Pages.Rider
 
             public Prefab_do(IView v, Action onSelectAction, bool display = true) : base(v, display)
             {
-                text_id = v.GetObject<Text>("text_id");
-                element_infoFrom = new Element_info(v.GetObject<View>("element_infoFrom"));
-                element_infoTo = new Element_info(v.GetObject<View>("element_infoTo"));
-                view_parcelInfo = new View_parcelInfo(v.GetObject<View>("view_parcelInfo"));
-                btn_select = v.GetObject<Button>("btn_select");
+                text_id = v.Get<Text>("text_id");
+                element_infoFrom = new Element_info(v.Get<View>("element_infoFrom"));
+                element_infoTo = new Element_info(v.Get<View>("element_infoTo"));
+                view_parcelInfo = new View_parcelInfo(v.Get<View>("view_parcelInfo"));
+                btn_select = v.Get<Button>("btn_select");
                 btn_select.OnClickAdd(onSelectAction);
             }
 
-            public void SetId(string id) => text_id.text = id.ToString();
+            public void SetId(long id) => text_id.text = id.ToString();
 
             public void SetFrom(string name, string phone, string address) =>
                 element_infoFrom.Set(name, phone, address);
@@ -114,9 +114,9 @@ namespace Visual.Pages.Rider
 
                 public Element_info(IView v, bool display = true) : base(v, display)
                 {
-                    text_name = v.GetObject<Text>("text_name");
-                    text_phone = v.GetObject<Text>("text_phone");
-                    text_address = v.GetObject<Text>("text_address");
+                    text_name = v.Get<Text>("text_name");
+                    text_phone = v.Get<Text>("text_phone");
+                    text_address = v.Get<Text>("text_address");
                 }
 
                 public void Set(string name, string phone, string address)
@@ -136,10 +136,10 @@ namespace Visual.Pages.Rider
 
                 public View_parcelInfo(IView v, bool display = true) : base(v, display)
                 {
-                    text_point = v.GetObject<Text>("text_point");
-                    text_size = v.GetObject<Text>("text_size");
-                    text_weight = v.GetObject<Text>("text_weight");
-                    text_distance = v.GetObject<Text>("text_distance");
+                    text_point = v.Get<Text>("text_point");
+                    text_size = v.Get<Text>("text_size");
+                    text_weight = v.Get<Text>("text_weight");
+                    text_distance = v.Get<Text>("text_distance");
                 }
 
                 public void Set(float point, double size, float weight, float distance)

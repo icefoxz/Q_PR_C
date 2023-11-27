@@ -29,7 +29,7 @@ public class HistoryOrderSo : ScriptableObject
                 {
                     var order = new DeliverOrderModel
                     {
-                        Id = random.Next(1000, 9999).ToString(),
+                        Id = random.Next(1000, 9999),
                         UserId = $"User{random.Next(1000, 9999)}",
                         User = new UserModel
                         {

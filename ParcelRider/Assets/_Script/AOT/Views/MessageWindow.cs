@@ -12,9 +12,9 @@ namespace AOT.Views
 
         public MessageWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
         {
-            text_title = v.GetObject<Text>("text_title");
-            text_content = v.GetObject<Text>("text_content");
-            btn_ok = v.GetObject<Button>("btn_ok");
+            text_title = v.Get<Text>("text_title");
+            text_content = v.Get<Text>("text_content");
+            btn_ok = v.Get<Button>("btn_ok");
             Instance = this;
             btn_ok.OnClickAdd(Hide);
         }

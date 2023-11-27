@@ -20,12 +20,12 @@ namespace Visual.Pages
 
         public Prefab_DeliveryState(IView v) : base(v)
         {
-            img_waitState = v.GetObject<Image>("img_waitState");
-            img_deliveryState = v.GetObject<Image>("img_deliveryState");
-            img_dropState = v.GetObject<Image>("img_dropState");
-            img_errState = v.GetObject<Image>("img_errState");
-            img_completeState = v.GetObject<Image>("img_completeState");
-            view_spots = new View_spots(v.GetObject<View>("view_spots"));
+            img_waitState = v.Get<Image>("img_waitState");
+            img_deliveryState = v.Get<Image>("img_deliveryState");
+            img_dropState = v.Get<Image>("img_dropState");
+            img_errState = v.Get<Image>("img_errState");
+            img_completeState = v.Get<Image>("img_completeState");
+            view_spots = new View_spots(v.Get<View>("view_spots"));
         }
 
         public void SetState(DeliveryOrderStatus state)
@@ -43,7 +43,7 @@ namespace Visual.Pages
                 DeliveryOrderStatus.Assigned => 3,
                 DeliveryOrderStatus.Delivering => 4,
                 DeliveryOrderStatus.Completed => 7,
-                DeliveryOrderStatus.Close => 7,
+                DeliveryOrderStatus.Closed => 7,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
             };
             view_spots.SetSpots(spots);
@@ -62,13 +62,13 @@ namespace Visual.Pages
             private Material spot_yellow { get; }
             public View_spots(IView v) : base(v)
             {
-                img_spot_0 = v.GetObject<Image>("img_spot_0");
-                img_spot_1 = v.GetObject<Image>("img_spot_1");
-                img_spot_2 = v.GetObject<Image>("img_spot_2");
-                img_spot_3 = v.GetObject<Image>("img_spot_3");
-                img_spot_4 = v.GetObject<Image>("img_spot_4");
-                img_spot_5 = v.GetObject<Image>("img_spot_5");
-                img_spot_6 = v.GetObject<Image>("img_spot_6");
+                img_spot_0 = v.Get<Image>("img_spot_0");
+                img_spot_1 = v.Get<Image>("img_spot_1");
+                img_spot_2 = v.Get<Image>("img_spot_2");
+                img_spot_3 = v.Get<Image>("img_spot_3");
+                img_spot_4 = v.Get<Image>("img_spot_4");
+                img_spot_5 = v.Get<Image>("img_spot_5");
+                img_spot_6 = v.Get<Image>("img_spot_6");
                 spot_yellow = v.GetRes<Material>("spot_yellow");
             }
 

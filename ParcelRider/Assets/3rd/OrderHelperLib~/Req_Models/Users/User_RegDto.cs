@@ -1,6 +1,6 @@
 ﻿namespace OrderHelperLib.Req_Models.Users;
 
-public class User_RegDto
+public record User_RegDto
 {
     public string Name { get; set; }
     public string Username { get; set; }

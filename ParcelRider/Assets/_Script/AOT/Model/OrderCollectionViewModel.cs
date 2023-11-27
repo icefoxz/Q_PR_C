@@ -22,8 +22,8 @@ namespace AOT.Model
             return GetOrder(_currentId);
         }
 
-        private string? _currentId;
-        public void SetCurrent(string orderId)
+        private long _currentId = -1;
+        public void SetCurrent(long orderId)
         {
             var o = GetOrder(orderId);
             if (o == null) throw new NullReferenceException($"Unable to find {orderId}");
@@ -35,7 +35,7 @@ namespace AOT.Model
         // 设置订单
         public void SetOrders(ICollection<DeliveryOrder> orders)
         {
-            _currentId = null;
+            _currentId = -1;
             _orders.Clear();
             _orders.AddRange(orders);
             SendCurrentOrderUpdateEvent();
@@ -43,7 +43,7 @@ namespace AOT.Model
         }
 
         // 删除订单
-        public void RemoveOrder(string id)
+        public void RemoveOrder(long id)
         {
              // 当前订单被删除
              var o = GetOrder(id);
@@ -52,7 +52,7 @@ namespace AOT.Model
             SendOrdersUpdateEvent();
             if (id == _currentId)
             {
-                _currentId = null;
+                _currentId = -1;
                 SendCurrentOrderUpdateEvent();
             }
         }
@@ -71,7 +71,7 @@ namespace AOT.Model
         }
 
         // 查询订单
-        public DeliveryOrder GetOrder(string id) => Orders.FirstOrDefault(o => o.Id == id);
+        public DeliveryOrder GetOrder(long id) => Orders.FirstOrDefault(o => o.Id == id);
 
         // 发送事件
         protected void SendEvent(string eventString) => App.SendEvent(eventString, null);

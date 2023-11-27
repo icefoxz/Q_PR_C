@@ -17,17 +17,17 @@ namespace Visual.Pages.Rider
             Action onHistoryPageAction
             , bool display = true) : base(v, display)
         {
-            element_pageJobs = new Element_page(v.GetObject<View>("element_pageJobs"), () =>
+            element_pageJobs = new Element_page(v.Get<View>("element_pageJobs"), () =>
             {
                 SelectedPage(element_pageJobs);
                 onJobsPageAction?.Invoke();
             }, display);
-            element_pageHome = new Element_page(v.GetObject<View>("element_pageHome"), () =>
+            element_pageHome = new Element_page(v.Get<View>("element_pageHome"), () =>
             {
                 SelectedPage(element_pageHome);
                 onHomePageAction?.Invoke();
             }, display);
-            element_pageHistory = new Element_page(v.GetObject<View>("element_pageHistory"), () =>
+            element_pageHistory = new Element_page(v.Get<View>("element_pageHistory"), () =>
             {
                 SelectedPage(element_pageHistory);
                 onHistoryPageAction?.Invoke();
@@ -43,7 +43,7 @@ namespace Visual.Pages.Rider
             private Outline outline { get; }
             public Element_page(IView v, Action onClickAction, bool display = true) : base(v, display)
             {
-                btn_page = v.GetObject<Button>("btn_page");
+                btn_page = v.Get<Button>("btn_page");
                 outline = btn_page.gameObject.GetComponent<Outline>();
                 btn_page.OnClickAdd(onClickAction);
             }

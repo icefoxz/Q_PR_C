@@ -74,8 +74,8 @@ namespace AOT.BaseUis
 
         public ListViewUi(IView v, string prefabName, string scrollRectName, bool hideChildrenViews = true,
             bool display = true) : this(
-            v.GetObject<View>(prefabName),
-            v.GetObject<ScrollRect>(scrollRectName), v, hideChildrenViews, display)
+            v.Get<View>(prefabName),
+            v.Get<ScrollRect>(scrollRectName), v, hideChildrenViews, display)
         {
         }
 

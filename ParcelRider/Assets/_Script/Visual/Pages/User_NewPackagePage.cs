@@ -38,13 +38,13 @@ namespace Visual.Pages
         public User_NewPackagePage(IView v, Action onSubmit, User_UiManager uiManager) : base(v, uiManager)
         {
             CurrentDo = new DoVolume();
-            btn_submit = v.GetObject<Button>("btn_submit");
-            btn_cancel = v.GetObject<Button>("btn_cancel");
-            drop_state = v.GetObject<Dropdown>("drop_state");
+            btn_submit = v.Get<Button>("btn_submit");
+            btn_cancel = v.Get<Button>("btn_cancel");
+            drop_state = v.Get<Dropdown>("drop_state");
             InitMyStateDropdown();
             btn_cancel.OnClickAdd(Hide);
-            view_packageInfo = new View_packageInfo(v.GetObject<View>("view_packageInfo"));
-            view_addressList = new View_addressList(v.GetObject<View>("view_addressList"), arg =>
+            view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
+            view_addressList = new View_addressList(v.Get<View>("view_addressList"), arg =>
             {
                 var (placeId, address) = arg;
                 if (_isUpperUi)
@@ -53,8 +53,8 @@ namespace Visual.Pages
                     element_from.SetAddress(placeId, address);
                 UpdateGeocode();
             }, arg => ProcessSuggestedAddress(arg));
-            element_to = new Element_Form(v.GetObject<View>("element_to"),UpdateUis, () => ActiveAutoFillSection(true), null);
-            element_from = new Element_Form(v.GetObject<View>("element_from"),UpdateUis, () => ActiveAutoFillSection(false),
+            element_to = new Element_Form(v.Get<View>("element_to"),UpdateUis, () => ActiveAutoFillSection(true), null);
+            element_from = new Element_Form(v.Get<View>("element_from"),UpdateUis, () => ActiveAutoFillSection(false),
                 OnBottomInputSelectAction);
             btn_submit.interactable = false;
             btn_submit.OnClickAdd(onSubmit);
@@ -292,10 +292,10 @@ namespace Visual.Pages
                 Action<bool> onOtherInputFieldSelectAction) : base(v)
             {
                 Mover = v.GameObject.GetComponent<UiMover>();
-                input_contact = v.GetObject<InputFieldUi>("input_contact");
-                input_unit = v.GetObject<InputFieldUi>("input_unit");
-                input_address = v.GetObject<InputFieldUi>("input_address");
-                input_phone = v.GetObject<InputFieldUi>("input_phone");
+                input_contact = v.Get<InputFieldUi>("input_contact");
+                input_unit = v.Get<InputFieldUi>("input_unit");
+                input_address = v.Get<InputFieldUi>("input_address");
+                input_phone = v.Get<InputFieldUi>("input_phone");
                 //Btn_mapPoint = v.GetObject<Button>("btn_mapPoint");
                 //Btn_mapPoint.OnClickAdd(() => Input_address.text = preserveAddress);
                 input_address.OnSelectEvent.AddListener(_ => onAddressInputSelectAction?.Invoke());
@@ -360,7 +360,7 @@ namespace Visual.Pages
                 Action<(string placeId, string address)> onAddressSelected,
                 Action<string> onAddressInputAction) : base(v,false)
             {
-                sect_autofill = new Sect_Autofill(v: v.GetObject<View>("sect_autofill"),
+                sect_autofill = new Sect_Autofill(v: v.Get<View>("sect_autofill"),
                     onAddressInputAction,
                     arg =>
                     {
@@ -372,7 +372,7 @@ namespace Visual.Pages
                     contentHeight: 30,
                     contentPadding: 5,
                     yPosAlign: 50);
-                btn_close = v.GetObject<Button>("btn_close");
+                btn_close = v.Get<Button>("btn_close");
                 btn_close.OnClickAdd(Reset);
             }
 

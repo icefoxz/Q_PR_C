@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -10,7 +11,9 @@ namespace AOT.Utl
 {
     public static class Http
     {
-        private static HttpClient HttpClient { get; } = new HttpClient();
+        private static HttpClient httpClient = new();
+
+        private static HttpClient HttpClient => httpClient ??= new HttpClient();
 
         public static async Task<(bool isSuccess, string content, HttpStatusCode code)> SendStringContentAsync(string baseUrl, HttpMethod method,
             string content = null, string token = null, params (string, string)[] queryParams)
@@ -38,8 +41,14 @@ namespace AOT.Utl
             if (content != null) request.Content = content;
 
             var client = HttpClient;
+#if UNITY_EDITOR
+            UnityEngine.Debug.Log($"<color=cyan>Http requesting ... {url}</color> with token = {token}");
+#endif
             var response = await client.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
+#if UNITY_EDITOR
+            UnityEngine.Debug.Log($"<color=yellow>Http response result = {response.StatusCode}</color>\n{responseContent}");
+#endif
             return (response.IsSuccessStatusCode, responseContent, response.StatusCode);
         }
     }

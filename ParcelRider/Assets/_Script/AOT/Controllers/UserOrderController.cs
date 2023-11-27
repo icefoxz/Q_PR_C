@@ -10,6 +10,7 @@ using AOT.Views;
 using OrderHelperLib;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
+using WebUtlLib;
 
 namespace AOT.Controllers
 {
@@ -46,34 +47,41 @@ namespace AOT.Controllers
         {
             Call(new object[] { order }, args => ((bool)args[0], (string)args[1]),
                 arg =>
-            {
-                var (isSuccess, message) = arg;
-                if (isSuccess)
                 {
-                    var bag = DataBag.Deserialize(message);
-                    var dOrder = bag.Get<DeliveryOrder>(0);
-                    var model = new DeliveryOrder(dOrder);
-                    var list = Models.ActiveOrders.Orders.ToList();
-                    list.Add(model);
-                    List_ActiveOrder_Set(list.ToArray());
-                    SetActiveCurrent(model);
-                    //Do_UpdateAll();
-                    message = string.Empty;
-                }
-                callbackAction(isSuccess, message);
-            },
+                    var (isSuccess, message) = arg;
+                    if (isSuccess)
+                    {
+                        var bag = DataBag.Deserialize(message);
+                        var dOrder = bag.Get<DeliveryOrder>(0);
+                        var model = new DeliveryOrder(dOrder);
+                        AddToActiveList(model);
+                        SetActiveCurrent(model);
+                        //Do_UpdateAll();
+                        message = string.Empty;
+                    }
+
+                    callbackAction(isSuccess, message);
+                },
                 () =>
-            {
-                var dto = order;
-                ApiPanel.CreateDeliveryOrder(dto, doModel =>
                 {
-                    SetActiveCurrent(new DeliveryOrder(doModel));
-                    callbackAction?.Invoke(true, string.Empty);
-                }, msg =>
-                {
-                    callbackAction?.Invoke(false, msg);
+                    ApiPanel.CreateDeliveryOrder(order, doModel =>
+                    {
+                        var m = new DeliveryOrder(doModel);
+                        AddToActiveList(m);
+                        SetActiveCurrent(m);
+                        callbackAction?.Invoke(true, string.Empty);
+                    }, msg =>
+                    {
+                        callbackAction?.Invoke(false, msg);
+                    });
                 });
-            });
+
+            void AddToActiveList(DeliveryOrder model)
+            {
+                var list = Models.ActiveOrders.Orders.ToList();
+                list.Add(model);
+                List_ActiveOrder_Set(list.ToArray());
+            }
         }
 
         public void Do_Payment(PaymentMethods payment, Action<bool, string> callbackAction)
@@ -90,28 +98,27 @@ namespace AOT.Controllers
                 callbackAction(success, message);
             }, () =>
             {
-                //todo : request payment Api
+
             });
         }
 
-        public void Do_UpdateAll(int page = 1)
+        public void Do_UpdateAll(int pageIndex = 0)
         {
             Call(args => args[0], arg =>
-            {
-                var bag = DataBag.Deserialize(arg);
-                var list = bag.Get<List<DeliverOrderModel>>(0);
-                List_ActiveOrder_Set(list.ToArray());
-                return;
-            }, 
-            () =>
-            {
-                ApiPanel.User_GetDeliveryOrders(50, page, dtos =>
                 {
-                    List_ActiveOrder_Set(dtos);
-                }, msg => MessageWindow.Set("Error", msg));
-            });
+                    var bag = DataBag.Deserialize(arg);
+                    var list = bag.Get<List<DeliverOrderModel>>(0);
+                    List_ActiveOrder_Set(list.ToArray());
+                    return;
+                },
+                () =>
+                {
+                    ApiPanel.User_GetDeliveryOrders(50, pageIndex, pg => List_ActiveOrder_Set(pg.List),
+                        msg => MessageWindow.Set("Error", "Error in updating data!"));
+                });
         }
-        public void Do_UpdateHistory(int page = 1)
+
+        public void Do_UpdateHistory(int pageIndex = 0)
         {
             Call(args => (string)args[0], arg =>
             {
@@ -120,13 +127,14 @@ namespace AOT.Controllers
                 List_HistoryOrderSet(list);
             }, () =>
             {
-                //todo : request history api
+                ApiPanel.User_GetHistories(50, pageIndex, pg => List_HistoryOrderSet(pg.List),
+                    msg => MessageWindow.Set("Error", "Error in updating data!"));
             });
         }
 
-        public void Do_RequestCancel(string orderId, Action<bool> callbackAction)
+        public void Do_RequestCancel(long orderId, Action<bool> callbackAction)
         {
-            Call(new object[] {orderId},args => ((bool)args[0], (DeliveryOrderStatus)args[1], args[2].ToString()), arg =>
+            Call(new object[] {orderId},args => ((bool)args[0], (DeliveryOrderStatus)args[1], (long)args[2]), arg =>
             {
                 var (success, status, ordId) = arg;
                 if (success)
@@ -141,17 +149,30 @@ namespace AOT.Controllers
                 callbackAction(success);
             }, () =>
             {
-                //todo : request cancel Api
+                var o = Models.ActiveOrders.GetOrder(orderId);
+                ApiPanel.CancelDeliveryOrder(orderId, o.SubState ,(success, bag, message) =>
+                {
+                    if (success)
+                    {
+                        var orderPl = bag.Get<PageList<DeliverOrderModel>>(0);
+                        var historyPl = bag.Get<PageList<DeliverOrderModel>>(1);
+                        List_ActiveOrder_Set(orderPl.List);
+                        List_HistoryOrderSet(historyPl.List);
+                        var o = Models.ActiveOrders.GetOrder(orderId);
+                        SetActiveCurrent(o);
+                    }
+                    callbackAction(success);
+                });
             });
         }
 
-        public void ViewOrder(string orderId)
+        public void ViewOrder(long orderId)
         {
             var o = Models.ActiveOrders.GetOrder(orderId);
             SetActiveCurrent(o);
         }
 
-        public void ViewHistory(string orderId)
+        public void ViewHistory(long orderId)
         {
             Models.History.SetCurrent(orderId);
         }

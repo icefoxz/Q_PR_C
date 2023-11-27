@@ -15,11 +15,11 @@ namespace Visual.Pages
 
         public PackageConfirmWindow(IView v, User_UiManager uiManager) : base(v, uiManager)
         {
-            view_Info = new View_info(v.GetObject<View>("view_info"));
-            btn_cancel = v.GetObject<Button>("btn_cancel");
-            btn_riderCollect = v.GetObject<Button>("btn_riderCollect");
-            btn_deductCredit = v.GetObject<Button>("btn_deductCredit");
-            btn_paymentGateway = v.GetObject<Button>("btn_paymentGateway");
+            view_Info = new View_info(v.Get<View>("view_info"));
+            btn_cancel = v.Get<Button>("btn_cancel");
+            btn_riderCollect = v.Get<Button>("btn_riderCollect");
+            btn_deductCredit = v.Get<Button>("btn_deductCredit");
+            btn_paymentGateway = v.Get<Button>("btn_paymentGateway");
             btn_cancel.OnClickAdd(() => Hide());
         }
 
@@ -57,9 +57,9 @@ namespace Visual.Pages
             private Text text_size { get; }
             public View_info(IView v, bool display = true) : base(v, display)
             {
-                text_point = v.GetObject<Text>("text_point");
-                text_weight = v.GetObject<Text>("text_weight");
-                text_size = v.GetObject<Text>("text_size");
+                text_point = v.Get<Text>("text_point");
+                text_weight = v.Get<Text>("text_weight");
+                text_size = v.Get<Text>("text_size");
             }
 
             public void Set(float point, float kg, float length, float width, float height)

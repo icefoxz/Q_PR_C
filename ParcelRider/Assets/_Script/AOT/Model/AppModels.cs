@@ -16,11 +16,6 @@ namespace AOT.Model
         public DoDataModel ActiveOrders { get; private set; } = new ActiveDoModel();
         public DoDataModel History { get; private set; } = new HistoryDoModel();
 
-        public void SetOrderList(List<DeliveryOrder> orders)
-        {
-            ActiveOrders.SetOrders(orders);
-        }
-
         public void SetRider(UserModel u)
         {
             Rider = new Rider { Id = 0.ToString(), Name = u.Name, Phone = u.Phone };

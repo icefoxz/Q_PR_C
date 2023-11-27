@@ -5,6 +5,7 @@ using OrderHelperLib.Dtos.DeliveryOrders;
 using OrderHelperLib.Req_Models.Users;
 using OrderHelperLib.Results;
 using UnityEngine;
+using WebUtlLib;
 
 namespace AOT.Utl
 {
@@ -15,17 +16,23 @@ namespace AOT.Utl
         [SerializeField] private Panel _panel;
         protected static Panel Panel { get; set; }
 
-        private const string User_RegisterApi = "Anonymous_RegisterApi";
-        private const string User_LoginApi = "Anonymous_LoginApi";
+        private const string User_RegisterApi = "Anonymous_User_Register";
+        private const string User_LoginApi = "Anonymous_Login_User";
         private const string User_ReloginApi = "User_ReloginApi";
+
+        private const string User_Get_Active = "User_Get_Active";
+        private const string User_Get_Histories = "User_Get_Histories";
+        private const string User_Do_Cancel = "User_Do_Cancel";
+        private const string User_Do_Create = "User_Do_Create";
+
+        private const string Rider_LoginApi = "Anonymous_Login_Rider";
+        private const string Rider_Do_Assign = "Rider_Do_Assign";
+        private const string Rider_Do_StateUpdate = "Rider_Do_StateUpdate";
+        private const string Rider_Do_Cancel = "Rider_Do_Cancel";
+        private const string Rider_Get_Unassigned = "Rider_Get_Unassigned";
+        //test
         private const string TestApi = "User_TestApi";
         private const string User_CreateRiderApi = "User_CreateRider";
-        private const string User_CreateDeliveryOrderApi = "User_CreateDeliveryOrder";
-        private const string User_GetAllDeliveryOrders = "User_GetAllDeliveryOrders";
-
-        private const string Rider_LoginApi = "Anonymous_RiderLoginApi";
-        private const string Rider_AssignRiderApi = "Rider_AssignRider";
-        private const string Rider_UpdateOrderStatusApi = "Rider_UpdateOrderStatus";
 
         public void Init(string serverUrl)
         {
@@ -183,7 +190,7 @@ namespace AOT.Utl
             Action<DeliverOrderModel> successAction,
             Action<string> failedAction)
         {
-            CallBag(User_CreateDeliveryOrderApi, DataBag.Serialize(orderDto), bag =>
+            CallBag(User_Do_Create, DataBag.Serialize(orderDto), bag =>
             {
                 var deliveryOrder = bag.Get<DeliverOrderModel>(0);
                 successAction?.Invoke(deliveryOrder);
@@ -194,9 +201,9 @@ namespace AOT.Utl
         //public static void AssignRider(DeliveryAssignmentDto assignmentDto,
         //    Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(AssignRiderApi,
         //    assignmentDto, msg => callbackAction?.Invoke((true, msg)), msg => callbackAction?.Invoke((false, msg)));
-        public static void Rider_AssignRider(string orderId, Action<DeliverOrderModel> successAction, Action<string> failedAction)
+        public static void Rider_AssignRider(long orderId, Action<DeliverOrderModel> successAction, Action<string> failedAction)
         {
-            CallBag(Rider_AssignRiderApi, DataBag.Serialize(orderId),
+            CallBag(Rider_Do_Assign, DataBag.Serialize(orderId),
                 bag => successAction?.Invoke(bag.Get<DeliverOrderModel>(0)), failedAction);
         }
 
@@ -208,19 +215,30 @@ namespace AOT.Utl
             }, arg => callbackAction?.Invoke(false));
         }
 
-        public static void User_GetDeliveryOrders(int limit,int page,Action<DeliverOrderModel[]> successAction, Action<string> failedAction)
+        public static void User_GetDeliveryOrders(int pageSize, int pageIndex,
+            Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
         {
-            CallBag(User_GetAllDeliveryOrders, DataBag.Serialize(limit, page), bag =>
+            CallBag(User_Get_Active, DataBag.Serialize(pageSize, pageIndex), bag =>
             {
-                var orders = bag.Get<DeliverOrderModel[]>(0);
+                var orders = bag.Get<PageList<DeliverOrderModel>>(0);
                 successAction?.Invoke(orders);
             }, failedAction);
         }
-        public static void Rider_GetDeliveryOrders(int limit,int page,Action<DeliverOrderModel[]> successAction, Action<string> failedAction)
+
+        public static void User_GetHistories(int pageSize, int pageIndex, Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
+        {
+            CallBag(User_Get_Histories, DataBag.Serialize(pageSize,pageIndex), b =>
+            {
+                var orders = b.Get<PageList<DeliverOrderModel>>(0);
+                successAction?.Invoke(orders);
+            },failedAction);
+        }
+
+        public static void Rider_GetDeliveryOrders(int limit,int page,Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
         {
             CallBag("Rider_GetAllDeliveryOrders", DataBag.Serialize(limit, page), bag =>
             {
-                var orders = bag.Get<DeliverOrderModel[]>(0);
+                var orders = bag.Get<PageList<DeliverOrderModel>>(0);
                 successAction?.Invoke(orders);
             }, failedAction);
         }
@@ -228,8 +246,15 @@ namespace AOT.Utl
         public static void Rider_PickItem(DeliverOrderModel order, Action<DeliverOrderModel> successAction,
             Action<string> failedAction)
         {
-            CallBag(Rider_UpdateOrderStatusApi, DataBag.Serialize(order),
+            CallBag(Rider_Do_StateUpdate, DataBag.Serialize(order),
                 bag => { successAction?.Invoke(bag.Get<DeliverOrderModel>(0)); }, failedAction);
+        }
+
+        public static void CancelDeliveryOrder(long orderId, int subState,
+            Action<bool, DataBag, string> callbackAction)
+        {
+            CallBag(User_Do_Cancel, DataBag.Serialize(orderId, subState),
+                b => callbackAction(true, b, null), m => callbackAction(false, null, m));
         }
     }
 }

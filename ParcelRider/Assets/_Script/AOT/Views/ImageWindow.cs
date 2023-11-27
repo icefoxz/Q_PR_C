@@ -13,9 +13,9 @@ namespace AOT.Views
 
         public ImageWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
         {
-            img_image = v.GetObject<Image>("img_image");
-            btn_x = v.GetObject<Button>("btn_x");
-            btn_close = v.GetObject<Button>("btn_close");
+            img_image = v.Get<Image>("img_image");
+            btn_x = v.Get<Button>("btn_x");
+            btn_close = v.Get<Button>("btn_close");
             btn_x.OnClickAdd(Hide);
             btn_close.OnClickAdd(Hide);
         }

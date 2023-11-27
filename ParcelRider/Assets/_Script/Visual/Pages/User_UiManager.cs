@@ -144,14 +144,14 @@ namespace Visual.Pages
             User_NewPackagePage.Set(kg: kg, length: length, width: width, height: height);
         }
 
-        public void ViewOrder(string orderId)
+        public void ViewOrder(long orderId)
         {
             UserOrderController.ViewOrder(orderId);
             var o = App.Models.ActiveOrders.GetCurrent();
             var orderStatus = (DeliveryOrderStatus)o.Status;
             User_OrderViewPage.DisplayCurrentOrder(onCancelRequestAction: orderStatus.IsClosed() ? null : OnCancelRequestAction(orderId));
 
-            Action OnCancelRequestAction(string i) =>
+            Action OnCancelRequestAction(long i) =>
                 () =>
                 {
                     ConfirmWindow.Set(title: "Cancel Order?", onConfirmAction: () =>
@@ -164,7 +164,7 @@ namespace Visual.Pages
                     });
                 };
         }
-        public void ViewHistory(string orderId)
+        public void ViewHistory(long orderId)
         {
             UserOrderController.ViewHistory(orderId);
             User_OrderViewPage.DisplayHistoryOrder();

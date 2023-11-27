@@ -40,7 +40,6 @@ namespace AOT.Controllers
                 () =>
                 {
                     #region ServerRequest
-
                     ApiPanel.User_Login(username, password,
                         successCallbackAction: result =>
                         {

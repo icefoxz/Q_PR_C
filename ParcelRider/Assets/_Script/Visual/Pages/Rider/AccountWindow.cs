@@ -22,11 +22,11 @@ namespace Visual.Pages.Rider
         {
             Mgr = uiManager;
             //btn_regRider = v.GetObject<Button>("btn_regRider");
-            btn_close = v.GetObject<Button>("btn_close");
-            text_lastLogin = v.GetObject<Text>("text_lastLogin");
-            view_avatar = new View_avatar(v.GetObject<View>("view_avatar"),UserMode);
-            element_inputName = new Element_input(v.GetObject<View>("element_inputName"));
-            element_inputPhone = new Element_input(v.GetObject<View>("element_inputPhone"));
+            btn_close = v.Get<Button>("btn_close");
+            text_lastLogin = v.Get<Text>("text_lastLogin");
+            view_avatar = new View_avatar(v.Get<View>("view_avatar"),UserMode);
+            element_inputName = new Element_input(v.Get<View>("element_inputName"));
+            element_inputPhone = new Element_input(v.Get<View>("element_inputPhone"));
             //btn_regRider.OnClickAdd(uiManager.RegisterRider);
             btn_close.OnClickAdd(() =>
             {
@@ -76,8 +76,8 @@ namespace Visual.Pages.Rider
             public string Value => text_label.text;
             public Element_input(IView v, bool display = true) : base(v, display)
             {
-                text_label = v.GetObject<Text>("text_label");
-                view_switch = new View_switch(v.GetObject<View>("view_switch"), SetText);
+                text_label = v.Get<Text>("text_label");
+                view_switch = new View_switch(v.Get<View>("view_switch"), SetText);
             }
 
             public void SetText(string text)
@@ -95,10 +95,10 @@ namespace Visual.Pages.Rider
 
                 public View_switch(IView v, Action<string> onConfirmAction, bool display = true) : base(v, display)
                 {
-                    obj_input = v.GetObject("obj_input");
-                    input_value = v.GetObject<InputField>("input_value");
-                    btn_edit = v.GetObject<Button>("btn_edit");
-                    btn_confirm = v.GetObject<Button>("btn_confirm");
+                    obj_input = v.Get("obj_input");
+                    input_value = v.Get<InputField>("input_value");
+                    btn_edit = v.Get<Button>("btn_edit");
+                    btn_confirm = v.Get<Button>("btn_confirm");
 
                     input_value.onEndEdit.AddListener(arg => DelayEndEditMode());
                     btn_confirm.OnClickAdd(() =>
@@ -149,7 +149,7 @@ namespace Visual.Pages.Rider
             public View_avatar(IView v, Action onUserSelected, bool display = true) 
                 : base(v, display)
             {
-                element_user = new Element(v.GetObject<View>("element_user"), onUserSelected);
+                element_user = new Element(v.Get<View>("element_user"), onUserSelected);
                 //element_rider = new Element(v.GetObject<View>("element_rider"), onRiderSelected);
             }
 
@@ -165,9 +165,9 @@ namespace Visual.Pages.Rider
                 private Image img_selected { get; }
                 public Element(IView v,Action onClickAction , bool display = true) : base(v, display)
                 {
-                    btn_avatar = v.GetObject<Button>("btn_avatar");
+                    btn_avatar = v.Get<Button>("btn_avatar");
                     btn_avatar.OnClickAdd(onClickAction);
-                    img_selected = v.GetObject<Image>("img_selected");
+                    img_selected = v.Get<Image>("img_selected");
                 }
 
                 public void SetSelected(bool selected) => img_selected.gameObject.SetActive(selected);

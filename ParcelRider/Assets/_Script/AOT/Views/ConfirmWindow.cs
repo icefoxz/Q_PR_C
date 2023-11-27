@@ -17,11 +17,11 @@ namespace AOT.Views
 
         public ConfirmWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
         {
-            btn_yes = v.GetObject<Button>("btn_yes");
-            btn_no = v.GetObject<Button>("btn_no");
-            text_title = v.GetObject<Text>("text_title");
-            text_content = v.GetObject<Text>("text_content");
-            obj_content = v.GetObject("obj_content");
+            btn_yes = v.Get<Button>("btn_yes");
+            btn_no = v.Get<Button>("btn_no");
+            text_title = v.Get<Text>("text_title");
+            text_content = v.Get<Text>("text_content");
+            obj_content = v.Get("obj_content");
             Instance = this;
             btn_no.OnClickAdd(Hide);//包一层
         }

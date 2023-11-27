@@ -7,7 +7,7 @@ namespace Visual.Pages.Rider
 {
     internal class RiderHistoryPage : DoListPage
     {
-        public RiderHistoryPage(IView v, Action<string> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
+        public RiderHistoryPage(IView v, Action<long> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
         {
         }
 

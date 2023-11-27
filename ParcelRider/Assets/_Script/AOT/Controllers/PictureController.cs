@@ -4,6 +4,7 @@ using AOT.Core;
 using AOT.Test;
 using UnityEngine;
 using UnityEngine.Android;
+using UnityEngine.Networking;
 
 namespace AOT.Controllers
 {
@@ -35,10 +36,8 @@ namespace AOT.Controllers
         private IEnumerator OpenCameraAfterPermission()
         {
             yield return RequestCameraPermission();
-            using (var galleryCameraHelper = new AndroidJavaClass(JavaGallerycamerahelperClass))
-            {
-                galleryCameraHelper.CallStatic("openCamera");
-            }
+            using var galleryCameraHelper = new AndroidJavaClass(JavaGallerycamerahelperClass);
+            galleryCameraHelper.CallStatic("openCamera");
         }
 
         public void OpenGallery(Action<Texture2D> onPictureTakenAction)
@@ -75,24 +74,41 @@ namespace AOT.Controllers
             }
         }
 
+        //private IEnumerator LoadImageFromPath(string imagePath)
+        //{
+        //    using var www = new WWW("file://" + imagePath);
+        //    yield return www;
+        //    if (string.IsNullOrEmpty(www.error))
+        //    {
+        //        var texture = new Texture2D(2, 2);
+        //        www.LoadImageIntoTexture(texture);
+
+        //        // 在这里处理获得的图像纹理
+        //        _onPictureTaken?.Invoke(texture);
+        //        Debug.Log("Image loaded successfully.");
+        //    }
+        //    else
+        //    {
+        //        Debug.LogError("Failed to load the image: " + www.error);
+        //    }
+        //}
         private IEnumerator LoadImageFromPath(string imagePath)
         {
-            using (WWW www = new WWW("file://" + imagePath))
-            {
-                yield return www;
-                if (string.IsNullOrEmpty(www.error))
-                {
-                    Texture2D texture = new Texture2D(2, 2);
-                    www.LoadImageIntoTexture(texture);
+            using var uwr = UnityWebRequestTexture.GetTexture("file://" + imagePath);
+            yield return uwr.SendWebRequest();
 
-                    // 在这里处理获得的图像纹理
-                    _onPictureTaken?.Invoke(texture);
-                    Debug.Log("Image loaded successfully.");
-                }
-                else
-                {
-                    Debug.LogError("Failed to load the image: " + www.error);
-                }
+            if (uwr.result is UnityWebRequest.Result.ConnectionError or UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Failed to load the image: " + uwr.error);
+            }
+            else
+            {
+                // 获取Texture
+                var texture = DownloadHandlerTexture.GetContent(uwr);
+
+                // 在这里处理获得的图像纹理
+                _onPictureTaken?.Invoke(texture);
+                Debug.Log("Image loaded successfully.");
             }
         }
 

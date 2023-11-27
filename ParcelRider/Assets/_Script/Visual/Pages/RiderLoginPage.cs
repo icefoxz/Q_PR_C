@@ -16,7 +16,7 @@ namespace Visual.Pages
         {
             OnLoggedInEvent += onLoggedInAction;
             OnLoggedInEvent += Hide;
-            view_loginSect = new View_loginSect(v: v.GetObject<View>("view_loginSect"), onLoginAction: arg =>
+            view_loginSect = new View_loginSect(v: v.Get<View>("view_loginSect"), onLoginAction: arg =>
             {
                 var (username, password) = arg;
                 RiderLoginController.Rider_RequestLogin(username, password, OnLoginCallback);
@@ -52,10 +52,10 @@ namespace Visual.Pages
 
             public View_loginSect(IView v, Action<(string username, string password)> onLoginAction) : base(v)
             {
-                input_username = v.GetObject<InputField>("input_username");
-                input_password = v.GetObject<InputField>("input_password");
-                btn_login = v.GetObject<Button>("btn_login");
-                text_errMsg = v.GetObject<Text>("text_errMsg");
+                input_username = v.Get<InputField>("input_username");
+                input_password = v.Get<InputField>("input_password");
+                btn_login = v.Get<Button>("btn_login");
+                text_errMsg = v.Get<Text>("text_errMsg");
                 btn_login.OnClickAdd(() =>
                 {
                     SetMessage();
