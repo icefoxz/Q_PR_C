@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.DataModel;
@@ -16,8 +17,16 @@ public class TestApiContainer : MonoBehaviour
     public ActiveOrderSo ActiveOrderSo;
     public RiderLoginServiceSo RiderLoginServiceSo;
 
-    public void Init()
+#if UNITY_EDITOR
+    void Start()
     {
+        StartCoroutine(InitCo());
+    }
+#endif
+
+    private IEnumerator InitCo()
+    {
+        yield return new WaitForSeconds(3);
         RegLoginService();
         RegOrderService();
         RegRiderLoginService();

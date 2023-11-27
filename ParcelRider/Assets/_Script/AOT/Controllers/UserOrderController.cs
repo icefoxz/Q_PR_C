@@ -21,24 +21,11 @@ namespace AOT.Controllers
         protected AppModels Models => App.Models;
 
         public void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders) =>
-            Models.ActiveOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
+            Models.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
         public void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders) =>
             Models.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
-        public void List_Remove(DeliveryOrder order) => Models.ActiveOrders.RemoveOrder(order.Id);
-        protected void SetActiveCurrent(DeliveryOrder order) => Models.ActiveOrders.SetCurrent(order.Id);
-
-        public void List_Update()
-        {
-            Call(null, args => (string)args[0], arg =>
-            {
-                var bag = DataBag.Deserialize(arg);
-                List<DeliverOrderModel> list = bag.Get<List<DeliverOrderModel>>(0);
-                List_ActiveOrder_Set(list);
-            }, () =>
-            {
-
-            });
-        }
+        public void List_Remove(DeliveryOrder order) => Models.AssignedOrders.RemoveOrder(order.Id);
+        protected void SetActiveCurrent(DeliveryOrder order) => Models.AssignedOrders.SetCurrent(order.Id);
     }
 
     public class UserOrderController : OrderControllerBase
@@ -78,7 +65,7 @@ namespace AOT.Controllers
 
             void AddToActiveList(DeliveryOrder model)
             {
-                var list = Models.ActiveOrders.Orders.ToList();
+                var list = Models.AssignedOrders.Orders.ToList();
                 list.Add(model);
                 List_ActiveOrder_Set(list.ToArray());
             }
@@ -91,7 +78,7 @@ namespace AOT.Controllers
                 var (success, message, payMethod) = arg;
                 if (success)
                 {
-                    var current = App.Models.ActiveOrders.GetCurrent();
+                    var current = App.Models.AssignedOrders.GetCurrent();
                     current.SetPaymentMethod(payMethod);
                     message = string.Empty;
                 }
@@ -139,7 +126,7 @@ namespace AOT.Controllers
                 var (success, status, ordId) = arg;
                 if (success)
                 {
-                    var o = Models.ActiveOrders.GetOrder(ordId);
+                    var o = Models.AssignedOrders.GetOrder(ordId);
                     o.Status = ((int)status);
                     SetActiveCurrent(o);
                     var h = App.Models.History.Orders.ToList();
@@ -149,7 +136,7 @@ namespace AOT.Controllers
                 callbackAction(success);
             }, () =>
             {
-                var o = Models.ActiveOrders.GetOrder(orderId);
+                var o = Models.AssignedOrders.GetOrder(orderId);
                 ApiPanel.CancelDeliveryOrder(orderId, o.SubState ,(success, bag, message) =>
                 {
                     if (success)
@@ -158,7 +145,7 @@ namespace AOT.Controllers
                         var historyPl = bag.Get<PageList<DeliverOrderModel>>(1);
                         List_ActiveOrder_Set(orderPl.List);
                         List_HistoryOrderSet(historyPl.List);
-                        var o = Models.ActiveOrders.GetOrder(orderId);
+                        var o = Models.AssignedOrders.GetOrder(orderId);
                         SetActiveCurrent(o);
                     }
                     callbackAction(success);
@@ -168,7 +155,7 @@ namespace AOT.Controllers
 
         public void ViewOrder(long orderId)
         {
-            var o = Models.ActiveOrders.GetOrder(orderId);
+            var o = Models.AssignedOrders.GetOrder(orderId);
             SetActiveCurrent(o);
         }
 

@@ -46,8 +46,8 @@ namespace Visual.Pages
             view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
 
             btn_close.OnClickAdd(Hide);
-            App.MessagingManager.RegEvent(EventString.CurrentOrder_Update, _ => UpdateOrder());
-            App.MessagingManager.RegEvent(EventString.HistoryCurrentOrder_Update, _=> UpdateHistory());
+            App.MessagingManager.RegEvent(EventString.Order_Assigned_Current_Update, _ => UpdateOrder());
+            App.MessagingManager.RegEvent(EventString.Order_History_Current_Update, _=> UpdateHistory());
         }
 
         public void DisplayCurrentOrder(Action onCancelRequestAction)
@@ -67,7 +67,7 @@ namespace Visual.Pages
         }
         private void UpdateOrder()
         {
-            var o = App.Models.ActiveOrders.GetCurrent();
+            var o = App.Models.AssignedOrders.GetCurrent();
             if (o == null) return;
             text_orderId.text = o.Id.ToString();
             view_packageInfo.Set(o.PaymentInfo.Charge, o.DeliveryInfo.Distance, o.ItemInfo.Weight, o.ItemInfo.Size());

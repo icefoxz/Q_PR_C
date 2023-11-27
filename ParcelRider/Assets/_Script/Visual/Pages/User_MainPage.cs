@@ -34,13 +34,13 @@ namespace Visual.Pages
 
         private void RegEvents()
         {
-            App.MessagingManager.RegEvent(EventString.Orders_Update, _ => RefreshOrderList());
-            App.MessagingManager.RegEvent(EventString.HistoryOrders_Update, _ => RefreshHistoryList());
+            App.MessagingManager.RegEvent(EventString.Orders_Assigned_Update, _ => RefreshOrderList());
+            App.MessagingManager.RegEvent(EventString.Orders_History_Update, _ => RefreshHistoryList());
         }
 
         private void RefreshOrderList()
         {
-            SetOrders(App.Models.ActiveOrders.Orders.OrderBy(o => o.Status).ToArray());
+            SetOrders(App.Models.AssignedOrders.Orders.OrderBy(o => o.Status).ToArray());
 
             void SetOrders(DeliveryOrder[] orders)
             {

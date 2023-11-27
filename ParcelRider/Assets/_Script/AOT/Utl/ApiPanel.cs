@@ -30,6 +30,8 @@ namespace AOT.Utl
         private const string Rider_Do_StateUpdate = "Rider_Do_StateUpdate";
         private const string Rider_Do_Cancel = "Rider_Do_Cancel";
         private const string Rider_Get_Unassigned = "Rider_Get_Unassigned";
+        private const string Rider_Get_Assigned = "Rider_Get_Assigned";
+        private const string Rider_Get_Histories = "Rider_Get_Histories";
         //test
         private const string TestApi = "User_TestApi";
         private const string User_CreateRiderApi = "User_CreateRider";
@@ -234,9 +236,18 @@ namespace AOT.Utl
             },failedAction);
         }
 
-        public static void Rider_GetDeliveryOrders(int limit,int page,Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
+        public static void Rider_GetAssigned(int limit,int page,Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
         {
-            CallBag("Rider_GetAllDeliveryOrders", DataBag.Serialize(limit, page), bag =>
+            CallBag(Rider_Get_Assigned, DataBag.Serialize(limit, page), bag =>
+            {
+                var orders = bag.Get<PageList<DeliverOrderModel>>(0);
+                successAction?.Invoke(orders);
+            }, failedAction);
+        }
+
+        public static void Rider_GetUnassigned(int limit,int page,Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
+        {
+            CallBag(Rider_Get_Unassigned, DataBag.Serialize(limit, page), bag =>
             {
                 var orders = bag.Get<PageList<DeliverOrderModel>>(0);
                 successAction?.Invoke(orders);

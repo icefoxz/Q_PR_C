@@ -1,3 +1,16 @@
 {
-	"name": "ApiTesters"
+    "name": "ApiTesters",
+    "rootNamespace": "",
+    "references": [
+        "GUID:bc68322037b340049a0f00d3f462c795"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

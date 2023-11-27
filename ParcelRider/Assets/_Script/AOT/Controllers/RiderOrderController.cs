@@ -31,7 +31,7 @@ namespace AOT.Controllers
             //});
         }
 
-        private DeliveryOrder GetOrder(long orderId) => Models.ActiveOrders.GetCurrent();
+        private DeliveryOrder GetOrder(long orderId) => Models.AssignedOrders.GetCurrent();
 
         public void PickItem(long orderId)
         {
@@ -153,13 +153,13 @@ namespace AOT.Controllers
                 return;
             }, () =>
             {
-                ApiPanel.Rider_GetDeliveryOrders(50, page, pg =>
-                {
-                    Models.ActiveOrders.SetOrders(pg.List.Select(o => new DeliveryOrder(o)).ToList());
-                }, msg =>
-                {
-                    MessageWindow.Set("Error", msg);
-                });
+                //ApiPanel.Rider_GetDeliveryOrders(50, page, pg =>
+                //{
+                //    Models.ActiveOrders.SetOrders(pg.List.Select(o => new DeliveryOrder(o)).ToList());
+                //}, msg =>
+                //{
+                //    MessageWindow.Set("Error", msg);
+                //}));
             });
         }
 
@@ -177,7 +177,7 @@ namespace AOT.Controllers
                 var id = orderId;
                 ApiPanel.Rider_AssignRider(id, dto =>
                 {
-                    var o = Models.ActiveOrders.GetCurrent();
+                    var o = Models.AssignedOrders.GetCurrent();
                     o.Status = dto.Status;
                     Do_UpdateAll();
                 }, msg => MessageWindow.Set("Error", msg));
@@ -186,7 +186,7 @@ namespace AOT.Controllers
 
         public void ViewOrder(long orderId)
         {
-            var o = Models.ActiveOrders.GetOrder(orderId);
+            var o = Models.AssignedOrders.GetOrder(orderId);
             SetActiveCurrent(o);
         }
     }

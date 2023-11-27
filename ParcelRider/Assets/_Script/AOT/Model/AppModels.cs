@@ -13,7 +13,11 @@ namespace AOT.Model
     {
         public User User { get; private set; }
         public Rider Rider { get; private set; }
-        public DoDataModel ActiveOrders { get; private set; } = new ActiveDoModel();
+        /// <summary>
+        /// Rider = Assigned orders, User = Created orders
+        /// </summary>
+        public DoDataModel AssignedOrders { get; private set; } = new ActiveDoModel();
+        public DoDataModel UnassignedOrders { get; private set; } = new UnassignedDoModel();
         public DoDataModel History { get; private set; } = new HistoryDoModel();
 
         public void SetRider(UserModel u)
@@ -46,5 +50,6 @@ namespace AOT.Model
                 User.SetAvatar(avatar);
             }
         }
+
     }
 }

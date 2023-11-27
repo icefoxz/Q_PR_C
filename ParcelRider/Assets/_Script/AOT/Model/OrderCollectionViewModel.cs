@@ -77,27 +77,40 @@ namespace AOT.Model
         protected void SendEvent(string eventString) => App.SendEvent(eventString, null);
     }
 
-    public class ActiveDoModel : DoDataModel
+    public class UnassignedDoModel : DoDataModel
     {
         protected override void SendCurrentOrderUpdateEvent()
         {
-            SendEvent(EventString.CurrentOrder_Update);
+            SendEvent(EventString.Order_Unassigned_Current_Update);
         }
 
         protected override void SendOrdersUpdateEvent()
         {
-            SendEvent(EventString.Orders_Update);
+            SendEvent(EventString.Orders_Unassigned_Update);
+        }
+    }
+
+    public class ActiveDoModel : DoDataModel
+    {
+        protected override void SendCurrentOrderUpdateEvent()
+        {
+            SendEvent(EventString.Order_Assigned_Current_Update);
+        }
+
+        protected override void SendOrdersUpdateEvent()
+        {
+            SendEvent(EventString.Orders_Assigned_Update);
         }
     }
     public class HistoryDoModel : DoDataModel
     {
         protected override void SendCurrentOrderUpdateEvent()
         {
-            SendEvent(EventString.HistoryCurrentOrder_Update);
+            SendEvent(EventString.Order_History_Current_Update);
         }
         protected override void SendOrdersUpdateEvent()
         {
-            SendEvent(EventString.HistoryOrders_Update);
+            SendEvent(EventString.Orders_History_Update);
         }
     }
 }

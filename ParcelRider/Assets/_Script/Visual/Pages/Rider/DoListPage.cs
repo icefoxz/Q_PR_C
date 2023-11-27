@@ -25,12 +25,12 @@ namespace Visual.Pages.Rider
 
         private void RegEvents()
         {
-            App.MessagingManager.RegEvent(EventString.Orders_Update, _ => UpdateOrderList());
+            App.MessagingManager.RegEvent(EventString.Orders_Assigned_Update, _ => UpdateOrderList());
         }
 
         private void UpdateOrderList()
         {
-            var orders = App.Models.ActiveOrders.Orders.Where(OrderListFilter).OrderByDescending(o => o.Id)
+            var orders = App.Models.AssignedOrders.Orders.Where(OrderListFilter).OrderByDescending(o => o.Id)
                 .ToArray();
             OnOrderListUpdate(orders);
             view_doList.Set(orders);
