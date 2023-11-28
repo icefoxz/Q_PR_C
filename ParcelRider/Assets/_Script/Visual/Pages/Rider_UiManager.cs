@@ -108,6 +108,7 @@ namespace Visual.Pages
         private void LoggedIn_InitHomePage()
         {
             RiderOrderController.Do_UpdateAll();
+            RiderOrderController.Get_SubStates();
             ActivityPageSwitch(ActivityPages.HomePage);
         }
 

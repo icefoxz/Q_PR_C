@@ -1,8 +1,6 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using AOT.Core;
-using AOT.DataModel;
-using OrderHelperLib.Dtos.DeliveryOrders;
+using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.Users;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,6 +9,7 @@ namespace AOT.Model
 {
     public class AppModels
     {
+        public DoSubState[] SubStates { get; private set; }
         public User User { get; private set; }
         public Rider Rider { get; private set; }
         /// <summary>
@@ -19,6 +18,8 @@ namespace AOT.Model
         public DoDataModel AssignedOrders { get; private set; } = new ActiveDoModel();
         public DoDataModel UnassignedOrders { get; private set; } = new UnassignedDoModel();
         public DoDataModel History { get; private set; } = new HistoryDoModel();
+
+        public void SetSubStates(DoSubState[] subStates) => SubStates = subStates;
 
         public void SetRider(UserModel u)
         {

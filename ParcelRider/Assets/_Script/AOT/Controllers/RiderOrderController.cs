@@ -16,22 +16,13 @@ namespace AOT.Controllers
         private List<(string description, bool resetOrder)> ExceptionOps { get; set; } =
             new List<(string description, bool resetOrder)>();
 
-        public void RiderApplication(Action<bool> callbackAction)
-        {
-            //Call(args => (bool)args[0], arg =>
-            //{
-            //    var success = arg;
-            //    callbackAction(success);
-            //    return;
-            //}, () =>
-            //{
-            //    // RiderApplication
-            //
-            //    //ApiPanel.RegisterRider();
-            //});
-        }
-
         private DeliveryOrder GetOrder(long orderId) => Models.AssignedOrders.GetCurrent();
+
+        public void Get_SubStates() => ApiPanel.Rider_GetSubStates(b =>
+        {
+            var subStates = b.Get<DoSubState[]>(0);
+            Models.SetSubStates(subStates);
+        }, msg => MessageWindow.Set("Error", "Error in updating data!"));
 
         public void PickItem(long orderId)
         {

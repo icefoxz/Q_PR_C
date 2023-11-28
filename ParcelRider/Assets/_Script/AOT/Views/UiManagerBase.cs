@@ -13,6 +13,7 @@ namespace AOT.Views
     }
     public abstract class UiManagerBase : MonoBehaviour, IUiManager
     {
+        private const string UiManagerName = "UiManager";
         [SerializeField] private GameObject _windows;
         [SerializeField] private Panel _panel;
         protected GameObject Windows => _windows;
@@ -23,9 +24,9 @@ namespace AOT.Views
         public void DisplayWindows(bool display) => _windows.SetActive(display);
 
         public void ShowPanel(bool transparent, bool displayLoadingImage = true) =>
-            _panel.Show(transparent, displayLoadingImage);
+            _panel.StartCall(UiManagerName, transparent, displayLoadingImage);
 
-        public void HidePanel() => _panel.Hide();
+        public void HidePanel() => _panel.EndCall(UiManagerName);
 
         public void PlayCoroutine(IEnumerator co, bool transparentPanel, Action callback)
         {

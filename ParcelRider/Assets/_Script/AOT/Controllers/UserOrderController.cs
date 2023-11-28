@@ -98,11 +98,8 @@ namespace AOT.Controllers
                     List_ActiveOrder_Set(list.ToArray());
                     return;
                 },
-                () =>
-                {
-                    ApiPanel.User_GetDeliveryOrders(50, pageIndex, pg => List_ActiveOrder_Set(pg.List),
-                        msg => MessageWindow.Set("Error", "Error in updating data!"));
-                });
+                () => ApiPanel.User_GetDeliveryOrders(50, pageIndex, pg => List_ActiveOrder_Set(pg.List),
+                    msg => MessageWindow.Set("Error", "Error in updating data!")));
         }
 
         public void Do_UpdateHistory(int pageIndex = 0)
@@ -151,6 +148,15 @@ namespace AOT.Controllers
                     callbackAction(success);
                 });
             });
+        }
+
+        public void Get_SubStates()
+        {
+            ApiPanel.User_GetSubStates(b =>
+            {
+                var subStates = b.Get<DoSubState[]>(0);
+                Models.SetSubStates(subStates);
+            }, msg => MessageWindow.Set("Error", "Error in updating data!"));
         }
 
         public void ViewOrder(long orderId)

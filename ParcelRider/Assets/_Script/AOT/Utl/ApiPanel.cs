@@ -1,4 +1,5 @@
 ﻿using System;
+using AOT.BaseUis;
 using AOT.Views;
 using OrderHelperLib;
 using OrderHelperLib.Dtos.DeliveryOrders;
@@ -14,7 +15,7 @@ namespace AOT.Utl
         protected static ApiCaller Caller { get; set; }
 
         [SerializeField] private Panel _panel;
-        protected static Panel Panel { get; set; }
+        private static Panel Panel { get; set; }
 
         private const string User_RegisterApi = "Anonymous_User_Register";
         private const string User_LoginApi = "Anonymous_Login_User";
@@ -22,6 +23,8 @@ namespace AOT.Utl
 
         private const string User_Get_Active = "User_Get_Active";
         private const string User_Get_Histories = "User_Get_Histories";
+        private const string User_Get_SubStates = "User_Get_SubStates";
+
         private const string User_Do_Cancel = "User_Do_Cancel";
         private const string User_Do_Create = "User_Do_Create";
 
@@ -31,7 +34,10 @@ namespace AOT.Utl
         private const string Rider_Do_Cancel = "Rider_Do_Cancel";
         private const string Rider_Get_Unassigned = "Rider_Get_Unassigned";
         private const string Rider_Get_Assigned = "Rider_Get_Assigned";
+        private const string Rider_Get_SubStates = "Rider_Get_SubStates";
+
         private const string Rider_Get_Histories = "Rider_Get_Histories";
+
         //test
         private const string TestApi = "User_TestApi";
         private const string User_CreateRiderApi = "User_CreateRider";
@@ -46,23 +52,24 @@ namespace AOT.Utl
 
         private static void Call<T>(string method, Action<T> callbackAction,
             Action<string> failedCallbackAction)
-            where T : class => Call(method, null, callbackAction,failedCallbackAction);
+            where T : class => Call(method, null, callbackAction, failedCallbackAction);
 
         private static void Call<T>(string method, object content, Action<T> callbackAction,
-            Action<string> failedCallbackAction) 
-            where T : class => Call(method, content, callbackAction,failedCallbackAction ,Array.Empty<(string, string)>());
+            Action<string> failedCallbackAction)
+            where T : class => Call(method, content, callbackAction, failedCallbackAction,
+            Array.Empty<(string, string)>());
 
         private static void Call<T>(string method, object content, Action<T> callbackAction,
             Action<string> failedCallbackAction, params (string, string)[] queryParams) where T : class
         {
-            Panel.Show(false, true);
+            Panel.StartCall(method, false, true);
             Caller.Call<T>(method: method, content: content, result =>
                 {
-                    Panel.Hide();
+                    Panel.EndCall(method);
                     callbackAction?.Invoke(result);
                 }, result =>
                 {
-                    Panel.Hide();
+                    Panel.EndCall(method);
                     failedCallbackAction?.Invoke(result);
                 }, isNeedAccessToken: true,
                 queryParams: queryParams);
@@ -73,38 +80,39 @@ namespace AOT.Utl
             params (string, string)[] queryParams)
             where T : class
         {
-            Panel.Show(false, true);
+            Panel.StartCall(method, false, true);
             Caller.Call<T>(method: method, content: content, result =>
                 {
-                    Panel.Hide();
+                    Panel.EndCall(method);
                     callbackAction?.Invoke(result);
                 },
                 result =>
                 {
-                    Panel.Hide();
+                    Panel.EndCall(method);
                     failedCallbackAction?.Invoke(result);
                 },
                 isNeedAccessToken: false, queryParams: queryParams);
         }
 
         private static void CallBag(string method, Action<DataBag> callbackAction,
-            Action<string> failedCallbackAction) => CallBag(method, string.Empty, callbackAction, failedCallbackAction);
+            Action<string> failedCallbackAction) =>
+            CallBag(method, DataBag.Serialize(), callbackAction, failedCallbackAction);
 
         private static void CallBag(string method, string databag, Action<DataBag> callbackAction,
             Action<string> failedCallbackAction) => CallBag(method, databag, callbackAction, failedCallbackAction,
             Array.Empty<(string, string)>());
 
         private static void CallBag(string method, string databag, Action<DataBag> callbackAction,
-            Action<string> failedCallbackAction, params (string, string)[] queryParams) 
+            Action<string> failedCallbackAction, params (string, string)[] queryParams)
         {
-            Panel.Show(false, true);
+            Panel.StartCall(method, false, true);
             Caller.CallBag(method: method, databag, result =>
                 {
-                    Panel.Hide();
+                    Panel.EndCall(method);
                     callbackAction?.Invoke(result);
-                }, (code,result) =>
+                }, (code, result) =>
                 {
-                    Panel.Hide();
+                    Panel.EndCall(method);
                     failedCallbackAction?.Invoke(result);
                 }, isNeedAccessToken: true,
                 queryParams: queryParams);
@@ -114,25 +122,26 @@ namespace AOT.Utl
             Action<DataBag> callbackAction, Action<string> failedCallbackAction,
             params (string, string)[] queryParams)
         {
-            Panel.Show(false, true);
+            Panel.StartCall(method, false, true);
             Caller.CallBag(method: method, databag, result =>
                 {
-                    Panel.Hide();
+                    Panel.EndCall(method);
                     callbackAction?.Invoke(result);
                 },
-                (code,result)=>
+                (code, result) =>
                 {
-                    Panel.Hide();
+                    Panel.EndCall(method);
                     failedCallbackAction?.Invoke(result);
                 },
                 isNeedAccessToken: false, queryParams: queryParams);
         }
 
         #endregion
+
         // Register
         public static void User_Register(User_RegDto registerModel, Action<Login_Result> callbackAction,
             Action<string> failedCallbackAction) =>
-            CallBagWithoutToken(User_RegisterApi, DataBag.SerializeWithName(nameof(User_RegDto),registerModel), bag =>
+            CallBagWithoutToken(User_RegisterApi, DataBag.SerializeWithName(nameof(User_RegDto), registerModel), bag =>
             {
                 var loginResult = bag.Get<Login_Result>(0);
                 Caller.RegAccessToken(loginResult.access_token);
@@ -140,7 +149,8 @@ namespace AOT.Utl
             }, failedCallbackAction);
 
         // Login
-        public static void User_Login(string username, string password, Action<Login_Result> successCallbackAction, Action<string> failedCallbackAction)
+        public static void User_Login(string username, string password, Action<Login_Result> successCallbackAction,
+            Action<string> failedCallbackAction)
         {
             var content = new User_LoginDto
             {
@@ -154,7 +164,9 @@ namespace AOT.Utl
                 successCallbackAction?.Invoke(obj);
             }, msg => failedCallbackAction?.Invoke(msg));
         }
-        public static void Rider_Login(string username, string password, Action<Login_Result> callbackAction, Action<string> failedCallbackAction)
+
+        public static void Rider_Login(string username, string password, Action<Login_Result> callbackAction,
+            Action<string> failedCallbackAction)
         {
             var content = new User_LoginDto
             {
@@ -203,7 +215,8 @@ namespace AOT.Utl
         //public static void AssignRider(DeliveryAssignmentDto assignmentDto,
         //    Action<(bool isSuccess, string arg)> callbackAction) => Call<string>(AssignRiderApi,
         //    assignmentDto, msg => callbackAction?.Invoke((true, msg)), msg => callbackAction?.Invoke((false, msg)));
-        public static void Rider_AssignRider(long orderId, Action<DeliverOrderModel> successAction, Action<string> failedAction)
+        public static void Rider_AssignRider(long orderId, Action<DeliverOrderModel> successAction,
+            Action<string> failedAction)
         {
             CallBag(Rider_Do_Assign, DataBag.Serialize(orderId),
                 bag => successAction?.Invoke(bag.Get<DeliverOrderModel>(0)), failedAction);
@@ -211,10 +224,7 @@ namespace AOT.Utl
 
         public static void RegisterRider(Action<bool> callbackAction)
         {
-            CallBag("User_CreateRider", bag =>
-            {
-                callbackAction?.Invoke(true);
-            }, arg => callbackAction?.Invoke(false));
+            CallBag("User_CreateRider", bag => { callbackAction?.Invoke(true); }, arg => callbackAction?.Invoke(false));
         }
 
         public static void User_GetDeliveryOrders(int pageSize, int pageIndex,
@@ -227,16 +237,18 @@ namespace AOT.Utl
             }, failedAction);
         }
 
-        public static void User_GetHistories(int pageSize, int pageIndex, Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
+        public static void User_GetHistories(int pageSize, int pageIndex,
+            Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
         {
-            CallBag(User_Get_Histories, DataBag.Serialize(pageSize,pageIndex), b =>
+            CallBag(User_Get_Histories, DataBag.Serialize(pageSize, pageIndex), b =>
             {
                 var orders = b.Get<PageList<DeliverOrderModel>>(0);
                 successAction?.Invoke(orders);
-            },failedAction);
+            }, failedAction);
         }
 
-        public static void Rider_GetAssigned(int limit,int page,Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
+        public static void Rider_GetAssigned(int limit, int page, Action<PageList<DeliverOrderModel>> successAction,
+            Action<string> failedAction)
         {
             CallBag(Rider_Get_Assigned, DataBag.Serialize(limit, page), bag =>
             {
@@ -245,7 +257,8 @@ namespace AOT.Utl
             }, failedAction);
         }
 
-        public static void Rider_GetUnassigned(int limit,int page,Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
+        public static void Rider_GetUnassigned(int limit, int page, Action<PageList<DeliverOrderModel>> successAction,
+            Action<string> failedAction)
         {
             CallBag(Rider_Get_Unassigned, DataBag.Serialize(limit, page), bag =>
             {
@@ -267,5 +280,11 @@ namespace AOT.Utl
             CallBag(User_Do_Cancel, DataBag.Serialize(orderId, subState),
                 b => callbackAction(true, b, null), m => callbackAction(false, null, m));
         }
+
+        public static void User_GetSubStates(Action<DataBag> successAction, Action<string> failedAction) =>
+            CallBag(User_Get_SubStates, successAction, failedAction);
+        
+        public static void Rider_GetSubStates(Action<DataBag> successAction, Action<string> failedAction) =>
+            CallBag(Rider_Get_SubStates, successAction, failedAction);
     }
 }

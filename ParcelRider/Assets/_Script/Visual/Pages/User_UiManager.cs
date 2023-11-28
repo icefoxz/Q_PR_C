@@ -1,7 +1,6 @@
 using System;
 using AOT.Controllers;
 using AOT.Core;
-using AOT.DataModel;
 using AOT.Views;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
@@ -171,6 +170,7 @@ namespace Visual.Pages
         }
         private void Login_Init()
         {
+            UserOrderController.Get_SubStates();
             UserOrderController.Do_UpdateAll();
             UserOrderController.Do_UpdateHistory();
             User_MainPage.Show();
