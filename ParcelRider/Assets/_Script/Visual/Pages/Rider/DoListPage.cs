@@ -7,12 +7,18 @@ using AOT.Core;
 using AOT.DataModel;
 using AOT.Extensions;
 using AOT.Views;
+using OrderHelperLib;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine.UI;
 
 namespace Visual.Pages.Rider
 {
     internal abstract class DoListPage : PageUiBase
     {
+        /// <summary>
+        /// Orders Event Name
+        /// </summary>
+        protected abstract string SubscribeDoUpdateEventName { get; }
         protected View_doList view_doList { get; }
         protected UserOrderController UserOrderController => App.GetController<UserOrderController>();
 
@@ -23,22 +29,11 @@ namespace Visual.Pages.Rider
             RegEvents();
         }
 
-        private void RegEvents()
-        {
-            App.MessagingManager.RegEvent(EventString.Orders_Assigned_Update, _ => UpdateOrderList());
-        }
+        private void RegEvents() => App.MessagingManager.RegEvent(SubscribeDoUpdateEventName, b => UpdateOrderList());
 
-        private void UpdateOrderList()
-        {
-            var orders = App.Models.AssignedOrders.Orders.Where(OrderListFilter).OrderByDescending(o => o.Id)
-                .ToArray();
-            OnOrderListUpdate(orders);
-            view_doList.Set(orders);
-        }
+        private void UpdateOrderList() => view_doList.Set(OnOrderListUpdate());
 
-        protected abstract void OnOrderListUpdate(DeliveryOrder[] deliveryOrders);
-
-        protected abstract bool OrderListFilter(DeliveryOrder order);
+        protected abstract DeliveryOrder[] OnOrderListUpdate();//交给子类实现
 
         protected override void OnUiShow() => UpdateOrderList();
     }

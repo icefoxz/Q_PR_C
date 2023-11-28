@@ -154,6 +154,17 @@ namespace AOT.Controllers
             });
         }
 
+        public void Do_GetUnassigned(int page = 1)
+        {
+            ApiPanel.Rider_GetUnassigned(20, page, pg =>
+            {
+                var orders = pg.List;
+                var pageIndex = pg.PageIndex;
+                var pageSize = pg.PageSize;
+                Models.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+            }, m => MessageWindow.Set("Error", m));
+        }
+
         public void Do_AssignRider(long orderId)
         {
             var order = GetOrder(orderId);

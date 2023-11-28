@@ -113,7 +113,7 @@ public class DoStateMap
 
     public static readonly DoSubState[] Delivering = new[]
     {
-        DoSubState.Instance(201, "Enroute to Destination", TransitionRoles.Rider, DeliveryOrderStatus.Created),
+        DoSubState.Instance(201, "Enroute to Destination", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
         DoSubState.Instance(202, "Scheduled Arrival", TransitionRoles.Rider, 201),
         DoSubState.Instance(203, "Awaiting Delivery", TransitionRoles.Rider, 202),
         DoSubState.Instance(204, "Consignment Transfer", TransitionRoles.Rider, 203),
@@ -126,8 +126,7 @@ public class DoStateMap
         DoSubState.Instance(303, "No Receiver Found", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
         DoSubState.Instance(304, "Calling Sender", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
         DoSubState.Instance(305, "Consignment Transfer", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(399, "Item Delivered", TransitionRoles.Rider, DeliveryOrderStatus.Delivering,
-            DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(399, "Item Delivered", TransitionRoles.Rider, DeliveryOrderStatus.Delivering, DeliveryOrderStatus.PostDelivery),
     };
     public static readonly DoSubState[] Cancel = new[]
     {

@@ -74,7 +74,7 @@ namespace Visual.Pages
                     ActivityPageSwitch(ActivityPages.OrderPage);
                 }, this);
             RiderJobListPage = new RiderJobListPage(_orderListPage, OrderCurrentSelected, this);
-            RiderLoginPage = new RiderLoginPage(_riderLoginPage, LoggedIn_InitHomePage, this);
+            RiderLoginPage = new RiderLoginPage(_riderLoginPage, onLoggedInAction: LoggedIn_InitHomePage, this);
             //OrderViewPage = new OrderViewPage(_orderViewPage, this);
             RiderOrderViewPage = new RiderOrderViewPage(_orderPage,
                 onExceptionAction: OrderException, this);
@@ -107,7 +107,8 @@ namespace Visual.Pages
 
         private void LoggedIn_InitHomePage()
         {
-            RiderOrderController.Do_UpdateAll();
+            RiderOrderController.Do_GetUnassigned();
+            //RiderOrderController.Do_GetAssignedOrders();
             RiderOrderController.Get_SubStates();
             ActivityPageSwitch(ActivityPages.HomePage);
         }

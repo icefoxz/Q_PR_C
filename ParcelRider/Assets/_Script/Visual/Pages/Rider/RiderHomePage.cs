@@ -3,7 +3,6 @@ using AOT.Core;
 using AOT.DataModel;
 using AOT.Views;
 using OrderHelperLib.Contracts;
-using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,13 +22,18 @@ namespace Visual.Pages.Rider
             btn_jobList.OnClickAdd(onJobListAction.Invoke);
         }
 
-        protected override void OnOrderListUpdate(DeliveryOrder[] deliveryOrders)
+        //protected override void OnOrderListUpdate(DeliveryOrder[] deliveryOrders)
+        //{
+        //    var hasJob = deliveryOrders.Length > 0;
+        //    obj_jobGuide.SetActive(!hasJob);
+        //    btn_jobList.gameObject.SetActive(!hasJob);
+        //}
+        //
+        //protected override bool OrderListFilter(DeliveryOrder o) => (o.State).IsOnProgressing() && o.Rider?.Id == App.Models.Rider?.Id;
+        protected override string SubscribeDoUpdateEventName => EventString.Orders_Assigned_Update;
+        protected override DeliveryOrder[] OnOrderListUpdate()
         {
-            var hasJob = deliveryOrders.Length > 0;
-            obj_jobGuide.SetActive(!hasJob);
-            btn_jobList.gameObject.SetActive(!hasJob);
+            return Array.Empty<DeliveryOrder>();
         }
-
-        protected override bool OrderListFilter(DeliveryOrder o) => (o.State).IsOnProgressing() && o.Rider?.Id == App.Models.Rider?.Id;
     }
 }
