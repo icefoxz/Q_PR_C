@@ -59,6 +59,7 @@ public class DoSubState
 
     public const int CreateStatus = 0;
     public const int AssignState = 100;
+    public const int SenderCancelState = -100;
 }
 
 /// <summary>
@@ -70,6 +71,8 @@ public class DoStateMap
     /// 作为数据库中Tag的Type
     /// </summary>
     public const string TagType = "DoSubState";
+
+
     // Created状态值只会是 0
     private static readonly DoSubState[] Created = new[]
     {
@@ -80,7 +83,9 @@ public class DoStateMap
         .Concat(Assigned)
         .Concat(Delivering)
         .Concat(PostDelivery)
-        .Concat(Exceptions);
+        .Concat(Exceptions)
+        .Concat(Cancel)
+        .Concat(Completed);
 
     public static readonly DoSubState[] Exceptions = new[]
     {
@@ -130,7 +135,7 @@ public class DoStateMap
     };
     public static readonly DoSubState[] Cancel = new[]
     {
-        DoSubState.Instance(-100, "Sender Cancellation",TransitionRoles.User, DeliveryOrderStatus.Created),
+        DoSubState.Instance(DoSubState.SenderCancelState, "Sender Cancellation",TransitionRoles.User, DeliveryOrderStatus.Created),
         DoSubState.Instance(-101, "Rider Cancellation", TransitionRoles.Rider, DeliveryOrderStatus.Created),
         DoSubState.Instance(-102, "Cancellation by Ordered", TransitionRoles.None, DeliveryOrderStatus.Created),
     };
@@ -143,8 +148,8 @@ public class DoStateMap
 
     public static bool IsAssignableSubState(TransitionRoles role,int fromId, int toId)
     {
-        var state = GetAllSubStates().FirstOrDefault(s => s.StateId == fromId);
-        return state != null && state.IsAllow(role, toId);
+        var state = GetAllSubStates().FirstOrDefault(s => s.StateId == toId);
+        return state != null && state.IsAllow(role, fromId);
     }
 
     public static DoSubState[] GetPossibleStates(TransitionRoles role,int stateId)

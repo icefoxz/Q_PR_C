@@ -6,7 +6,6 @@ using AOT.Core;
 using AOT.Extensions;
 using AOT.Views;
 using OrderHelperLib.Contracts;
-using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -54,7 +53,7 @@ namespace Visual.Pages.Rider
             btn_close = v.Get<Button>("btn_close");
             btn_close.OnClickAdd(() => Hide());
 
-            App.MessagingManager.RegEvent(EventString.Order_Assigned_Current_Update, _ => ShowCurrentOrder());
+            App.MessagingManager.RegEvent(EventString.Order_Current_Set, _ => ShowCurrentOrder());
         }
 
         private void Complete_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
@@ -72,7 +71,7 @@ namespace Visual.Pages.Rider
 
         public void ShowCurrentOrder()
         {
-            var order = App.Models.AssignedOrders.GetCurrent();
+            var order = App.Models.CurrentOrder;
             //throw new Exception("No order set to current!");
             if (order == null) return;
             OrderId = order.Id;

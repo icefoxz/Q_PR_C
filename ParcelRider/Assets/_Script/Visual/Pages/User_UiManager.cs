@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.Views;
@@ -55,7 +56,8 @@ namespace Visual.Pages
                 logoutAction: 
                 Logout_To_LoginPage);
             User_LoginPage = new User_LoginPage(v: _loginPage, onLoggedInAction: Login_Init, uiManager: this);
-            User_MainPage = new User_MainPage(v: _mainPage, uiManager: this);
+            User_MainPage =
+                new User_MainPage(v: _mainPage, id => UserOrderController.Do_SetCurrent(id), uiManager: this);
             PaymentPage = new PaymentPage(v: _paymentPage, uiManager: this);
 
             PackageConfirmWindow = new PackageConfirmWindow(v: _win_packageConfirm, uiManager: this);
@@ -64,16 +66,43 @@ namespace Visual.Pages
             MessageWindow = new MessageWindow(v: _win_message, uiManager: this);
             ImageWindow = new ImageWindow(v: _win_image, uiManager: this);
 
-            User_OrderViewPage = new User_OrderViewPage(v: _orderViewPage, uiManager: this);
+            User_OrderViewPage = new User_OrderViewPage(v: _orderViewPage, OnRequestCancel,
+                uiManager: this);
             User_NewPackagePage = new User_NewPackagePage(v: _newPackagePage, onSubmit: NewDo_Submit, uiManager: this);
             if (startUi) StartUi();
             Windows.SetActive(value: false);
         }
 
+        private void OnRequestCancel()
+        {
+            var order = App.Models.CurrentOrder;
+            if (order == null || order.State.IsClosed())
+            {
+                MessageWindow.Set(title: "Cancel Order", content: "Order is closed");
+                return;
+            }
+
+            ConfirmWindow.Set(() =>
+            {
+                UserOrderController.Do_RequestCancel(order.Id, success =>
+                {
+                    if (success) return;
+                    MessageWindow.Set(title: "Cancel Order", content: "Failed");
+                });
+            });
+        }
+
         private void StartUi()
         {
-            LoginController.CheckLoginStatus(onLoginAction: OnLoginAction);
+            StartCoroutine(InitCheckLogin());
+
+            IEnumerator InitCheckLogin()
+            {
+                yield return new WaitForSeconds(3);
+                LoginController.CheckLoginStatus(onLoginAction: OnLoginAction);
+            }
         }
+
 
         //当新的包裹提交
         private void NewDo_Submit()
@@ -130,10 +159,10 @@ namespace Visual.Pages
         private void Logout_To_LoginPage()
         {
             CloseAllPages();
-            User_LoginPage.Show();
+            UserOrderController.Logout();
         }
 
-        public void CloseAllPages()
+        private void CloseAllPages()
         {
             foreach (Transform page in OverlapPages) page.gameObject.SetActive(value: false);
         }
@@ -143,31 +172,6 @@ namespace Visual.Pages
             User_NewPackagePage.Set(kg: kg, length: length, width: width, height: height);
         }
 
-        public void ViewOrder(long orderId)
-        {
-            UserOrderController.ViewOrder(orderId);
-            var o = App.Models.AssignedOrders.GetCurrent();
-            var orderStatus = (DeliveryOrderStatus)o.Status;
-            User_OrderViewPage.DisplayCurrentOrder(onCancelRequestAction: orderStatus.IsClosed() ? null : OnCancelRequestAction(orderId));
-
-            Action OnCancelRequestAction(long i) =>
-                () =>
-                {
-                    ConfirmWindow.Set(title: "Cancel Order?", onConfirmAction: () =>
-                    {
-                        UserOrderController.Do_RequestCancel(orderId: i, callbackAction: success =>
-                        {
-                            if (success) return;
-                            MessageWindow.Set(title: "Order", content: "Failed to cancel order");
-                        });
-                    });
-                };
-        }
-        public void ViewHistory(long orderId)
-        {
-            UserOrderController.ViewHistory(orderId);
-            User_OrderViewPage.DisplayHistoryOrder();
-        }
         private void Login_Init()
         {
             UserOrderController.Get_SubStates();
@@ -190,6 +194,11 @@ namespace Visual.Pages
                 return;
             }
             User_LoginPage.Show();
+        }
+
+        public void ViewHistory(long orderId)
+        {
+            UserOrderController.Do_SetCurrent(orderId);
         }
     }
 }

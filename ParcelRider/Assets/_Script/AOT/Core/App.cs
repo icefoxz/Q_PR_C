@@ -7,6 +7,7 @@ using AOT.Model;
 using AOT.Test;
 using AOT.Utl;
 using AOT.Views;
+using OrderHelperLib;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using OrderHelperLib.Dtos.Riders;
@@ -174,5 +175,8 @@ namespace AOT.Core
             args ??= Array.Empty<object>();
             MessagingManager.SendParams(eventName, args);
         }
+
+        public static void RegEvent(string eventName, Action<DataBag> callbackAction) =>
+            MessagingManager.RegEvent(eventName, callbackAction);
     }
 }

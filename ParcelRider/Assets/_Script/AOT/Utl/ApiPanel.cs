@@ -247,20 +247,30 @@ namespace AOT.Utl
             }, failedAction);
         }
 
-        public static void Rider_GetAssigned(int limit, int page, Action<PageList<DeliverOrderModel>> successAction,
+        public static void Rider_GetAssigned(int limit, int pageIndex, Action<PageList<DeliverOrderModel>> successAction,
             Action<string> failedAction)
         {
-            CallBag(Rider_Get_Assigned, DataBag.Serialize(limit, page), bag =>
+            CallBag(Rider_Get_Assigned, DataBag.Serialize(limit, pageIndex), bag =>
             {
                 var orders = bag.Get<PageList<DeliverOrderModel>>(0);
                 successAction?.Invoke(orders);
             }, failedAction);
         }
 
-        public static void Rider_GetUnassigned(int limit, int page, Action<PageList<DeliverOrderModel>> successAction,
+        public static void Rider_GetUnassigned(int limit, int pageIndex, Action<PageList<DeliverOrderModel>> successAction,
             Action<string> failedAction)
         {
-            CallBag(Rider_Get_Unassigned, DataBag.Serialize(limit, page), bag =>
+            CallBag(Rider_Get_Unassigned, DataBag.Serialize(limit, pageIndex), bag =>
+            {
+                var orders = bag.Get<PageList<DeliverOrderModel>>(0);
+                successAction?.Invoke(orders);
+            }, failedAction);
+        }
+
+        public static void Rider_GetHistories(int limit, int pageIndex, Action<PageList<DeliverOrderModel>> successAction,
+            Action<string> failedAction)
+        {
+            CallBag(Rider_Get_Histories, DataBag.Serialize(limit, pageIndex), bag =>
             {
                 var orders = bag.Get<PageList<DeliverOrderModel>>(0);
                 successAction?.Invoke(orders);

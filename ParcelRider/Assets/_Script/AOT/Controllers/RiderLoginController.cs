@@ -32,5 +32,11 @@ namespace AOT.Controllers
                     callback?.Invoke((false, msg)));
             });
         }
+
+        public void Logout()
+        {
+            App.SendEvent(EventString.Rider_Logout);
+            App.Models.Reset();
+        }
     }
 }

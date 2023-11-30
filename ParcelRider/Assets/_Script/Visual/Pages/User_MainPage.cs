@@ -20,17 +20,19 @@ namespace Visual.Pages
         private View_packagePlayer view_packagePlayer { get; }
         private View_historySect view_historySect { get; }
         private UserOrderController UserOrderController => App.GetController<UserOrderController>();
-        private User_UiManager Mgr { get; }
-        public User_MainPage(IView v, User_UiManager uiManager) : base(v, uiManager)
+
+        private event Action<long> OrderSelectedAction;
+        public User_MainPage(IView v,Action<long> onOrderSelectedAction ,User_UiManager uiManager) : base(v, uiManager)
         {
-            Mgr = uiManager;
+            OrderSelectedAction = onOrderSelectedAction;
             OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
             view_packagePlayer = new View_packagePlayer(v.Get<View>("view_packagePlayer"),
                 uiManager, a => uiManager.NewPackage(a.point, a.kg, a.length, a.width, a.height));
-            view_historySect = new View_historySect(v.Get<View>("view_historySect"), ui => uiManager.ViewHistory(ui));
+            view_historySect = new View_historySect(v.Get<View>("view_historySect"), OrderSelectedAction);
             RegEvents();
             Hide();//listView代码会导致view active,所以这里要隐藏
         }
+
 
         private void RegEvents()
         {
@@ -47,7 +49,7 @@ namespace Visual.Pages
                 OrderListView.ClearList(ui => ui.Destroy());
                 foreach (var o in orders.Where(o => o.Status >= 0))
                 {
-                    var ui = OrderListView.Instance(v => new Prefab_Order(v, id => Mgr.ViewOrder(id)));
+                    var ui = OrderListView.Instance(v => new Prefab_Order(v, OrderSelectedAction));
                     ui.Set(o);
                 }
             }

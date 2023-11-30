@@ -16,13 +16,17 @@ namespace AOT.Controllers
         private List<(string description, bool resetOrder)> ExceptionOps { get; set; } =
             new List<(string description, bool resetOrder)>();
 
-        private DeliveryOrder GetOrder(long orderId) => Models.AssignedOrders.GetCurrent();
+        private DeliveryOrder GetOrder(long orderId) => Models.GetOrder(orderId);
 
-        public void Get_SubStates() => ApiPanel.Rider_GetSubStates(b =>
+        public void Get_SubStates()
         {
-            var subStates = b.Get<DoSubState[]>(0);
-            Models.SetSubStates(subStates);
-        }, msg => MessageWindow.Set("Error", "Error in updating data!"));
+            if (AppLaunch.TestMode) return;
+            ApiPanel.Rider_GetSubStates(b =>
+            {
+                var subStates = b.Get<DoSubState[]>(0);
+                Models.SetSubStates(subStates);
+            }, msg => MessageWindow.Set("Error", "Error in updating data!"));
+        }
 
         public void PickItem(long orderId)
         {
@@ -39,7 +43,7 @@ namespace AOT.Controllers
             {
                 ApiPanel.Rider_PickItem(oo, dto =>
                 {
-                    SetActiveCurrent(new DeliveryOrder(dto));
+                    Order_SetCurrent(new DeliveryOrder(dto));
                     Do_UpdateAll();
                 }, msg => MessageWindow.Set("order", msg));
             });
@@ -62,7 +66,7 @@ namespace AOT.Controllers
         {
             var o = GetOrder(oId);
             o.Status = status;
-            SetActiveCurrent(o);
+            Order_SetCurrent(o);
         }
 
         public void Complete(long orderId, Action callbackAction)
@@ -132,7 +136,8 @@ namespace AOT.Controllers
             callbackOptions(ExceptionOps.Select(e => e.description).ToArray());
         }
 
-        public void Do_UpdateAll(int page = 1)
+        [Obsolete]//不用UpdateAll了.
+        void Do_UpdateAll(int page = 1)
         {
             Call(args => args[0], arg =>
             {
@@ -154,14 +159,38 @@ namespace AOT.Controllers
             });
         }
 
-        public void Do_GetUnassigned(int page = 1)
+        public void Do_Get_Unassigned(int pageIndex = 0)
         {
-            ApiPanel.Rider_GetUnassigned(20, page, pg =>
+            if (AppLaunch.TestMode) return;
+            ApiPanel.Rider_GetUnassigned(20, pageIndex, pg =>
             {
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
                 var pageSize = pg.PageSize;
                 Models.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+            }, m => MessageWindow.Set("Error", m));
+        }
+        public void Do_Get_Assigned(int pageIndex = 0)
+        {
+            if (AppLaunch.TestMode) return;
+            ApiPanel.Rider_GetAssigned(20, pageIndex, pg =>
+            {
+                var orders = pg.List;
+                var pageIndex = pg.PageIndex;
+                var pageSize = pg.PageSize;
+                Models.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+            }, m => MessageWindow.Set("Error", m));
+        }
+
+        public void Do_GetHistories(int pageIndex = 0)
+        {
+            if (AppLaunch.TestMode) return;
+            ApiPanel.Rider_GetHistories(20, pageIndex, pg =>
+            {
+                var orders = pg.List;
+                var pageIndex = pg.PageIndex;
+                var pageSize = pg.PageSize;
+                Models.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
             }, m => MessageWindow.Set("Error", m));
         }
 
@@ -179,17 +208,25 @@ namespace AOT.Controllers
                 var id = orderId;
                 ApiPanel.Rider_AssignRider(id, dto =>
                 {
-                    var o = Models.AssignedOrders.GetCurrent();
+                    var o = Models.GetOrder(id);
                     o.Status = dto.Status;
                     Do_UpdateAll();
                 }, msg => MessageWindow.Set("Error", msg));
             });
         }
 
-        public void ViewOrder(long orderId)
+        public void Do_CurrentSet(long orderId)
         {
-            var o = Models.AssignedOrders.GetOrder(orderId);
-            SetActiveCurrent(o);
+            var o = Models.GetOrder(orderId);
+            Order_SetCurrent(o);
+        }
+
+        public void LoggedInTasks()
+        {
+            Do_Get_Unassigned();
+            Do_Get_Assigned();
+            Do_GetHistories();
+            Get_SubStates();
         }
     }
 }

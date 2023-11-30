@@ -1,11 +1,9 @@
 using System;
 using AOT.BaseUis;
 using AOT.Core;
-using AOT.DataModel;
 using AOT.Extensions;
 using AOT.Views;
 using OrderHelperLib.Contracts;
-using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine.UI;
 
 namespace Visual.Pages
@@ -26,7 +24,7 @@ namespace Visual.Pages
         private Element_contact element_contactFrom { get; }
         private View_packageInfo view_packageInfo { get; }
 
-        public User_OrderViewPage(IView v, UiManagerBase uiManager) : base(v, uiManager)
+        public User_OrderViewPage(IView v, Action onCancelRequestAction,UiManagerBase uiManager) : base(v, uiManager)
         {
             text_orderId = v.Get<Text>("text_orderId");
             btn_close = v.Get<Button>("btn_close");
@@ -46,28 +44,13 @@ namespace Visual.Pages
             view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
 
             btn_close.OnClickAdd(Hide);
-            App.MessagingManager.RegEvent(EventString.Order_Assigned_Current_Update, _ => UpdateOrder());
-            App.MessagingManager.RegEvent(EventString.Order_History_Current_Update, _=> UpdateHistory());
+            btn_cancel.OnClickAdd(onCancelRequestAction);
+            App.MessagingManager.RegEvent(EventString.Order_Current_Set, _ => UpdateOrder());
         }
 
-        public void DisplayCurrentOrder(Action onCancelRequestAction)
-        {
-            btn_cancel.gameObject.SetActive(onCancelRequestAction != null);
-            if (onCancelRequestAction == null)
-                btn_cancel.onClick.RemoveAllListeners();
-            else
-                btn_cancel.OnClickAdd(onCancelRequestAction);
-            UpdateOrder();
-            Show();
-        }
-        public void DisplayHistoryOrder()
-        {
-            UpdateHistory();
-            Show();
-        }
         private void UpdateOrder()
         {
-            var o = App.Models.AssignedOrders.GetCurrent();
+            var o = App.Models.CurrentOrder;
             if (o == null) return;
             text_orderId.text = o.Id.ToString();
             view_packageInfo.Set(o.PaymentInfo.Charge, o.DeliveryInfo.Distance, o.ItemInfo.Weight, o.ItemInfo.Size());
@@ -76,23 +59,11 @@ namespace Visual.Pages
             text_riderName.text = o.Rider?.Name;
             text_riderPhone.text = o.Rider?.Phone;
             SetState(o.State);
+            Show();
         }
-        private void UpdateHistory()
-        {
-            var h = App.Models.History.GetCurrent();
-            if (h == null) return;
-            text_orderId.text = h.Id.ToString();
-            view_packageInfo.Set(h.PaymentInfo.Charge, h.DeliveryInfo.Distance, h.ItemInfo.Weight, h.ItemInfo.Size());
-            element_contactTo.Set(h.ReceiverInfo.Name, h.ReceiverInfo.PhoneNumber, h.DeliveryInfo.EndLocation.Address);
-            element_contactFrom.Set(h.SenderInfo.User.Name, h.SenderInfo.User.Phone, h.DeliveryInfo.StartLocation.Address);
-            text_riderName.text = h.Rider?.Name;
-            text_riderPhone.text = h.Rider?.Phone;
-            SetState(h.State);
-        }
-
         private void SetState(DeliveryOrderStatus state)
         {
-            btn_cancel.gameObject.SetActive(state == DeliveryOrderStatus.Created);
+            btn_cancel.gameObject.SetActive(state.IsOnProgressing());
             elemnent_waitState.SetActive(state == DeliveryOrderStatus.Created);
             elemnent_DeliverState.SetActive(state == DeliveryOrderStatus.Assigned);
             elemnent_dropState.SetActive(state == DeliveryOrderStatus.Delivering);

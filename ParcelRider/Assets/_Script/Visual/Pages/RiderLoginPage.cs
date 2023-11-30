@@ -21,6 +21,7 @@ namespace Visual.Pages
                 var (username, password) = arg;
                 RiderLoginController.Rider_RequestLogin(username, password, OnLoginCallback);
             });
+            App.RegEvent(EventString.Rider_Logout, _ => Show());
         }
 
         //login

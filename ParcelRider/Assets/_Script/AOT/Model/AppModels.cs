@@ -1,6 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using AOT.Core;
+using AOT.DataModel;
 using OrderHelperLib.Contracts;
+using OrderHelperLib.Dtos.DeliveryOrders;
 using OrderHelperLib.Dtos.Users;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -18,6 +23,17 @@ namespace AOT.Model
         public DoDataModel AssignedOrders { get; private set; } = new ActiveDoModel();
         public DoDataModel UnassignedOrders { get; private set; } = new UnassignedDoModel();
         public DoDataModel History { get; private set; } = new HistoryDoModel();
+
+        public DeliveryOrder? CurrentOrder { get; private set; }
+        public IEnumerable<DeliveryOrder> AllOrders => AssignedOrders.Orders.Concat(UnassignedOrders.Orders).Concat(History.Orders);
+        public DeliveryOrder? GetOrder(long orderId) => AllOrders.FirstOrDefault(o => o.Id == orderId);
+
+        public void SetCurrentOrder(long orderId)=> SetCurrentOrder(GetOrder(orderId));
+        public void SetCurrentOrder(DeliveryOrder order)
+        {
+            CurrentOrder = order;
+            App.SendEvent(EventString.Order_Current_Set);
+        }
 
         public void SetSubStates(DoSubState[] subStates) => SubStates = subStates;
 
@@ -52,5 +68,14 @@ namespace AOT.Model
             }
         }
 
+        public void Reset()
+        {
+            SubStates = Array.Empty<DoSubState>();
+            User = null;
+            Rider = null;
+            AssignedOrders.Reset();
+            UnassignedOrders.Reset();
+            History.Reset();
+        }
     }
 }

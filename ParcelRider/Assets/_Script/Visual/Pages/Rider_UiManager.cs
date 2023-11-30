@@ -49,6 +49,7 @@ namespace Visual.Pages
         private OrderExceptionPage OrderExceptionPage { get; set; }
 
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
+        private RiderLoginController RiderLoginController => App.GetController<RiderLoginController>();
 
         public override void Init(bool startUi)
         {
@@ -57,7 +58,7 @@ namespace Visual.Pages
             ImageWindow = new ImageWindow(_win_image, this);
             AccountWindow = new RiderAccountWindow(_win_account, this);
 
-            AccountSect = new View_AccountSect(_accountSect, ShowAccountWindow, Logout);
+            AccountSect = new View_AccountSect(_accountSect, SetProfile, RiderLoginController.Logout);
             View_pageButtons = new View_pageButtons(v: _pageButtons,
                 onJobsPageAction: () => ActivityPageSwitch(ActivityPages.ListPage),
                 onHomePageAction: () => ActivityPageSwitch(ActivityPages.HomePage),
@@ -82,12 +83,7 @@ namespace Visual.Pages
             if(startUi) RiderLoginPage.Show();
         }
 
-        // Display OrderViewPage
-        private void OrderCurrentSelected(long orderId)
-        {
-            RiderOrderController.ViewOrder(orderId);
-            RiderOrderViewPage.ShowCurrentOrder();
-        }
+        private void OrderCurrentSelected(long orderId) => RiderOrderController.Do_CurrentSet(orderId);
 
         // bottom page buttons
         private void ActivityPageSwitch(ActivityPages page)
@@ -107,14 +103,11 @@ namespace Visual.Pages
 
         private void LoggedIn_InitHomePage()
         {
-            RiderOrderController.Do_GetUnassigned();
-            //RiderOrderController.Do_GetAssignedOrders();
-            RiderOrderController.Get_SubStates();
+            RiderOrderController.LoggedInTasks();
             ActivityPageSwitch(ActivityPages.HomePage);
         }
 
-        private void ShowAccountWindow() => AccountWindow.Show();
-        private void Logout()=> RiderLoginPage.Show();
+        private void SetProfile() => AccountWindow.Show();
 
         //OrderViewPage -> OrderExceptionPage
         private void OrderException(long orderId) => RiderOrderController.OrderException(orderId, options => OrderExceptionPage.SetOptions(orderId, options));

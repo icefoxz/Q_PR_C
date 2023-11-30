@@ -26,7 +26,7 @@ public class TestApiContainer : MonoBehaviour
 
     private IEnumerator InitCo()
     {
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(1);
         RegLoginService();
         RegOrderService();
         RegRiderLoginService();
@@ -138,11 +138,11 @@ public class TestApiContainer : MonoBehaviour
 
             return new object[] {isSuccess, status, ordId };
         }, riderOrderService);
-        RegTester(nameof(riderOrderService.Do_UpdateAll), _ =>
-        {
-            var message = ActiveOrderSo.GetActiveOrderList();
-            return new object[] { message };
-        }, riderOrderService);
+        //RegTester(nameof(riderOrderService.Do_UpdateAll), _ =>
+        //{
+        //    var message = ActiveOrderSo.GetActiveOrderList();
+        //    return new object[] { message };
+        //}, riderOrderService);
         RegTester(nameof(riderOrderService.Do_AssignRider), args=>
         {
             var order = (DeliverOrderModel)args[0];

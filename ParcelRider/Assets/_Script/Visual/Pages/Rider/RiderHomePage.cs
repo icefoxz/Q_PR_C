@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Linq;
 using AOT.Core;
 using AOT.DataModel;
 using AOT.Views;
-using OrderHelperLib.Contracts;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,10 +30,7 @@ namespace Visual.Pages.Rider
         //}
         //
         //protected override bool OrderListFilter(DeliveryOrder o) => (o.State).IsOnProgressing() && o.Rider?.Id == App.Models.Rider?.Id;
-        protected override string SubscribeDoUpdateEventName => EventString.Orders_Assigned_Update;
-        protected override DeliveryOrder[] OnOrderListUpdate()
-        {
-            return Array.Empty<DeliveryOrder>();
-        }
+        protected override string SubscribeDoUpdateEventName => EventString.Orders_Unassigned_Update;
+        protected override DeliveryOrder[] OnOrderListUpdate() => App.Models.UnassignedOrders.Orders.ToArray();
     }
 }

@@ -30,6 +30,7 @@ namespace Visual.Pages
                 onGoogleAction: () => LoginController.RequestGoogle(OnLoginCallback),
                 onFacebookAction: () => LoginController.RequestFacebook(OnLoginCallback),
                 onRegAction: () => view_regSect.Show());
+            App.RegEvent(EventString.User_Logout, _ => Show());
         }
 
         //register
