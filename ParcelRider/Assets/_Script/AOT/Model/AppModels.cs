@@ -25,11 +25,14 @@ namespace AOT.Model
         public DoDataModel History { get; private set; } = new HistoryDoModel();
 
         public DeliveryOrder? CurrentOrder { get; private set; }
+        public DoSubState[] CurrentStateOptions { get; private set; } = Array.Empty<DoSubState>();
+
         public IEnumerable<DeliveryOrder> AllOrders => AssignedOrders.Orders.Concat(UnassignedOrders.Orders).Concat(History.Orders);
         public DeliveryOrder? GetOrder(long orderId) => AllOrders.FirstOrDefault(o => o.Id == orderId);
 
         public void SetCurrentOrder(long orderId)=> SetCurrentOrder(GetOrder(orderId));
-        public void SetCurrentOrder(DeliveryOrder order)
+
+        private void SetCurrentOrder(DeliveryOrder order)
         {
             CurrentOrder = order;
             App.SendEvent(EventString.Order_Current_Set);
@@ -76,6 +79,27 @@ namespace AOT.Model
             AssignedOrders.Reset();
             UnassignedOrders.Reset();
             History.Reset();
+        }
+
+        public void SetStateOptions(DoSubState[] subStates)
+        {
+            CurrentStateOptions = subStates;
+            App.SendEvent(EventString.Order_Current_OptionsUpdate);
+        }
+
+        /// <summary>
+        /// 自动更新当前的order并自动插入到相应的list
+        /// </summary>
+        /// <param name="order"></param>
+        public void Resolve_Order(DeliveryOrder order)
+        {
+            var status = (DeliveryOrderStatus)order.Status;
+            AssignedOrders.RemoveOrder(order.Id);
+            UnassignedOrders.RemoveOrder(order.Id);
+            History.RemoveOrder(order.Id);
+            if (status.IsClosed()) History.AddOrder(order);
+            else if (status.IsAssigned()) AssignedOrders.AddOrder(order);
+            else UnassignedOrders.AddOrder(order);
         }
     }
 }

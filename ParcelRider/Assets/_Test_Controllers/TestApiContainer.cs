@@ -119,25 +119,25 @@ public class TestApiContainer : MonoBehaviour
     private void RegRiderOrderService()
     {
         var riderOrderService = App.GetController<RiderOrderController>();
-        RegTester(nameof(riderOrderService.PickItem), args=>
-        {
-            var orderId = (long)args[0];
-            var (isSuccess, status, ordId) = ActiveOrderSo.ItemPicked(orderId);
-            return new object[] { isSuccess, status, ordId };
-        },riderOrderService);
-        RegTester(nameof(riderOrderService.ItemCollection), args =>
-        {
-            var orderId = (long)args[0];
-            var (isSuccess, status, oId) = ActiveOrderSo.ItemCollected(orderId);
-            return new object[] { isSuccess, status, oId };
-        }, riderOrderService);
-        RegTester(nameof(riderOrderService.Complete), args =>
-        {
-            var orderId = (long)args[0];
-            var (isSuccess, status, ordId) = ActiveOrderSo.DeliveryComplete(orderId);
-
-            return new object[] {isSuccess, status, ordId };
-        }, riderOrderService);
+        //RegTester(nameof(riderOrderService.PickItem), args=>
+        //{
+        //    var orderId = (long)args[0];
+        //    var (isSuccess, status, ordId) = ActiveOrderSo.ItemPicked(orderId);
+        //    return new object[] { isSuccess, status, ordId };
+        //},riderOrderService);
+        //RegTester(nameof(riderOrderService.ItemCollection), args =>
+        //{
+        //    var orderId = (long)args[0];
+        //    var (isSuccess, status, oId) = ActiveOrderSo.ItemCollected(orderId);
+        //    return new object[] { isSuccess, status, oId };
+        //}, riderOrderService);
+        //RegTester(nameof(riderOrderService.Complete), args =>
+        //{
+        //    var orderId = (long)args[0];
+        //    var (isSuccess, status, ordId) = ActiveOrderSo.DeliveryComplete(orderId);
+        //
+        //    return new object[] {isSuccess, status, ordId };
+        //}, riderOrderService);
         //RegTester(nameof(riderOrderService.Do_UpdateAll), _ =>
         //{
         //    var message = ActiveOrderSo.GetActiveOrderList();

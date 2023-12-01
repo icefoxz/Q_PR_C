@@ -18,14 +18,12 @@ namespace AOT.Controllers
     {
         public const float KgToPounds = 2.2046226218f;
         public const float MeterToFeet = 3.280839895f;
-        protected AppModels Models => App.Models;
+        protected AppModels AppModel => App.Models;
 
         public void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders) =>
-            Models.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
+            AppModel.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
         public void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders) =>
-            Models.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
-        public void List_Remove(DeliveryOrder order) => Models.AssignedOrders.RemoveOrder(order.Id);
-        protected void Order_SetCurrent(DeliveryOrder order) => Models.SetCurrentOrder(order);
+            AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
     }
 
     public class UserOrderController : OrderControllerBase
@@ -42,7 +40,7 @@ namespace AOT.Controllers
                         var dOrder = bag.Get<DeliveryOrder>(0);
                         var model = new DeliveryOrder(dOrder);
                         AddToActiveList(model);
-                        Order_SetCurrent(model);
+                        Order_SetCurrent(model.Id);
                         //Do_UpdateAll();
                         message = string.Empty;
                     }
@@ -55,7 +53,7 @@ namespace AOT.Controllers
                     {
                         var m = new DeliveryOrder(doModel);
                         AddToActiveList(m);
-                        Order_SetCurrent(m);
+                        Order_SetCurrent(m.Id);
                         callbackAction?.Invoke(true, string.Empty);
                     }, msg =>
                     {
@@ -65,11 +63,13 @@ namespace AOT.Controllers
 
             void AddToActiveList(DeliveryOrder model)
             {
-                var list = Models.AssignedOrders.Orders.ToList();
+                var list = AppModel.AssignedOrders.Orders.ToList();
                 list.Add(model);
                 List_ActiveOrder_Set(list.ToArray());
             }
         }
+
+        private void Order_SetCurrent(long orderId) => AppModel.SetCurrentOrder(orderId);
 
         public void Do_Payment(PaymentMethods payment, Action<bool, string> callbackAction)
         {
@@ -123,9 +123,9 @@ namespace AOT.Controllers
                 var (success, status, ordId) = arg;
                 if (success)
                 {
-                    var o = Models.AssignedOrders.GetOrder(ordId);
+                    var o = AppModel.AssignedOrders.GetOrder(ordId);
                     o.Status = ((int)status);
-                    Order_SetCurrent(o);
+                    Order_SetCurrent(o.Id);
                     var h = App.Models.History.Orders.ToList();
                     var a = App.Models.AssignedOrders.Orders.ToList();
                     h.Add(o);
@@ -135,7 +135,7 @@ namespace AOT.Controllers
                 callbackAction(success);
             }, () =>
             {
-                var o = Models.AssignedOrders.GetOrder(orderId);
+                var o = AppModel.AssignedOrders.GetOrder(orderId);
                 ApiPanel.CancelDeliveryOrder(orderId, o.SubState ,(success, bag, message) =>
                 {
                     if (success)
@@ -144,8 +144,7 @@ namespace AOT.Controllers
                         var historyPl = bag.Get<PageList<DeliverOrderModel>>(1);
                         List_ActiveOrder_Set(orderPl.List);
                         List_HistoryOrderSet(historyPl.List);
-                        var o = Models.AssignedOrders.GetOrder(orderId);
-                        Order_SetCurrent(o);
+                        Order_SetCurrent(orderId);
                     }
                     callbackAction(success);
                 });
@@ -158,13 +157,13 @@ namespace AOT.Controllers
             ApiPanel.User_GetSubStates(b =>
             {
                 var subStates = b.Get<DoSubState[]>(0);
-                Models.SetSubStates(subStates);
+                AppModel.SetSubStates(subStates);
             }, msg => MessageWindow.Set("Error", "Error in updating data!"));
         }
 
         public void Logout()
         {
-            Models.Reset();
+            AppModel.Reset();
             App.SendEvent(EventString.User_Logout);
         }
 

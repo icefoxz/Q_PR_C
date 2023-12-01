@@ -29,8 +29,7 @@ namespace Visual.Pages.Rider
         private PictureController PictureController => App.GetController<PictureController>();
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public RiderOrderViewPage(IView v, Action<long> onExceptionAction,
-            Rider_UiManager uiManager) : base(v, uiManager)
+        public RiderOrderViewPage(IView v, Rider_UiManager uiManager) : base(v, uiManager)
         {
             text_orderId = v.Get<Text>("text_orderId");
             text_riderName = v.Get<Text>("text_riderName");
@@ -43,23 +42,14 @@ namespace Visual.Pages.Rider
                 onCameraAction: () => PictureController.OpenCamera(OnPictureTaken));
             element_contactTo = new Element_contact(v.Get<View>("element_contactTo"));
             element_contactFrom = new Element_contact(v.Get<View>("element_contactFrom"));
-            view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions")
-                , () => TakeOrder_ApiReq(OrderId)
-                , () => PickItem_ApiReq(OrderId)
-                , () => Collection_ApiReq(OrderId)
-                , () => Complete_ApiReq(OrderId));
+            view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions"), RiderOrderController.Do_State_Update);
             btn_exception = v.Get<Button>("btn_exception");
-            btn_exception.OnClickAdd(() => onExceptionAction(OrderId));
+            btn_exception.OnClickAdd(() => RiderOrderController.PossibleState_Update(OrderId));
             btn_close = v.Get<Button>("btn_close");
-            btn_close.OnClickAdd(() => Hide());
+            btn_close.OnClickAdd(Hide);
 
             App.MessagingManager.RegEvent(EventString.Order_Current_Set, _ => ShowCurrentOrder());
         }
-
-        private void Complete_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.Complete(orderId, ShowCurrentOrder), "Complete?");
-        private void Collection_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.ItemCollection(orderId), "Collection?");
-        private void PickItem_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.PickItem(orderId), "Pick Item?");
-        private void TakeOrder_ApiReq(long orderId) => ConfirmWindow.Set(() => RiderOrderController.Do_AssignRider(orderId), "Take Order?");
 
         private void OnPictureTaken(Texture2D texture)
         {
@@ -69,7 +59,7 @@ namespace Visual.Pages.Rider
         private void UpdateImages() => ViewImages.Set(images.ToArray());
         private void ImageSelected_PromptImageWindow(int index) => ImageWindow.Set(images[index]);
 
-        public void ShowCurrentOrder()
+        private void ShowCurrentOrder()
         {
             var order = App.Models.CurrentOrder;
             //throw new Exception("No order set to current!");
@@ -151,19 +141,16 @@ namespace Visual.Pages.Rider
             private Button btn_complete { get; }
 
             public View_riderOptions(IView v,
-                Action onTakeOrderAction,
-                Action onPickItemAction,
-                Action onCollectionAction,
-                Action onCompleteAction, bool display = true) : base(v, display)
+                Action<int> onStateSelected, bool display = true) : base(v, display)
             {
                 btn_takeOrder = v.Get<Button>("btn_takeOrder");
                 btn_pickItem = v.Get<Button>("btn_pickItem");
                 btn_collection = v.Get<Button>("btn_collection");
                 btn_complete = v.Get<Button>("btn_complete");
-                btn_takeOrder.OnClickAdd(onTakeOrderAction);
-                btn_pickItem.OnClickAdd(onPickItemAction);
-                btn_collection.OnClickAdd(onCollectionAction);
-                btn_complete.OnClickAdd(onCompleteAction);
+                btn_takeOrder.OnClickAdd(() => onStateSelected(100));
+                btn_pickItem.OnClickAdd(() => onStateSelected(200));
+                btn_collection.OnClickAdd(() => onStateSelected(300));
+                btn_complete.OnClickAdd(() => onStateSelected(-2));
             }
 
             public void SetState(DeliveryOrderStatus state)

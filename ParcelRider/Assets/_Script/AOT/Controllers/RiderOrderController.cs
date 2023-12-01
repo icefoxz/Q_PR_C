@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using AOT.Core;
 using AOT.DataModel;
 using AOT.Utl;
@@ -8,15 +9,19 @@ using AOT.Views;
 using OrderHelperLib;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
+using UnityEngine;
 
 namespace AOT.Controllers
 {
     public class RiderOrderController : OrderControllerBase
     {
-        private List<(string description, bool resetOrder)> ExceptionOps { get; set; } =
-            new List<(string description, bool resetOrder)>();
-
-        private DeliveryOrder GetOrder(long orderId) => Models.GetOrder(orderId);
+        private DeliveryOrder GetOrder(long orderId) => AppModel.GetOrder(orderId);
+        private bool IsTestMode([CallerMemberName]string methodName = null)
+        {
+            if (!AppLaunch.TestMode) return false;
+            Debug.LogWarning($"记得写[{methodName}]的So");
+            return true;
+        }
 
         public void Get_SubStates()
         {
@@ -24,140 +29,34 @@ namespace AOT.Controllers
             ApiPanel.Rider_GetSubStates(b =>
             {
                 var subStates = b.Get<DoSubState[]>(0);
-                Models.SetSubStates(subStates);
+                AppModel.SetSubStates(subStates);
             }, msg => MessageWindow.Set("Error", "Error in updating data!"));
         }
 
-        public void PickItem(long orderId)
+        public void Do_State_Update(int stateId)
         {
-            var oo = GetOrder(orderId);
-            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (long)args[2]), arg =>
+            if (IsTestMode()) return;
+            var o = AppModel.CurrentOrder;
+            ApiPanel.Rider_UpdateState(o.Id, stateId, b =>
             {
-                var (success, status, oId) = arg;
-                if (success)
-                {
-                    UpdateOrder(status, oId);
-                }
-                return;
-            }, () =>
-            {
-                ApiPanel.Rider_PickItem(oo, dto =>
-                {
-                    Order_SetCurrent(new DeliveryOrder(dto));
-                    Do_UpdateAll();
-                }, msg => MessageWindow.Set("order", msg));
-            });
+                var dto = b.Get<DeliverOrderModel>(0);
+                var order = new DeliveryOrder(dto);
+                Resolve_OrderCollections(order);
+                Do_Current_Set(order.Id);
+            }, msg => MessageWindow.Set("Error", msg));
         }
 
-        public void ItemCollection(long orderId)
-        {
-            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (long)args[2]), arg =>
-            {
-                var (success, status, oId) = arg;
-                UpdateOrder(status, oId);
-                return;
-            }, () =>
-            {
+        public void Do_Current_Set(long orderId) => AppModel.SetCurrentOrder(orderId);
 
-            });
-        }
-
-        private void UpdateOrder(int status, long oId)
-        {
-            var o = GetOrder(oId);
-            o.Status = status;
-            Order_SetCurrent(o);
-        }
-
-        public void Complete(long orderId, Action callbackAction)
-        {
-            // Complete
-            Call(new object[] { orderId }, args => ((bool)args[0], (int)args[1], (long)args[2]), arg =>
-            {
-                var (success, status, ordId) = arg;
-                UpdateOrder(status, ordId);
-                callbackAction?.Invoke();
-            }, () =>
-            {
-
-            });
-        }
-
-        public void SetException(long orderId, int optionIndex)
+        public void PossibleState_Update(long orderId)
         {
             var o = GetOrder(orderId);
-            o.Status = (int)(ExceptionOps[optionIndex].resetOrder
-                ? DeliveryOrderStatus.Created
-                : DeliveryOrderStatus.Exception);
-            Do_UpdateAll();
+            var subStates = DoStateMap.GetPossibleStates(TransitionRoles.Rider, o.SubState);
+            AppModel.SetStateOptions(subStates);
         }
 
-        public void OrderException(long orderId, Action<string[]> callbackOptions)
-        {
-            var o = GetOrder(orderId);
-            var status = (DeliveryOrderStatus)o.Status;
-            ExceptionOps.Clear();
-            switch (status)
-            {
-                case DeliveryOrderStatus.Created:
-                    ExceptionOps.AddRange(new[]
-                    {
-                        ("Package info does not match", false),
-                        ("Package condition problem", false),
-                        ("Address problem", false),
-                        ("Customer cancel", true),
-                        ("Rider cancel", true),
-                    });
-                    break;
-                case DeliveryOrderStatus.Assigned:
-                    ExceptionOps.AddRange(new[]
-                    {
-                        ("Package exception", false),
-                        ("Delivery exception", false),
-                        ("Customer cancel", false),
-                    });
-                    break;
-                case DeliveryOrderStatus.Delivering:
-                    ExceptionOps.AddRange(new[]
-                    {
-                        ("Package exception", false),
-                        ("Delivery exception", false),
-                        ("Collector not found", false),
-                    });
-                    break;
-                case DeliveryOrderStatus.Exception:
-                case DeliveryOrderStatus.Canceled:
-                case DeliveryOrderStatus.Completed:
-                case DeliveryOrderStatus.Closed:
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            callbackOptions(ExceptionOps.Select(e => e.description).ToArray());
-        }
-
-        [Obsolete]//不用UpdateAll了.
-        void Do_UpdateAll(int page = 1)
-        {
-            Call(args => args[0], arg =>
-            {
-                var message = arg;
-                var bag = DataBag.Deserialize(message);
-                var list = bag.Get<List<DeliverOrderModel>>(0);
-                var toList = new List<DeliveryOrder>();
-                List_ActiveOrder_Set(list);
-                return;
-            }, () =>
-            {
-                //ApiPanel.Rider_GetDeliveryOrders(50, page, pg =>
-                //{
-                //    Models.ActiveOrders.SetOrders(pg.List.Select(o => new DeliveryOrder(o)).ToList());
-                //}, msg =>
-                //{
-                //    MessageWindow.Set("Error", msg);
-                //}));
-            });
-        }
+        //处理单个order的update, 并且更新到相应的列表中
+        private void Resolve_OrderCollections(DeliveryOrder order)=> AppModel.Resolve_Order(order);
 
         public void Do_Get_Unassigned(int pageIndex = 0)
         {
@@ -167,7 +66,7 @@ namespace AOT.Controllers
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
                 var pageSize = pg.PageSize;
-                Models.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+                AppModel.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
             }, m => MessageWindow.Set("Error", m));
         }
         public void Do_Get_Assigned(int pageIndex = 0)
@@ -178,11 +77,10 @@ namespace AOT.Controllers
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
                 var pageSize = pg.PageSize;
-                Models.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+                AppModel.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
             }, m => MessageWindow.Set("Error", m));
         }
-
-        public void Do_GetHistories(int pageIndex = 0)
+        public void Do_Get_History(int pageIndex = 0)
         {
             if (AppLaunch.TestMode) return;
             ApiPanel.Rider_GetHistories(20, pageIndex, pg =>
@@ -190,7 +88,7 @@ namespace AOT.Controllers
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
                 var pageSize = pg.PageSize;
-                Models.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+                AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
             }, m => MessageWindow.Set("Error", m));
         }
 
@@ -200,32 +98,27 @@ namespace AOT.Controllers
             Call(new object[] { order },args => ((bool)args[0], (int)args[1], (long)args[2]), arg =>
             {
                 var (success, status, oId) = arg;
-                UpdateOrder(status, oId);
-                Do_UpdateAll();
+                if (!success) return;
+                order.Status = status;
+                Do_Current_Set(oId);
                 return;
             }, () =>
             {
                 var id = orderId;
                 ApiPanel.Rider_AssignRider(id, dto =>
                 {
-                    var o = Models.GetOrder(id);
-                    o.Status = dto.Status;
-                    Do_UpdateAll();
+                    var o = new DeliveryOrder(dto);
+                    Resolve_OrderCollections(o);
+                    Do_Current_Set(o.Id);
                 }, msg => MessageWindow.Set("Error", msg));
             });
-        }
-
-        public void Do_CurrentSet(long orderId)
-        {
-            var o = Models.GetOrder(orderId);
-            Order_SetCurrent(o);
         }
 
         public void LoggedInTasks()
         {
             Do_Get_Unassigned();
             Do_Get_Assigned();
-            Do_GetHistories();
+            Do_Get_History();
             Get_SubStates();
         }
     }

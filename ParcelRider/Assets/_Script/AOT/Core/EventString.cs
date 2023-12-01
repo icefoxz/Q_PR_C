@@ -10,9 +10,11 @@
         public const string User_Logout = "User_Logout";
         
         public const string Order_Current_Set = "Order_Current_Update";
+        public const string Order_Current_OptionsUpdate = "Order_Current_OptionsUpdate";
 
         public const string Orders_Assigned_Update = "Orders_Assigned_Update"; // order 列表更新
         public const string Orders_History_Update = "Orders_History_Update";
         public const string Orders_Unassigned_Update = "Orders_Unassigned_Update";
+        public const string Rider_Do_StateUpdate = "Rider_Do_StateUpdate";
     }
 }

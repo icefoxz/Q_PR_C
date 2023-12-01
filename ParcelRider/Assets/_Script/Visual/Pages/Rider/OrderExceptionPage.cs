@@ -4,6 +4,7 @@ using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.Views;
+using OrderHelperLib;
 using UnityEngine.UI;
 
 namespace Visual.Pages.Rider
@@ -20,28 +21,29 @@ namespace Visual.Pages.Rider
             btn_close = v.Get<Button>("btn_close");
             btn_close.OnClickAdd(Hide);
             OptionListView = new ListViewUi<Prefab_option>(v, "prefab_option", "scroll_options", true, false);
+            App.RegEvent(EventString.Order_Current_OptionsUpdate, OptionsUpdate);
         }
 
-        public void SetOptions(long orderId, IList<string> options)
+        private void OptionsUpdate(DataBag b)
         {
+            var options = App.Models.CurrentStateOptions;
             OptionListView.ClearList(ui => ui.Destroy());
-            for (var i = 0; i < options.Count; i++)
+            for (var i = 0; i < options.Length; i++)
             {
-                var description = options[i];
+                var op = options[i];
                 var index = i;
                 var prefab = OptionListView.Instance(v => new Prefab_option(v, onCLickAction: () =>
                 {
                     ConfirmWindow.Set(() =>
                     {
-                        ExceptionOptionSelected(orderId, index);
+                        RiderOrderController.Do_State_Update(op.StateId);
                         Hide();
-                    }, $"{description}?");
+                    }, $"{op}?");
                 }));
-                prefab.Set(description);
+                prefab.Set(op.StateName);
             }
             Show();
         }
-        private void ExceptionOptionSelected(long orderId, int optionIndex) => RiderOrderController.SetException(orderId, optionIndex);
 
         private class Prefab_option : UiBase
         {

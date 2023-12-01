@@ -77,13 +77,12 @@ namespace Visual.Pages
             RiderJobListPage = new RiderJobListPage(_orderListPage, OrderCurrentSelected, this);
             RiderLoginPage = new RiderLoginPage(_riderLoginPage, onLoggedInAction: LoggedIn_InitHomePage, this);
             //OrderViewPage = new OrderViewPage(_orderViewPage, this);
-            RiderOrderViewPage = new RiderOrderViewPage(_orderPage,
-                onExceptionAction: OrderException, this);
+            RiderOrderViewPage = new RiderOrderViewPage(_orderPage, this);
             OrderExceptionPage = new OrderExceptionPage(_orderExceptionPage, this);
             if(startUi) RiderLoginPage.Show();
         }
 
-        private void OrderCurrentSelected(long orderId) => RiderOrderController.Do_CurrentSet(orderId);
+        private void OrderCurrentSelected(long orderId) => RiderOrderController.Do_Current_Set(orderId);
 
         // bottom page buttons
         private void ActivityPageSwitch(ActivityPages page)
@@ -108,9 +107,6 @@ namespace Visual.Pages
         }
 
         private void SetProfile() => AccountWindow.Show();
-
-        //OrderViewPage -> OrderExceptionPage
-        private void OrderException(long orderId) => RiderOrderController.OrderException(orderId, options => OrderExceptionPage.SetOptions(orderId, options));
 
     }
 }
