@@ -75586,8 +75586,8 @@ MonoBehaviour:
   _monoService: {fileID: 1096816974}
   _serverUrl: http://localhost:7236/api/
   _apiPanel: {fileID: 1952502456}
-  _autoStartUi: 0
-  _testMode: 0
+  _autoStartUi: 1
+  _testMode: 1
 --- !u!4 &1401088898
 Transform:
   m_ObjectHideFlags: 0

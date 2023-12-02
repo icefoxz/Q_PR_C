@@ -17,6 +17,7 @@ namespace Visual.Pages
     using AOT.DataModel;
     using AOT.Extensions;
     using AOT.Views;
+    using DG.Tweening;
     using OrderHelperLib.Contracts;
     using OrderHelperLib.Dtos.DeliveryOrders;
     using UnityEngine;
@@ -75,13 +76,13 @@ namespace Visual.Pages
 
             private class View_deliverItemInfo : UiBase
             {
-                private View_states view_states { get; }
+                private View_states view_state { get; }
                 private View_packageInfo view_packageInfo { get; }
 
                 public View_deliverItemInfo(IView v, bool display = true) : base(v, display)
                 {
                     view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
-                    view_states = new View_states(v.Get<View>("view_states"));
+                    view_state = new View_states(v.Get<View>("view_state"));
                 }
 
                 public void SetOrder(DeliverOrderModel order)
@@ -91,7 +92,7 @@ namespace Visual.Pages
                     var item = order.ItemInfo;
                     var status = (DeliveryOrderStatus)order.Status;
                     view_packageInfo.Set(payment.Charge, deliver.Distance, item.Weight, item.Size());
-                    view_states.SetState(status);
+                    view_state.SetState(status);
                 }
 
                 private class View_states : UiBase
@@ -132,7 +133,7 @@ namespace Visual.Pages
                 private Element_tabBtn[] TabBtns =>
                     _tabBtns ??= new[] { element_tabBtn_progress, element_tabBtn_deliverInfo };
 
-                private Transform trans_content { get; }
+                private RectTransform trans_content { get; }
                 private View_progressInfo view_progressInfo { get; }
                 private View_deliveryInfo view_deliveryInfo { get; }
 
@@ -142,18 +143,20 @@ namespace Visual.Pages
                         new Element_tabBtn(v.Get<View>("element_tabBtn_progress"), () => SetSelected(0));
                     element_tabBtn_deliverInfo =
                         new Element_tabBtn(v.Get<View>("element_tabBtn_deliverInfo"), () => SetSelected(1));
-                    trans_content = v.Get<Transform>("trans_content");
+                    trans_content = v.Get<RectTransform>("trans_content");
                     view_progressInfo = new View_progressInfo(v.Get<View>("view_progressInfo"));
                     view_deliveryInfo = new View_deliveryInfo(v.Get<View>("view_deliveryInfo"));
                 }
 
                 private void SetSelected(int tabIndex)
                 {
+                    var rectWidthPerContent = trans_content.rect.width / TabBtns.Length;
                     for (var index = 0; index < TabBtns.Length; index++)
                     {
                         var tab = TabBtns[index];
                         tab.SetSelected(index == tabIndex);
                     }
+                    trans_content.transform.DOLocalMoveX(rectWidthPerContent * -tabIndex, 0.2f);
                 }
 
                 public void SetOrder(DeliveryOrder order)
@@ -166,6 +169,7 @@ namespace Visual.Pages
                         .Select(a => (a.history.Timestamp, $"{a.state.StateName} {a.history.Remark}"))
                         .ToList();
                     view_progressInfo.Set(logs);
+                    SetSelected(0);
                 }
 
                 private class Element_tabBtn : UiBase
