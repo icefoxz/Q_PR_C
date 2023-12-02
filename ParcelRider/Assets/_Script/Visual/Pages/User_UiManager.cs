@@ -7,6 +7,7 @@ using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using Visual.Pages.Rider;
+using Visual.Pages.Visual.Pages.Rider;
 using Visual.Sects;
 
 namespace Visual.Pages
@@ -76,20 +77,14 @@ namespace Visual.Pages
         private void OnRequestCancel()
         {
             var order = App.Models.CurrentOrder;
-            if (order == null || order.State.IsClosed())
+            if (order == null ||
+                !DoStateMap.IsAssignableSubState(TransitionRoles.User, (int)order.State, DoSubState.SenderCancelState))
             {
                 MessageWindow.Set(title: "Cancel Order", content: "Order is closed");
                 return;
             }
 
-            ConfirmWindow.Set(() =>
-            {
-                UserOrderController.Do_RequestCancel(order.Id, success =>
-                {
-                    if (success) return;
-                    MessageWindow.Set(title: "Cancel Order", content: "Failed");
-                });
-            });
+            ConfirmWindow.Set(() => UserOrderController.Do_RequestCancel(order.Id));
         }
 
         private void StartUi()

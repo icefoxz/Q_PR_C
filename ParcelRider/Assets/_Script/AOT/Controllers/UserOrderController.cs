@@ -116,7 +116,7 @@ namespace AOT.Controllers
             });
         }
 
-        public void Do_RequestCancel(long orderId, Action<bool> callbackAction)
+        public void Do_RequestCancel(long orderId)
         {
             Call(new object[] {orderId},args => ((bool)args[0], (DeliveryOrderStatus)args[1], (long)args[2]), arg =>
             {
@@ -132,7 +132,6 @@ namespace AOT.Controllers
                     List_ActiveOrder_Set(a.ToArray());
                     List_HistoryOrderSet(h.ToArray());
                 }
-                callbackAction(success);
             }, () =>
             {
                 var o = AppModel.AssignedOrders.GetOrder(orderId);
@@ -145,8 +144,9 @@ namespace AOT.Controllers
                         List_ActiveOrder_Set(orderPl.List);
                         List_HistoryOrderSet(historyPl.List);
                         Order_SetCurrent(orderId);
+                        return;
                     }
-                    callbackAction(success);
+                    MessageWindow.Set("Error", message);
                 });
             });
         }

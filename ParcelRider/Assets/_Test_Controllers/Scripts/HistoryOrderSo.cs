@@ -79,7 +79,6 @@ public class HistoryOrderSo : ScriptableObject
                             PhoneNumber = $"PhoneNumber{random.Next(1000, 9999)}",
                             Name = $"Name{random.Next(1000, 9999)}"
                         },
-                        Tags = new List<TagDto>(),
                         RiderId = random.Next(1, 100).ToString(),
                         Rider = new RiderModel
                         {

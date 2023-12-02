@@ -129,7 +129,6 @@ namespace AOT.Core
                             PhoneNumber = $"PhoneNumber{random.Next(1000, 9999)}", // Random phone number
                             Name = $"Name{random.Next(1000, 9999)}" // Random name
                         },
-                        Tags = new List<TagDto>(),
                         RiderId = random.Next(1, 100).ToString(), // Random RiderId
                         Rider = new RiderModel
                         {

@@ -9,8 +9,6 @@ public record DeliverOrderModel : LongDto
     public string UserId { get; set; }
     // 执行用户
     public UserModel User { get; set; }
-    // 标签
-    public ICollection<TagDto> Tags { get; set; }
     //物品信息
     public ItemInfoDto ItemInfo { get; set; }
     // (马来西亚)州属Id
@@ -30,6 +28,16 @@ public record DeliverOrderModel : LongDto
     public int Status { get; set; }
     //订单子状态
     public int SubState { get; set; }
-    //订单状态名称
-    public string? StatusName { get; set; }
+    //订单状态进程, 用于记录订单的状态变化
+    public StateSegmentModel[] StateHistory { get; set; }
+}
+
+/// <summary>
+/// 状态的纪录片短
+/// </summary>
+public record StateSegmentModel
+{
+    public int SubState { get; set; }
+    public DateTime Timestamp { get; set; }
+    public string? Remark { get; set; }
 }

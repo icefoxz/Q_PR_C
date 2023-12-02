@@ -9,8 +9,7 @@ public record PaymentInfo
     /// </summary>
     public float Fee { get; set; }
     public float Charge { get; set; } // 价格
-    //todo: 改成字典
-    public string Method { get; set; } // 付款类型
+    public string Method { get; set; } = string.Empty; // 付款类型
     /// <summary>
     /// 付款Reference,如果骑手代收将会是骑手Id,
     /// 如果是在线支付将会是支付平台的Reference,
@@ -20,7 +19,7 @@ public record PaymentInfo
     /// <summary>
     /// 付款TransactionId
     /// </summary>
-    public string TransactionId { get; set; }
+    public string TransactionId { get; set; } = string.Empty;
     public bool IsReceived { get; set; } // 是否已经完成付款
 }
 

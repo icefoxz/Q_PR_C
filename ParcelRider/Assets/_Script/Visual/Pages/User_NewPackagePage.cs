@@ -155,7 +155,6 @@ namespace Visual.Pages
                     PhoneNumber = element_to.Phone,
                     Name = element_to.Contact,
                 },
-                Tags = Array.Empty<TagDto>()
             };
             return order;
 
