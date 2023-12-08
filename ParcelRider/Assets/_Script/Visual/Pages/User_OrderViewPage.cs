@@ -4,6 +4,7 @@ using AOT.Core;
 using AOT.Extensions;
 using AOT.Views;
 using OrderHelperLib.Contracts;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Visual.Pages
@@ -34,9 +35,6 @@ namespace Visual.Pages
             private View_deliverItemInfo view_deliverItemInfo { get; }
             private View_tabs view_tabs { get; }
 
-            //private View_images ViewImages { get; }
-            //private List<Sprite> images { get; set; } = new List<Sprite>();
-
             public User_OrderViewPage(IView v, Action onCancelAction, User_UiManager uiManager) : base(v, uiManager)
             {
                 text_orderId = v.Get<Text>("text_orderId");
@@ -55,14 +53,6 @@ namespace Visual.Pages
 
                 App.MessagingManager.RegEvent(EventString.Order_Current_Set, _ => ShowCurrentOrder());
             }
-
-            //private void OnPictureTaken(Texture2D texture)
-            //{
-            //    images.Add(Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero));
-            //    UpdateImages();
-            //}
-            //private void UpdateImages() => ViewImages.Set(images.ToArray());
-            //private void ImageSelected_PromptImageWindow(int index) => ImageWindow.Set(images[index]);
 
             protected override void OnUiShow()
             {
@@ -213,7 +203,7 @@ namespace Visual.Pages
                             LogListView.Instance(v =>
                             {
                                 var ui = new Prefab_deliverLog(v);
-                                ui.Set(time.ToLocalTime().ToString("hh:mm d/M/yy"), ResolveCharsLimit(message, 55));
+                                ui.SetMessage(time.ToLocalTime().ToString("hh:mm d/M/yy"), ResolveCharsLimit(message, 55));
                                 return ui;
                             });
                         });
@@ -230,17 +220,58 @@ namespace Visual.Pages
                     {
                         private Text text_time { get; }
                         private Text text_message { get; }
+                        private RectTransform rectTransform { get; }
+                        private ListViewUi<Prefab_picture> PicListView { get; }
 
                         public Prefab_deliverLog(IView v, bool display = true) : base(v, display)
                         {
+                            rectTransform = v.RectTransform;
                             text_time = v.Get<Text>("text_time");
                             text_message = v.Get<Text>("text_message");
+                            PicListView = new ListViewUi<Prefab_picture>(v, "prefab_picture", "scroll_picture");
                         }
 
-                        public void Set(string time, string log)
+                        public void SetMessage(string time, string log)
                         {
+                            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 60);
+                            PicListView.ClearList(ui => ui.Destroy());
                             text_time.text = time;
                             text_message.text = log;
+                            text_message.gameObject.SetActive(true);
+                            PicListView.ScrollRect.gameObject.SetActive(false);
+                        }
+
+                        public void SetImages(string time, string[] imgUrls)
+                        {
+                            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 100);
+                            PicListView.ClearList(ui => ui.Destroy());
+                            foreach (var url in imgUrls)
+                            {
+                                var ui = PicListView.Instance(v => new Prefab_picture(v, ImageWindow.Set));
+                                ui.SetImage(url);
+                            }
+                            text_message.gameObject.SetActive(false);
+                            PicListView.ScrollRect.gameObject.SetActive(true);
+                        }
+
+                        private class Prefab_picture : UiBase
+                        {
+                            private Image img_pic{ get; }
+                            private Button btn_pic{ get; }
+
+                            public Prefab_picture(IView v, UnityAction<Sprite> onBtnClick, bool display = true) : base(v,
+                                display)
+                            {
+                                img_pic = v.Get<Image>("img_pic");
+                                btn_pic = v.Get<Button>("btn_pic");
+                                btn_pic.onClick.AddListener(() => onBtnClick(img_pic.sprite));
+                            }
+
+                            public void SetImage(string url)
+                            {
+                                var imgCo = App.GetController<ImageController>();
+                                imgCo.Req_Image(url, sp => img_pic.sprite = sp);
+                            }
                         }
                     }
                 }

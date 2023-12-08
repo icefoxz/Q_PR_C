@@ -31,7 +31,7 @@ namespace Visual.Pages
         private AutofillAddressController AutocompleteAddressController => App.GetController<AutofillAddressController>();
         private GeocodingController GeocodingController => App.GetController<GeocodingController>();
 
-        public string CurrentMyState { get; set; }
+        private string CurrentMyState { get; set; }
         private MyStates[] MyStates { get; set; }
         private bool _isUpperUi;
 
@@ -78,6 +78,8 @@ namespace Visual.Pages
 
         private void PickFromMap(string address)
         {
+            if (address.Length < 4)
+                address += CurrentMyState;
             GeocodingController.GetGeoFromAddress(address, arg =>
             {
                 var (success, lat, lng, message) = arg;
@@ -306,10 +308,9 @@ namespace Visual.Pages
         {
             private UiMover Mover { get; }
             private InputFieldUi input_contact { get; }
-            private InputFieldUi input_unit { get; }
-            private InputFieldUi input_phone { get; }
             private InputFieldUi input_address { get; }
-            private Button btn_mapPoint { get; }
+            private InputFieldUi input_phone { get; }
+            private InputFieldUi input_geoLocation { get; }
 
             public bool IsReady => IsAddressReady &&
                                    !string.IsNullOrWhiteSpace(input_phone.InputField.text) &&
@@ -321,32 +322,32 @@ namespace Visual.Pages
             public bool IsAllAddressGeoLocated { get; private set; }
             public string Contact => input_contact.InputField.text;
             //public string PlaceId { get;private set; } //Sect_autofill_address.PlaceId;
-            public string Address => input_address.InputField.text; //Sect_autofill_address.Input;
+            public string Address => input_geoLocation.InputField.text; //Sect_autofill_address.Input;
             public string Phone => input_phone.InputField.text;
             public double Lat { get; private set; }
             public double Lng { get; private set; }
             public bool IsSelectedInputField => input_contact.InputField.isFocused ||
-                                                input_unit.InputField.isFocused ||
+                                                input_address.InputField.isFocused ||
                                                 input_phone.InputField.isFocused ||
-                                                input_address.InputField.isFocused;
+                                                input_geoLocation.InputField.isFocused;
 
-            public Element_Form(IView v, Action onInputChanged, Action onAddressInputSelectAction,
+            public Element_Form(IView v, Action onInputChanged, Action onGeoInputSelectAction,
                 Action<bool> onOtherInputFieldSelectAction) : base(v)
             {
                 Mover = v.GameObject.GetComponent<UiMover>();
                 input_contact = v.Get<InputFieldUi>("input_contact");
-                input_unit = v.Get<InputFieldUi>("input_unit");
                 input_address = v.Get<InputFieldUi>("input_address");
+                input_geoLocation = v.Get<InputFieldUi>("input_geoLocation");
                 input_phone = v.Get<InputFieldUi>("input_phone");
                 //Btn_mapPoint = v.GetObject<Button>("btn_mapPoint");
                 //Btn_mapPoint.OnClickAdd(() => Input_address.text = preserveAddress);
-                input_address.OnSelectEvent.AddListener(_ => onAddressInputSelectAction?.Invoke());
+                input_geoLocation.OnSelectEvent.AddListener(_ => onGeoInputSelectAction?.Invoke());
 
                 input_contact.OnSelectEvent.AddListener(_ =>
                 {
                     onOtherInputFieldSelectAction?.Invoke(true);
                 });
-                input_unit.OnSelectEvent.AddListener(_ =>
+                input_address.OnSelectEvent.AddListener(_ =>
                 {
                     onOtherInputFieldSelectAction?.Invoke(true);
                 });
@@ -358,7 +359,7 @@ namespace Visual.Pages
                 {
                     onOtherInputFieldSelectAction?.Invoke(false);
                 });
-                input_unit.OnDeselectEvent.AddListener(_ =>
+                input_address.OnDeselectEvent.AddListener(_ =>
                 {
                     onOtherInputFieldSelectAction?.Invoke(false);
                 });
@@ -367,15 +368,15 @@ namespace Visual.Pages
                     onOtherInputFieldSelectAction?.Invoke(false);
                 });
 
+                input_geoLocation.InputField.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
                 input_address.InputField.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
-                input_unit.InputField.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
                 input_contact.InputField.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
                 input_phone.InputField.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
             }
 
             public void SetAddress(string address,bool isGeoLocated = false)
             {
-                input_address.InputField.text = address;
+                input_geoLocation.InputField.text = address;
                 IsAllAddressGeoLocated = isGeoLocated;
             }
 
@@ -383,8 +384,8 @@ namespace Visual.Pages
             {
                 input_contact.InputField.text = string.Empty;
                 input_phone.InputField.text = string.Empty;
+                input_geoLocation.InputField.text = string.Empty;
                 input_address.InputField.text = string.Empty;
-                input_unit.InputField.text = string.Empty;
             }
 
             public void MoveTo(Vector2 pos, Action<bool> callbackAction) => Mover.Move(pos, 0.2f, false, callbackAction);

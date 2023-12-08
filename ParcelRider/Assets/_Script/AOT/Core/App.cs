@@ -176,6 +176,7 @@ namespace AOT.Core
 
             //Common
             ServiceContainer.Reg(new PictureController(MonoService), IsTestMode);
+            ServiceContainer.Reg(new ImageController(), IsTestMode);
         }
 
         public static void SendEvent(string eventName, params object[] args)
