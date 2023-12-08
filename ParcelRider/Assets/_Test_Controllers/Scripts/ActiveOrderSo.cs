@@ -16,6 +16,7 @@ public class ActiveOrderSo : ScriptableObject
     public void SetNewOrder(DeliverOrderModel order) => _activeModel.SetNewOrderToList(order);
     public void CancelOrder(long orderId) => _activeModel.CancelOrderToList(orderId);
     public void SetPayment(PaymentMethods payM) => _activeModel.SetPayment(payM);
+    public (string order, int state) DoStateUpdate(string order, int stateId) => _activeModel.DoState_Update(order, stateId);
 
     //Update order status
     public (bool isSuccess, int status, long ordId) OrderAssigned(DeliverOrderModel order) => _activeModel.OrderAssignedResponse(order);
@@ -204,6 +205,12 @@ public class ActiveOrderSo : ScriptableObject
             return (true, deliverOrders[index].Status, order.Id);
         }
         #endregion
+
+        public (string order, int state) DoState_Update(string order, int stateId)
+        {
+            return (order, stateId);
+        }
     }
+
 }
 

@@ -60,12 +60,12 @@ public class TestApiContainer : MonoBehaviour
             ActiveOrderSo.SetNewOrder(newOrder);
             return new object[] { isSuccess, message };
         },userOrderController);
-        RegTester(nameof(userOrderController.Do_UpdateAll), args =>
+        RegTester(nameof(userOrderController.Do_UpdateAll), _ =>
         {
             var message = ActiveOrderSo.GetActiveOrderList();
             return new object[] { message };
         }, userOrderController);
-        RegTester(nameof(userOrderController.Do_UpdateHistory), args =>
+        RegTester(nameof(userOrderController.Do_UpdateHistory), _ =>
         {
             var message = HistoryOrderSo.GetHistoryList();
             return new object[] { message };
@@ -119,31 +119,14 @@ public class TestApiContainer : MonoBehaviour
     private void RegRiderOrderService()
     {
         var riderOrderService = App.GetController<RiderOrderController>();
-        //RegTester(nameof(riderOrderService.PickItem), args=>
-        //{
-        //    var orderId = (long)args[0];
-        //    var (isSuccess, status, ordId) = ActiveOrderSo.ItemPicked(orderId);
-        //    return new object[] { isSuccess, status, ordId };
-        //},riderOrderService);
-        //RegTester(nameof(riderOrderService.ItemCollection), args =>
-        //{
-        //    var orderId = (long)args[0];
-        //    var (isSuccess, status, oId) = ActiveOrderSo.ItemCollected(orderId);
-        //    return new object[] { isSuccess, status, oId };
-        //}, riderOrderService);
-        //RegTester(nameof(riderOrderService.Complete), args =>
-        //{
-        //    var orderId = (long)args[0];
-        //    var (isSuccess, status, ordId) = ActiveOrderSo.DeliveryComplete(orderId);
-        //
-        //    return new object[] {isSuccess, status, ordId };
-        //}, riderOrderService);
-        //RegTester(nameof(riderOrderService.Do_UpdateAll), _ =>
-        //{
-        //    var message = ActiveOrderSo.GetActiveOrderList();
-        //    return new object[] { message };
-        //}, riderOrderService);
-        RegTester(nameof(riderOrderService.Do_AssignRider), args=>
+        RegTester(nameof(riderOrderService.Do_State_Update), args =>
+        {
+            var order = (string)args[0];
+            var stateId = (int)args[1];
+            var message = ActiveOrderSo.DoStateUpdate(order, stateId);
+            return new object[] { message };
+        },riderOrderService);
+        RegTester(nameof(riderOrderService.Do_AssignRider), args =>
         {
             var order = (DeliverOrderModel)args[0];
             var newOrder = RiderLoginServiceSo.SetRiderInfo(order);
@@ -151,6 +134,21 @@ public class TestApiContainer : MonoBehaviour
             var newData = data.Get<DeliverOrderModel>(0);
             var (isSuccess, status, ordId) = ActiveOrderSo.OrderAssigned(newData);
             return new object[] { isSuccess, status, ordId };
+        }, riderOrderService);
+        RegTester(nameof(riderOrderService.Do_Get_Unassigned),  _=>
+        {
+            var message = ActiveOrderSo.GetActiveOrderList();
+            return new object[] { message };
+        }, riderOrderService);
+        RegTester(nameof(riderOrderService.Do_Get_Assigned), _ =>
+        {
+            var message = ActiveOrderSo.GetActiveOrderList();
+            return new object[] { message };
+        }, riderOrderService);
+        RegTester(nameof(riderOrderService.Do_Get_History), _ =>
+        {
+            var message = ActiveOrderSo.GetActiveOrderList();
+            return new object[] { message };
         }, riderOrderService);
     }
 

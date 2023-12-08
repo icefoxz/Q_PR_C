@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -35,15 +35,21 @@ namespace AOT.Controllers
 
         public void Do_State_Update(int stateId)
         {
-            if (IsTestMode()) return;
-            var o = AppModel.CurrentOrder;
-            ApiPanel.Rider_UpdateState(o.Id, stateId, b =>
+            var order = AppModel.CurrentOrder;
+            Call(new object[] {order, stateId},args => args[0], arg =>
             {
-                var dto = b.Get<DeliverOrderModel>(0);
-                var order = new DeliveryOrder(dto);
-                Resolve_OrderCollections(order);
-                Do_Current_Set(order.Id);
-            }, msg => MessageWindow.Set("Error", msg));
+
+            }, () =>
+            {
+                var o = AppModel.CurrentOrder;
+                ApiPanel.Rider_UpdateState(o.Id, stateId, b =>
+                {
+                    var dto = b.Get<DeliverOrderModel>(0);
+                    var order = new DeliveryOrder(dto);
+                    Resolve_OrderCollections(order);
+                    Do_Current_Set(order.Id);
+                }, msg => MessageWindow.Set("Error", msg));
+            });
         }
 
         public void Do_Current_Set(long orderId) => AppModel.SetCurrentOrder(orderId);
@@ -60,36 +66,60 @@ namespace AOT.Controllers
 
         public void Do_Get_Unassigned(int pageIndex = 0)
         {
-            if (AppLaunch.TestMode) return;
-            ApiPanel.Rider_GetUnassigned(20, pageIndex, pg =>
+            Call(args => args[0], arg =>
             {
-                var orders = pg.List;
-                var pageIndex = pg.PageIndex;
-                var pageSize = pg.PageSize;
-                AppModel.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
-            }, m => MessageWindow.Set("Error", m));
+                var message = arg;
+                var bag = DataBag.Deserialize(message);
+                var list = bag.Get<List<DeliverOrderModel>>(0);
+                List_ActiveOrder_Set(list.ToArray());
+            }, () =>
+            {
+                ApiPanel.Rider_GetUnassigned(20, pageIndex, pg =>
+                {
+                    var orders = pg.List;
+                    var pageIndex = pg.PageIndex;
+                    var pageSize = pg.PageSize;
+                    AppModel.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+                }, m => MessageWindow.Set("Error", m));
+            });
         }
         public void Do_Get_Assigned(int pageIndex = 0)
         {
-            if (AppLaunch.TestMode) return;
-            ApiPanel.Rider_GetAssigned(20, pageIndex, pg =>
+            Call(args => args[0], arg =>
             {
-                var orders = pg.List;
-                var pageIndex = pg.PageIndex;
-                var pageSize = pg.PageSize;
-                AppModel.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
-            }, m => MessageWindow.Set("Error", m));
+                var message = arg;
+                var bag = DataBag.Deserialize(message);
+                var list = bag.Get<List<DeliverOrderModel>>(0);
+                //List_ActiveOrder_Set(list.ToArray());
+            }, () =>
+            {
+                ApiPanel.Rider_GetAssigned(20, pageIndex, pg =>
+                {
+                    var orders = pg.List;
+                    var pageIndex = pg.PageIndex;
+                    var pageSize = pg.PageSize;
+                    AppModel.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+                }, m => MessageWindow.Set("Error", m));
+            });
         }
         public void Do_Get_History(int pageIndex = 0)
         {
-            if (AppLaunch.TestMode) return;
-            ApiPanel.Rider_GetHistories(20, pageIndex, pg =>
+            Call(args => args[0], arg =>
             {
-                var orders = pg.List;
-                var pageIndex = pg.PageIndex;
-                var pageSize = pg.PageSize;
-                AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
-            }, m => MessageWindow.Set("Error", m));
+                var message = arg;
+                var bag = DataBag.Deserialize(message);
+                var list = bag.Get<List<DeliverOrderModel>>(0);
+                List_HistoryOrderSet(list.ToArray());
+            }, () =>
+            {
+                ApiPanel.Rider_GetHistories(20, pageIndex, pg =>
+                {
+                    var orders = pg.List;
+                    var pageIndex = pg.PageIndex;
+                    var pageSize = pg.PageSize;
+                    AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList());
+                }, m => MessageWindow.Set("Error", m));
+            });
         }
 
         public void Do_AssignRider(long orderId)

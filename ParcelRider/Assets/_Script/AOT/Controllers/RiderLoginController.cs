@@ -35,8 +35,8 @@ namespace AOT.Controllers
 
         public void Logout()
         {
-            App.SendEvent(EventString.Rider_Logout);
             App.Models.Reset();
-        }
+            App.SendEvent(EventString.Rider_Logout);
+         }
     }
 }
