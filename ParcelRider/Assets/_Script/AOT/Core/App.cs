@@ -13,6 +13,7 @@ using OrderHelperLib.Dtos.DeliveryOrders;
 using OrderHelperLib.Dtos.Riders;
 using OrderHelperLib.Dtos.Users;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace AOT.Core
 {
@@ -28,6 +29,9 @@ namespace AOT.Core
         public static UiManagerBase UiManager { get; private set; }
         public static AppModels Models { get; private set; }
         public static MessagingManager MessagingManager { get; } = new MessagingManager();
+        public static IMapCoordinates MapCoordinates { get; private set; }
+        public static bool IsTestMode { get; private set; }
+        public static bool IsUserMode { get; private set; }
 
         public static MonoService MonoService
         {
@@ -40,13 +44,18 @@ namespace AOT.Core
             private set => _monoService = value;
         }
 
-        public static void Run(Res res, MonoService monoService)
+        public static void Run(Res res, MonoService monoService, MapCoordinates mapCoordinates, bool isUserMode,
+            bool isTestMode)
         {
             if (IsRunning)
                 throw new NotImplementedException("App is running!");
+            IsUserMode = isUserMode;
+            IsTestMode = isTestMode;
             IsRunning = true;
             Res = res;
             MonoService = monoService;
+            MapCoordinates = mapCoordinates;
+            MapCoordinates.Display(false);
             Models = new AppModels();
             ControllerReg();
             //TestData();
@@ -58,7 +67,7 @@ namespace AOT.Core
             var testList = GenerateRandomOrders(5);
                 Models.SetUser(new UserModel() { Id = "TestUser" });
 
-            if (AppLaunch.IsUserMode)
+            if (IsUserMode)
             {
                 var userOrderController = GetController<UserOrderController>();
                 userOrderController.List_ActiveOrder_Set(testList);
@@ -156,17 +165,17 @@ namespace AOT.Core
         {
             ServiceContainer = new ControllerServiceContainer();
             //User
-            ServiceContainer.Reg(new LoginController(), AppLaunch.TestMode);
-            ServiceContainer.Reg(new AutofillAddressController(), AppLaunch.TestMode);
-            ServiceContainer.Reg(new GeocodingController(), AppLaunch.TestMode);
-            ServiceContainer.Reg(new UserOrderController(), AppLaunch.TestMode);
+            ServiceContainer.Reg(new LoginController(), IsTestMode);
+            ServiceContainer.Reg(new AutofillAddressController(), IsTestMode);
+            ServiceContainer.Reg(new GeocodingController(), IsTestMode);
+            ServiceContainer.Reg(new UserOrderController(), IsTestMode);
 
             //Rider
-            ServiceContainer.Reg(new RiderLoginController(), AppLaunch.TestMode);
-            ServiceContainer.Reg(new RiderOrderController(), AppLaunch.TestMode);
+            ServiceContainer.Reg(new RiderLoginController(), IsTestMode);
+            ServiceContainer.Reg(new RiderOrderController(), IsTestMode);
 
             //Common
-            ServiceContainer.Reg(new PictureController(MonoService), AppLaunch.TestMode);
+            ServiceContainer.Reg(new PictureController(MonoService), IsTestMode);
         }
 
         public static void SendEvent(string eventName, params object[] args)
@@ -177,5 +186,8 @@ namespace AOT.Core
 
         public static void RegEvent(string eventName, Action<DataBag> callbackAction) =>
             MessagingManager.RegEvent(eventName, callbackAction);
+
+        public static void SetMap(double lat, double lng, UnityAction<(double lat, double lng)> onGeoCallback) =>
+            MapCoordinates.StartMap(lat, lng, onGeoCallback);
     }
 }

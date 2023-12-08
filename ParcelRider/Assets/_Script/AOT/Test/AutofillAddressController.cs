@@ -22,14 +22,14 @@ namespace AOT.Test
             Debouncer = new Debouncer(debounceTime, App.MonoService);
         }
 
-        public void GetAddressSuggestions(string input, Action<(string placeId, string address)[]> onRequestResult)
+        public void GetAddressSuggestions(string input, Action<string[]> onRequestResult)
         {
             if (string.IsNullOrWhiteSpace(input) || input.Length < 3) return;
             Debouncer.Debounce(input, debouncedInput => FetchAddressSuggestions(debouncedInput, onRequestResult));
         }
 
         private IEnumerator FetchAddressSuggestions(string input,
-            Action<(string placeId, string address)[]> onRequestResult)
+            Action<string[]> onRequestResult)
         {
             var requestUrl = string.Format(googleAutocompleteUrl, UnityWebRequest.EscapeURL(input), Auth.GoogleApiKey);
             var webRequest = UnityWebRequest.Get(requestUrl);
@@ -59,8 +59,8 @@ namespace AOT.Test
         {
             [SerializeField] public Prediction[] predictions;
 
-            public (string placeId, string address)[] GetPredictions =>
-                predictions?.Select(p => (p.place_id, p.description)).ToArray()?? Array.Empty<(string placeId, string address)>();
+            public string [] GetPredictions =>
+                predictions?.Select(p => p.description).ToArray()?? Array.Empty<string>();
 
             public static GoogleAddressAutocompleteResponse FromJson(string jsonString)
             {

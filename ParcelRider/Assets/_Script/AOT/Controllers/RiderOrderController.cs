@@ -18,14 +18,14 @@ namespace AOT.Controllers
         private DeliveryOrder GetOrder(long orderId) => AppModel.GetOrder(orderId);
         private bool IsTestMode([CallerMemberName]string methodName = null)
         {
-            if (!AppLaunch.TestMode) return false;
+            if (!App.IsTestMode) return false;
             Debug.LogWarning($"记得写[{methodName}]的So");
             return true;
         }
 
         public void Get_SubStates()
         {
-            if (AppLaunch.TestMode) return;
+            if (App.IsTestMode) return;
             ApiPanel.Rider_GetSubStates(b =>
             {
                 var subStates = b.Get<DoSubState[]>(0);

@@ -44,20 +44,66 @@ namespace Visual.Pages
             InitMyStateDropdown();
             btn_cancel.OnClickAdd(Hide);
             view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
-            view_addressList = new View_addressList(v.Get<View>("view_addressList"), arg =>
-            {
-                var (placeId, address) = arg;
-                if (_isUpperUi)
-                    element_to.SetAddress(placeId, address);
-                else
-                    element_from.SetAddress(placeId, address);
-                UpdateGeocode();
-            }, arg => ProcessSuggestedAddress(arg));
+            view_addressList = new View_addressList(v.Get<View>("view_addressList"), OnAddressSelected, ProcessSuggestedAddress, PickFromMap);
             element_to = new Element_Form(v.Get<View>("element_to"),UpdateUis, () => ActiveAutoFillSection(true), null);
             element_from = new Element_Form(v.Get<View>("element_from"),UpdateUis, () => ActiveAutoFillSection(false),
                 OnBottomInputSelectAction);
             btn_submit.interactable = false;
             btn_submit.OnClickAdd(onSubmit);
+        }
+
+        private void OnAddressSelected(string address)
+        {
+            if (_isUpperUi)
+                element_to.SetAddress(address);
+            else
+                element_from.SetAddress(address);
+            Action<string, Action<(bool, double, double, string)>> geoReq =
+                _isUpperUi ? GeocodingController.GetGeocodeTo : GeocodingController.GetGeocodeFrom;
+            geoReq.Invoke(address, arg =>
+            {
+                var (success, lat, lng, message) = arg;
+                if (success)
+                {
+                    var co = _isUpperUi ? ToCo : FromCo;
+                    var form = _isUpperUi ? element_to : element_from;
+                    co.Lat = lat;
+                    co.Lng = lng;
+                    form.SetCoordinate(co);
+                    return;
+                }
+                MessageWindow.Set("Error", message);
+            });
+        }
+
+        private void PickFromMap(string address)
+        {
+            GeocodingController.GetGeoFromAddress(address, arg =>
+            {
+                var (success, lat, lng, message) = arg;
+                App.SetMap(lat, lng, OnGeoCallback);
+            });
+            return;
+
+            void OnGeoCallback((double lat,double lng) arg)
+            {
+                var (lat, lng) = arg;
+                var form = _isUpperUi ? element_to : element_from;
+                var co = new Coordinate(lat, lng);
+                SetGeo(form, co);
+                GeocodingController.GetAddressFromCoordinates(co.Lat, co.Lng, UpdateAddress);
+            }
+
+            void UpdateAddress(bool success, string coAddress)
+            {
+                if (!success)
+                {
+                    MessageWindow.Set("Error", "Unable to update address.");
+                    return;
+                }
+                var form = _isUpperUi ? element_to : element_from;
+                form.SetAddress(coAddress, true);
+            }
         }
 
         private void OnBottomInputSelectAction(bool isSelected)
@@ -85,11 +131,16 @@ namespace Visual.Pages
                 element_from.MoveTo(element_to.RectTransform.anchoredPosition, success =>
                 {
                     if (success)
-                        view_addressList.Init(address, element_from.ResetPosition);
+                        view_addressList.Init(address, OnCancelAddressList);
                 });
                 return;
             }
             view_addressList.Init(address, null);
+        }
+
+        private void OnCancelAddressList(string address)
+        {
+            element_from.ResetPosition();
         }
 
         private void InitMyStateDropdown()
@@ -198,31 +249,22 @@ namespace Visual.Pages
             }
         }
 
-        private void UpdateGeocode()
+        //private void UpdateGeocode()
+        //{
+        //    if (element_from.IsAddressReady && element_to.IsAddressReady)
+        //    {
+        //        if (!FromCo.IsEqual(element_from))
+        //            GeocodingController.GetGeocodeFrom(element_from.Address, r => SetGeo(element_from, FromCo, r));
+        //        if (!ToCo.IsEqual(element_to))
+        //            GeocodingController.GetGeocodeTo(element_to.Address, r => SetGeo(element_to, ToCo, r));
+        //    }
+        //
+        //}
+
+        private void SetGeo(Element_Form form, Coordinate co)
         {
-            if (element_from.IsAddressReady && element_to.IsAddressReady)
-            {
-                if (!FromCo.IsEqual(element_from))
-                    GeocodingController.GetGeocodeFrom(element_from.Address, r => SetGeo(element_from, FromCo, r));
-                if (!ToCo.IsEqual(element_to))
-                    GeocodingController.GetGeocodeTo(element_to.Address, r => SetGeo(element_to, ToCo, r));
-            }
-
-            void SetGeo(Element_Form form, Coordinate co,
-                (bool isSuccess, double lat, double lng, string message) result)
-            {
-                var (isSuccess, lat, lng, message) = result;
-                if (isSuccess)
-                {
-                    co.PlaceId = form.PlaceId;
-                    form.Lat = co.Lat = lat;
-                    form.Lng = co.Lng = lng;
-                    UpdateDistance();
-                    return;
-                }
-
-                UpdateDistance();
-            }
+            form.SetCoordinate(co);
+            UpdateDistance();
 
             void UpdateDistance()
             {
@@ -274,14 +316,15 @@ namespace Visual.Pages
                                    !string.IsNullOrEmpty(input_contact.InputField.text);
 
             public bool IsAddressReady => !string.IsNullOrWhiteSpace(Address) &&
-                                          Address.Length > 10 ||
-                                          !string.IsNullOrWhiteSpace(PlaceId);
+                                          Address.Length > 10 || IsAllAddressGeoLocated;
+            //确保地址被标识(并且有coordinate)
+            public bool IsAllAddressGeoLocated { get; private set; }
             public string Contact => input_contact.InputField.text;
-            public string PlaceId { get;private set; } //Sect_autofill_address.PlaceId;
+            //public string PlaceId { get;private set; } //Sect_autofill_address.PlaceId;
             public string Address => input_address.InputField.text; //Sect_autofill_address.Input;
             public string Phone => input_phone.InputField.text;
-            public double Lat { get; set; }
-            public double Lng { get; set; }
+            public double Lat { get; private set; }
+            public double Lng { get; private set; }
             public bool IsSelectedInputField => input_contact.InputField.isFocused ||
                                                 input_unit.InputField.isFocused ||
                                                 input_phone.InputField.isFocused ||
@@ -330,10 +373,10 @@ namespace Visual.Pages
                 input_phone.InputField.onValueChanged.AddListener(arg => onInputChanged?.Invoke());
             }
 
-            public void SetAddress(string placeId, string address)
+            public void SetAddress(string address,bool isGeoLocated = false)
             {
-                PlaceId = placeId;
                 input_address.InputField.text = address;
+                IsAllAddressGeoLocated = isGeoLocated;
             }
 
             public override void ResetUi()
@@ -342,22 +385,30 @@ namespace Visual.Pages
                 input_phone.InputField.text = string.Empty;
                 input_address.InputField.text = string.Empty;
                 input_unit.InputField.text = string.Empty;
-                PlaceId = string.Empty;
             }
 
             public void MoveTo(Vector2 pos, Action<bool> callbackAction) => Mover.Move(pos, 0.2f, false, callbackAction);
             public void MoveOrigin(Action<bool> callbackAction) => Mover.MoveOrigin(0.2f, false, callbackAction);
             public void ResetPosition() => Mover.ResetPosition();
+
+            public void SetCoordinate(Coordinate co)
+            {
+                Lng = co.Lng;
+                Lat = co.Lat;
+                IsAllAddressGeoLocated = true;
+            }
         }
 
         private class View_addressList : UiBase
         {
             private Sect_Autofill sect_autofill { get; }
             private Button btn_close { get; }
-            private event Action onCancelCallbackAction;
+            private Button btn_pickFromMap { get; }
+            private event Action<string> onCancelCallbackAction;
             public View_addressList(IView v,
-                Action<(string placeId, string address)> onAddressSelected,
-                Action<string> onAddressInputAction) : base(v,false)
+                Action<string> onAddressSelected,
+                Action<string> onAddressInputAction,
+                Action<string> onPickFromMap) : base(v,false)
             {
                 sect_autofill = new Sect_Autofill(v: v.Get<View>("sect_autofill"),
                     onAddressInputAction,
@@ -373,9 +424,15 @@ namespace Visual.Pages
                     yPosAlign: 50);
                 btn_close = v.Get<Button>("btn_close");
                 btn_close.OnClickAdd(Reset);
+                btn_pickFromMap = v.Get<Button>("btn_pickFromMap");
+                btn_pickFromMap.OnClickAdd(() =>
+                {
+                    onPickFromMap(sect_autofill.Input);
+                    Reset();
+                });
             }
 
-            public void Init(string address, Action onCancelInvokeOnceAction)
+            public void Init(string address, Action<string> onCancelInvokeOnceAction)
             {
                 onCancelCallbackAction = onCancelInvokeOnceAction;
                 var input = sect_autofill;
@@ -384,30 +441,28 @@ namespace Visual.Pages
                 Show();
             }
 
-            public void UpdateList(ICollection<(string placeId, string address)> arg)
+            public void UpdateList(ICollection<string> addresses)
             {
                 var input = sect_autofill;
-                input.Set(arg);
+                input.Set(addresses);
             }
 
             private void Reset()
             {
-                onCancelCallbackAction?.Invoke();
+                onCancelCallbackAction?.Invoke(sect_autofill.Input);
                 Hide();
                 sect_autofill.ResetUi();
                 onCancelCallbackAction = null;
             }
         }
 
-        private record Coordinate(double Lat, double Lng, string PlaceId = null)
+        private record Coordinate(double Lat, double Lng)
         {
-            public string PlaceId { get; set; } = PlaceId;
             public double Lat { get; set; } = Lat;
             public double Lng { get; set; } = Lng;
             public bool HasCoordinate => Lat != 0 && Lng != 0;
 
-            public bool IsEqual(Element_Form form) => PlaceId == form.PlaceId && 
-                                                      Math.Abs(Lat - form.Lat) < 0.00001f &&
+            public bool IsEqual(Element_Form form) => Math.Abs(Lat - form.Lat) < 0.00001f &&
                                                       Math.Abs(Lng - form.Lng) < 0.00001f;
         }
     }

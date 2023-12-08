@@ -15,7 +15,6 @@ namespace Visual.Sects
         private InputField input_autofill { get; }
         private ListViewUi<Prefab_Address> AutofillListView { get; }
         private Button btn_x { get; }
-        public string PlaceId { get; private set; }
         public string Input => input_autofill.text;
         private string SelectedAddress { get; set; }
         private float ContentPadding { get; }
@@ -23,12 +22,12 @@ namespace Visual.Sects
         private float Charlimit { get; }
         public Transform Content => AutofillListView.ScrollRect.content;
         private float ScrollRectMaxHeight { get; }
-        private event Action<(string placeId,string address)> OnAddressConfirmAction;
+        private event Action<string> OnAddressConfirmAction;
         private float YPosAlign { get; set; }
 
         public Sect_Autofill(IView v,
             Action<string> onAddressInputAction,
-            Action<(string placeId, string address)> onAddressConfirmAction,
+            Action<string> onAddressConfirmAction,
             Action onCloseAction,
             float charlimit,
             float contentHeight,
@@ -55,13 +54,13 @@ namespace Visual.Sects
 
         public void HideOptions() => AutofillListView.HideOptions();
 
-        public void Set(ICollection<(string placeId, string address)> arg)
+        public void Set(ICollection<string> addresses)
         {
             ClearList();
             var contentHeight = 0f;
-            foreach (var (placeId, address) in arg)
+            foreach (var address in addresses)
             {
-                var ui = AutofillListView.Instance(v => new Prefab_Address(v, () => OnAddressSelected(placeId,address)));
+                var ui = AutofillListView.Instance(v => new Prefab_Address(v, () => OnAddressSelected(address)));
                 var size = ui.RectTransform.sizeDelta;
                 var line = (address.Length / Charlimit) + 1;
                 ui.RectTransform.sizeDelta = new Vector2(size.x, line * ContentHeight + ContentPadding);
@@ -96,19 +95,17 @@ namespace Visual.Sects
 
         private void ClearList() => AutofillListView.ClearList(p => p.Destroy());
 
-        private void OnAddressSelected(string placeId, string address)
+        private void OnAddressSelected(string address)
         {
             SelectedAddress = address;
-            PlaceId = placeId;
             input_autofill.text = address;
             AutofillListView.ScrollRect.gameObject.SetActive(false);
-            OnAddressConfirmAction?.Invoke((placeId, address));
+            OnAddressConfirmAction?.Invoke(address);
             ClearList();
         }
 
         public override void ResetUi()
         {
-            PlaceId = string.Empty;
             input_autofill.text = string.Empty;
             AutofillListView.ClearList(v => v.Destroy());
             AutofillListView.HideOptions();

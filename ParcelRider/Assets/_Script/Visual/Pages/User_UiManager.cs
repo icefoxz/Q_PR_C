@@ -77,10 +77,11 @@ namespace Visual.Pages
         private void OnRequestCancel()
         {
             var order = App.Models.CurrentOrder;
-            if (order == null ||
-                !DoStateMap.IsAssignableSubState(TransitionRoles.User, (int)order.State, DoSubState.SenderCancelState))
+            var isAssignable =
+                DoStateMap.IsAssignableSubState(TransitionRoles.User, order.SubState, DoSubState.SenderCancelState);
+            if (!isAssignable)
             {
-                MessageWindow.Set(title: "Cancel Order", content: "Order is closed");
+                MessageWindow.Set(title: "Cancel Order", content: "Request deny!");
                 return;
             }
 

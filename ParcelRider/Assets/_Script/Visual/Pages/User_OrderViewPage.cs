@@ -64,6 +64,14 @@ namespace Visual.Pages
             //private void UpdateImages() => ViewImages.Set(images.ToArray());
             //private void ImageSelected_PromptImageWindow(int index) => ImageWindow.Set(images[index]);
 
+            protected override void OnUiShow()
+            {
+                base.OnUiShow();
+                var state = App.Models.CurrentOrder.SubState;
+                var isAssignable = (DoStateMap.IsAssignableSubState(TransitionRoles.User, state, DoSubState.SenderCancelState));
+                btn_cancel.gameObject.SetActive(isAssignable);
+            }
+
             private void ShowCurrentOrder()
             {
                 var order = App.Models.CurrentOrder;

@@ -17,13 +17,13 @@ public class DoSubState
     public static DoSubState Instance(int stateId, string stateName,TransitionRoles flag ,params DeliveryOrderStatus[] allowStatus) =>
         Instance(stateId, stateName, allowStatus, flag, Array.Empty<int>());
 
-    public static DoSubState Instance(int stateId, string stateName, TransitionRoles flag,params int[] allowsStates) =>
-        new(stateId, stateName, Array.Empty<DeliveryOrderStatus>(), flag,allowsStates);
+    public static DoSubState Instance(int stateId, string stateName, TransitionRoles flag,params int[] fromStates) =>
+        new(stateId, stateName, Array.Empty<DeliveryOrderStatus>(), flag,fromStates);
 
-    public static DoSubState Instance(int stateId, string stateName, DeliveryOrderStatus[] allowStatus,
+    public static DoSubState Instance(int stateId, string stateName, DeliveryOrderStatus[] fromStatus,
         TransitionRoles flag,
-        params int[] allowsStates) =>
-        new(stateId, stateName, allowStatus, flag, allowsStates);
+        params int[] fromStates) =>
+        new(stateId, stateName, fromStatus, flag, fromStates);
 
     public int StateId { get; set; }
     public string StateName { get; set; }
@@ -31,30 +31,30 @@ public class DoSubState
     /// <summary>
     /// 上个状态, 如果为null, 则表示是不能从上个状态执行
     /// </summary>
-    public DeliveryOrderStatus[] AllowStatusList { get; set; }
+    public DeliveryOrderStatus[] FromStatusList { get; set; }
 
     public TransitionRoles TransitionRole { get; set; }
-    public int[] AllowsStates { get; set; }
+    public int[] FromStates { get; set; }
 
     public DoSubState()
     {
 
     }
 
-    private DoSubState(int stateId, string stateName, DeliveryOrderStatus[] allowStatusList, TransitionRoles flag,int[] allowsStates)
+    private DoSubState(int stateId, string stateName, DeliveryOrderStatus[] fromStatusList, TransitionRoles flag,int[] fromStates)
     {
         StateId = stateId;
         StateName = stateName;
-        AllowsStates = allowsStates;
-        AllowStatusList = allowStatusList;
+        FromStates = fromStates;
+        FromStatusList = fromStatusList;
         TransitionRole = flag;
     }
 
-    public bool IsAllow(TransitionRoles role,int subStateId)
+    public bool IsAllowFrom(TransitionRoles role,int fromSubStateId)
     {
         if (!TransitionRole.HasFlag(role)) return false;
-        var state = subStateId.ConvertToDoStatus();
-        return AllowStatusList.Contains(state) || AllowsStates.Contains(StateId);
+        var status = fromSubStateId.ConvertToDoStatus();
+        return FromStatusList.Contains(status) || FromStates.Contains(fromSubStateId);
     }
 
     public const int CreateStatus = 0;
@@ -149,16 +149,14 @@ public class DoStateMap
     public static bool IsAssignableSubState(TransitionRoles role,int fromId, int toId)
     {
         var state = GetAllSubStates().FirstOrDefault(s => s.StateId == toId);
-        return state != null && state.IsAllow(role, fromId);
+        return state != null && state.IsAllowFrom(role, fromId);
     }
 
     public static DoSubState[] GetPossibleStates(TransitionRoles role,int stateId)
     {
         var states = GetAllSubStates().ToArray();
-        var state = states.FirstOrDefault(s => s.StateId == stateId);
-        return state == null 
-            ? Array.Empty<DoSubState>() 
-            : states.Where(s => s.IsAllow(role, stateId)).ToArray();
+        var toStates = states.Where(s => s.FromStates.Contains(stateId)).ToArray();
+        return toStates.Where(s=>s.IsAllowFrom(role,stateId)).ToArray();
     }
 
     public static DoSubState[] GetSubStates(DeliveryOrderStatus status)
@@ -209,10 +207,12 @@ public static class DeliveryOrderStatusExtension
     /// </summary>
     /// <param name="status"></param>
     /// <returns></returns>
-    public static bool IsOnProgressing(this DeliveryOrderStatus status) => !status.IsClosed();
+    public static bool IsInProgress(this DeliveryOrderStatus status) => !status.IsClosed();
     public static bool IsCreated(this DeliveryOrderStatus status) => status == DeliveryOrderStatus.Created;
     public static bool IsAssigned(this DeliveryOrderStatus status) => status == DeliveryOrderStatus.Assigned;
-    public static bool IsOnDelivering(this DeliveryOrderStatus status) => status == DeliveryOrderStatus.Delivering;
+    public static bool IsInDelivery(this DeliveryOrderStatus status) => status == DeliveryOrderStatus.Delivering;
+    public static bool IsInException(this DeliveryOrderStatus status) => status == DeliveryOrderStatus.Exception;
+    public static bool IsInPostDelivery(this DeliveryOrderStatus status) => status == DeliveryOrderStatus.PostDelivery;
     public static bool IsCanceled(this DeliveryOrderStatus status) => status == DeliveryOrderStatus.Canceled;
     public static bool IsCompleted(this DeliveryOrderStatus status) => status == DeliveryOrderStatus.Completed;
 

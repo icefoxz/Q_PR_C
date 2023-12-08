@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AOT.Core;
+﻿using AOT.Core;
 using AOT.DataModel;
 using AOT.Model;
 using AOT.Test;
@@ -10,7 +7,9 @@ using AOT.Views;
 using OrderHelperLib;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
-using WebUtlLib;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AOT.Controllers
 {
@@ -39,9 +38,8 @@ namespace AOT.Controllers
                         var bag = DataBag.Deserialize(message);
                         var dOrder = bag.Get<DeliveryOrder>(0);
                         var model = new DeliveryOrder(dOrder);
-                        AddToActiveList(model);
-                        Order_SetCurrent(model.Id);
-                        //Do_UpdateAll();
+                        AppModel.Resolve_Order(model);
+                        Do_SetCurrent(model.Id);
                         message = string.Empty;
                     }
 
@@ -52,28 +50,19 @@ namespace AOT.Controllers
                     ApiPanel.CreateDeliveryOrder(order, doModel =>
                     {
                         var m = new DeliveryOrder(doModel);
-                        AddToActiveList(m);
-                        Order_SetCurrent(m.Id);
+                        AppModel.Resolve_Order(m);
+                        Do_SetCurrent(m.Id);
                         callbackAction?.Invoke(true, string.Empty);
                     }, msg =>
                     {
                         callbackAction?.Invoke(false, msg);
                     });
                 });
-
-            void AddToActiveList(DeliveryOrder model)
-            {
-                var list = AppModel.AssignedOrders.Orders.ToList();
-                list.Add(model);
-                List_ActiveOrder_Set(list.ToArray());
-            }
         }
-
-        private void Order_SetCurrent(long orderId) => AppModel.SetCurrentOrder(orderId);
 
         public void Do_Payment(PaymentMethods payment, Action<bool, string> callbackAction)
         {
-            Call(new object[] { payment },args => ((bool)args[0], (string)args[1], (PaymentMethods)args[2]), arg =>
+            Call(new object[] { payment }, args => ((bool)args[0], (string)args[1], (PaymentMethods)args[2]), arg =>
             {
                 var (success, message, payMethod) = arg;
                 if (success)
@@ -118,32 +107,27 @@ namespace AOT.Controllers
 
         public void Do_RequestCancel(long orderId)
         {
-            Call(new object[] {orderId},args => ((bool)args[0], (DeliveryOrderStatus)args[1], (long)args[2]), arg =>
+            Call(new object[] { orderId }, args => ((bool)args[0], (DeliveryOrderStatus)args[1], (long)args[2]), arg =>
             {
                 var (success, status, ordId) = arg;
                 if (success)
                 {
                     var o = AppModel.AssignedOrders.GetOrder(ordId);
                     o.Status = ((int)status);
-                    Order_SetCurrent(o.Id);
-                    var h = App.Models.History.Orders.ToList();
-                    var a = App.Models.AssignedOrders.Orders.ToList();
-                    h.Add(o);
-                    List_ActiveOrder_Set(a.ToArray());
-                    List_HistoryOrderSet(h.ToArray());
+                    o.SubState = DoSubState.SenderCancelState;
+                    AppModel.Resolve_Order(o);
+                    Do_SetCurrent(o.Id);
                 }
             }, () =>
             {
                 var o = AppModel.AssignedOrders.GetOrder(orderId);
-                ApiPanel.CancelDeliveryOrder(orderId, o.SubState ,(success, bag, message) =>
+                ApiPanel.CancelDeliveryOrder(orderId, o.SubState, (success, bag, message) =>
                 {
                     if (success)
                     {
-                        var orderPl = bag.Get<PageList<DeliverOrderModel>>(0);
-                        var historyPl = bag.Get<PageList<DeliverOrderModel>>(1);
-                        List_ActiveOrder_Set(orderPl.List);
-                        List_HistoryOrderSet(historyPl.List);
-                        Order_SetCurrent(orderId);
+                        var order = bag.Get<DeliverOrderModel>(0);
+                        AppModel.Resolve_Order(new DeliveryOrder(order));
+                        Do_SetCurrent(orderId);
                         return;
                     }
                     MessageWindow.Set("Error", message);
@@ -153,7 +137,7 @@ namespace AOT.Controllers
 
         public void Get_SubStates()
         {
-            if (AppLaunch.TestMode) return;
+            if (App.IsTestMode) return;
             ApiPanel.User_GetSubStates(b =>
             {
                 var subStates = b.Get<DoSubState[]>(0);
@@ -167,9 +151,6 @@ namespace AOT.Controllers
             App.SendEvent(EventString.User_Logout);
         }
 
-        public void Do_SetCurrent(long orderId)
-        {
-            App.Models.SetCurrentOrder(orderId);
-        }
+        public void Do_SetCurrent(long orderId) => App.Models.SetCurrentOrder(orderId);
     }
 }

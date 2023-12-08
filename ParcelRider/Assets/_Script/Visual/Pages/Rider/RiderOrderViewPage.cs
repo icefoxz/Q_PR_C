@@ -81,7 +81,7 @@ namespace Visual.Pages.Rider
 
             void UpdateState(DeliveryOrderStatus state)
             {
-                btn_exception.gameObject.SetActive(state.IsOnProgressing());
+                btn_exception.gameObject.SetActive(state.IsInProgress());
                 view_states.SetState(state);
                 view_riderOptions.SetState(state);
             }
