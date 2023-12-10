@@ -10,16 +10,6 @@ namespace AOT.BaseUis
         protected WinUiBase(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
         {
         }
-
-        protected override void OnUiHide()
-        {
-            UiManager.DisplayWindows(false);
-        }
-
-        protected override void OnUiShow()
-        {
-            UiManager.DisplayWindows(true);
-        }
     }
     /// <summary>
     /// 页面类

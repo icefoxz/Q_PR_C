@@ -11,6 +11,7 @@ using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
+using WebUtlLib;
 
 namespace Visual.Pages
 {
@@ -182,7 +183,7 @@ namespace Visual.Pages
                 {
                     View_weightSwitch.Weights.Kilogram => weight,
                     View_weightSwitch.Weights.Gram => weight / 1000f,
-                    View_weightSwitch.Weights.Pound => weight / UserOrderController.KgToPounds,
+                    View_weightSwitch.Weights.Pound => weight / OrderControllerBase.KgToPounds,
                     _ => throw new ArgumentOutOfRangeException()
                 };
                 view_info.SetKg(kg);
@@ -201,7 +202,7 @@ namespace Visual.Pages
                     return view_sizeSwitch.Current switch
                     {
                         View_sizeSwitch.Sizes.Meter => value,
-                        View_sizeSwitch.Sizes.Feet => value / UserOrderController.MeterToFeet,
+                        View_sizeSwitch.Sizes.Feet => value / OrderControllerBase.MeterToFeet,
                         View_sizeSwitch.Sizes.Centimeter => value / 100,
                         _ => throw new ArgumentOutOfRangeException()
                     };
@@ -434,12 +435,23 @@ namespace Visual.Pages
         private class View_historySect : UiBase
         {
             private ListViewUi<Prefab_history> HistoryView { get; }
+            private View_paging view_paging { get; }
             private event Action<long> OnSelectedHistoryAction;
-        
-            public View_historySect(IView v,Action<long> onSelectedHistoryAction, bool display = true) : base(v, display)
+
+            public View_historySect(IView v, Action<long> onSelectedHistoryAction,
+                bool display = true) : base(v,
+                display)
             {
                 OnSelectedHistoryAction = onSelectedHistoryAction;
+
                 HistoryView = new ListViewUi<Prefab_history>(v, "prefab_history", "scroll_history");
+                view_paging = new View_paging(v.Get<View>("view_paging"));
+            }
+
+            public void SetPage(int page, Action<int> onPageSelectAction)
+            {
+                if(page == 0)view_paging.Hide();
+                else view_paging.Set(page, onPageSelectAction);
             }
 
             public void UpdateHistories(DeliveryOrder[] dos)
@@ -547,6 +559,7 @@ namespace Visual.Pages
                     }
                 }
             }
+
         }
 
     }

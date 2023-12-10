@@ -14,19 +14,22 @@ namespace OrderHelperLib.Contracts;
 /// </summary>
 public class DoSubState
 {
-    public static DoSubState Instance(int stateId, string stateName,TransitionRoles flag ,params DeliveryOrderStatus[] allowStatus) =>
-        Instance(stateId, stateName, allowStatus, flag, Array.Empty<int>());
+    public static DoSubState Instance(int stateId, DeliveryOrderStatus status, string stateName, TransitionRoles flag,
+        params DeliveryOrderStatus[] allowStatus) =>
+        Instance(stateId, status, stateName, allowStatus, flag, Array.Empty<int>());
 
-    public static DoSubState Instance(int stateId, string stateName, TransitionRoles flag,params int[] fromStates) =>
-        new(stateId, stateName, Array.Empty<DeliveryOrderStatus>(), flag,fromStates);
+    public static DoSubState Instance(int stateId,DeliveryOrderStatus status, string stateName, TransitionRoles flag,params int[] fromStates) =>
+        new(stateId, status, stateName, Array.Empty<DeliveryOrderStatus>(), flag,fromStates);
 
-    public static DoSubState Instance(int stateId, string stateName, DeliveryOrderStatus[] fromStatus,
+    public static DoSubState Instance(int stateId, DeliveryOrderStatus status, string stateName, DeliveryOrderStatus[] fromStatus,
         TransitionRoles flag,
         params int[] fromStates) =>
-        new(stateId, stateName, fromStatus, flag, fromStates);
+        new(stateId, status, stateName, fromStatus, flag, fromStates);
 
     public int StateId { get; set; }
     public string StateName { get; set; }
+    public int Status { get; set; }
+    public DeliveryOrderStatus GetStatus => (DeliveryOrderStatus)Status;
 
     /// <summary>
     /// 上个状态, 如果为null, 则表示是不能从上个状态执行
@@ -38,14 +41,14 @@ public class DoSubState
 
     public DoSubState()
     {
-
     }
 
-    private DoSubState(int stateId, string stateName, DeliveryOrderStatus[] fromStatusList, TransitionRoles flag,int[] fromStates)
+    private DoSubState(int stateId, DeliveryOrderStatus status, string stateName, DeliveryOrderStatus[] fromStatusList,TransitionRoles flag, int[] fromStates)
     {
         StateId = stateId;
         StateName = stateName;
         FromStates = fromStates;
+        Status = (int)status;
         FromStatusList = fromStatusList;
         TransitionRole = flag;
     }
@@ -53,7 +56,8 @@ public class DoSubState
     public bool IsAllowFrom(TransitionRoles role,int fromSubStateId)
     {
         if (!TransitionRole.HasFlag(role)) return false;
-        var status = fromSubStateId.ConvertToDoStatus();
+        var state = DoStateMap.GetState(fromSubStateId);
+        var status = state?.GetStatus ?? fromSubStateId.ConvertToDoStatus();
         return FromStatusList.Contains(status) || FromStates.Contains(fromSubStateId);
     }
 
@@ -76,7 +80,7 @@ public class DoStateMap
     // Created状态值只会是 0
     private static readonly DoSubState[] Created = new[]
     {
-        DoSubState.Instance(0, "Order Created", Array.Empty<DeliveryOrderStatus>(), TransitionRoles.None),
+        DoSubState.Instance(0, DeliveryOrderStatus.Created,"Order Created", Array.Empty<DeliveryOrderStatus>(), TransitionRoles.None)
     };
 
     public static IEnumerable<DoSubState> GetAllSubStates() => Created
@@ -87,68 +91,70 @@ public class DoStateMap
         .Concat(Cancel)
         .Concat(Completed);
 
+    public static DoSubState? GetState(int stateId) => GetAllSubStates().FirstOrDefault(s => s.StateId == stateId);
+
     public static readonly DoSubState[] Exceptions = new[]
     {
-        DoSubState.Instance(4001, "Sender Complaint", TransitionRoles.User, DeliveryOrderStatus.Assigned,
+        DoSubState.Instance(4001,DeliveryOrderStatus.Exception, "Sender Complaint", TransitionRoles.User, DeliveryOrderStatus.Assigned,
             DeliveryOrderStatus.Delivering, DeliveryOrderStatus.PostDelivery),
         //Assigned
-        DoSubState.Instance(4101, "Unable to pickup", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
-        DoSubState.Instance(4102, "Item not match", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
-        DoSubState.Instance(4103, "Item Damaged", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
+        DoSubState.Instance(4101,DeliveryOrderStatus.Exception, "Unable to pickup", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
+        DoSubState.Instance(4102,DeliveryOrderStatus.Exception, "Item not match", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
+        DoSubState.Instance(4103,DeliveryOrderStatus.Exception, "Item Damaged", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
         //Delivering
-        DoSubState.Instance(4201, "Traffic Issues", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
-        DoSubState.Instance(4202, "Wrong Address", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
-        DoSubState.Instance(4203, "No Receiver", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
-        DoSubState.Instance(4204, "Vehicle Breakdown", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
+        DoSubState.Instance(4201,DeliveryOrderStatus.Exception, "Traffic Issues", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
+        DoSubState.Instance(4202,DeliveryOrderStatus.Exception, "Wrong Address", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
+        DoSubState.Instance(4203,DeliveryOrderStatus.Exception, "No Receiver", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
+        DoSubState.Instance(4204,DeliveryOrderStatus.Exception, "Vehicle Breakdown", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
         //PostDelivery
-        DoSubState.Instance(4301, "Unreachable Recipient", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(4302, "No Consensus with Sender", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(4303, "Unsafe Delivery Location", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(4304, "Refusal by Recipient", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(4305, "Changed Delivery Conditions", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(4301,DeliveryOrderStatus.Exception, "Unreachable Recipient", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(4302,DeliveryOrderStatus.Exception, "No Consensus with Sender", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(4303,DeliveryOrderStatus.Exception, "Unsafe Delivery Location", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(4304,DeliveryOrderStatus.Exception, "Refusal by Recipient", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(4305,DeliveryOrderStatus.Exception, "Changed Delivery Conditions", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
     };
 
     public static readonly DoSubState[] Assigned = new[]
     {
         //骑手最开始的阶段, 获取订单后会自动转成这个状态
-        DoSubState.Instance(100, "Rider assigned", TransitionRoles.Rider, DeliveryOrderStatus.Created),
-        DoSubState.Instance(101, "Ongoing to Pickup", TransitionRoles.Rider, DeliveryOrderStatus.Created,
+        DoSubState.Instance(100,DeliveryOrderStatus.Assigned, "Rider assigned", TransitionRoles.Rider, DeliveryOrderStatus.Created),
+        DoSubState.Instance(101,DeliveryOrderStatus.Assigned, "Ongoing to Pickup", TransitionRoles.Rider, DeliveryOrderStatus.Created,
             DeliveryOrderStatus.Assigned),
     };
 
     public static readonly DoSubState[] Delivering = new[]
     {
-        DoSubState.Instance(201, "Enroute to Destination", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
-        DoSubState.Instance(202, "Scheduled Arrival", TransitionRoles.Rider, 201),
-        DoSubState.Instance(203, "Awaiting Delivery", TransitionRoles.Rider, 202),
-        DoSubState.Instance(204, "Consignment Transfer", TransitionRoles.Rider, 203),
+        DoSubState.Instance(201,DeliveryOrderStatus.Delivering, "Enroute to Destination", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
+        DoSubState.Instance(202,DeliveryOrderStatus.Delivering, "Scheduled Arrival", TransitionRoles.Rider, 201),
+        DoSubState.Instance(203,DeliveryOrderStatus.Delivering, "Awaiting Delivery", TransitionRoles.Rider, 202),
+        DoSubState.Instance(204,DeliveryOrderStatus.Delivering, "Consignment Transfer", TransitionRoles.Rider, 203),
     };
 
     public static readonly DoSubState[] PostDelivery = new[]
     {
-        DoSubState.Instance(301, "Destination Arrived", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
-        DoSubState.Instance(302, "Waiting for Collector", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(303, "No Receiver Found", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(304, "Calling Sender", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(305, "Consignment Transfer", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
-        DoSubState.Instance(399, "Item Delivered", TransitionRoles.Rider, DeliveryOrderStatus.Delivering, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(301,DeliveryOrderStatus.PostDelivery, "Destination Arrived", TransitionRoles.Rider, DeliveryOrderStatus.Delivering),
+        DoSubState.Instance(302,DeliveryOrderStatus.PostDelivery, "Waiting for Collector", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(303,DeliveryOrderStatus.PostDelivery, "No Receiver Found", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(304,DeliveryOrderStatus.PostDelivery, "Calling Sender", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(305,DeliveryOrderStatus.PostDelivery, "Consignment Transfer", TransitionRoles.Rider, DeliveryOrderStatus.PostDelivery),
+        DoSubState.Instance(399,DeliveryOrderStatus.PostDelivery, "Item Delivered", TransitionRoles.Rider, DeliveryOrderStatus.Delivering, DeliveryOrderStatus.PostDelivery),
     };
     public static readonly DoSubState[] Cancel = new[]
     {
-        DoSubState.Instance(DoSubState.SenderCancelState, "Sender Cancellation",TransitionRoles.User, DeliveryOrderStatus.Created),
-        DoSubState.Instance(-101, "Rider Cancellation", TransitionRoles.Rider, DeliveryOrderStatus.Created),
-        DoSubState.Instance(-102, "Cancellation by Ordered", TransitionRoles.None, DeliveryOrderStatus.Created),
+        DoSubState.Instance(DoSubState.SenderCancelState,DeliveryOrderStatus.Canceled, "Sender Cancellation",TransitionRoles.User, DeliveryOrderStatus.Created),
+        DoSubState.Instance(-101,DeliveryOrderStatus.Canceled, "Rider Cancellation", TransitionRoles.Rider, DeliveryOrderStatus.Created),
+        DoSubState.Instance(-102,DeliveryOrderStatus.Canceled, "Cancellation by Ordered", TransitionRoles.None, DeliveryOrderStatus.Created),
     };
 
     public static readonly DoSubState[] Completed = new[]
     {
-        DoSubState.Instance(-200, "Customer Confirmed", TransitionRoles.User, DeliveryOrderStatus.Delivering),
-        DoSubState.Instance(-201, "Automatically Completed", TransitionRoles.None, DeliveryOrderStatus.Delivering),
+        DoSubState.Instance(-200,DeliveryOrderStatus.Completed, "Customer Confirmed", TransitionRoles.User, DeliveryOrderStatus.Delivering),
+        DoSubState.Instance(-201,DeliveryOrderStatus.Completed, "Automatically Completed", TransitionRoles.None, DeliveryOrderStatus.Delivering),
     };
 
     public static bool IsAssignableSubState(TransitionRoles role,int fromId, int toId)
     {
-        var state = GetAllSubStates().FirstOrDefault(s => s.StateId == toId);
+        var state = GetState(toId);
         return state != null && state.IsAllowFrom(role, fromId);
     }
 
@@ -232,10 +238,14 @@ public static class DeliveryOrderStatusExtension
 
     public static int ConvertToDoStatusInt(this int stateId)
     {
-        if (stateId == 0) return 0; // 零的特殊情况
+        // 判断原始数字是否为负
+        bool isNegative = stateId < 0;
 
         // 处理负数，取绝对值
         stateId = Math.Abs(stateId);
+
+        // 零的特殊情况
+        if (stateId == 0) return 0;
 
         // 计算数字长度
         int length = (int)Math.Floor(Math.Log10(stateId));
@@ -243,7 +253,7 @@ public static class DeliveryOrderStatusExtension
         // 计算除数（10的length次幂）
         int divisor = (int)Math.Pow(10, length);
 
-        // 返回第一个数字
-        return stateId / divisor;
+        // 返回第一个数字，并根据原始数字的符号调整
+        return isNegative ? -(stateId / divisor) : stateId / divisor;
     }
 }

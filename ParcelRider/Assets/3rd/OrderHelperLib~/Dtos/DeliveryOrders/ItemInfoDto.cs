@@ -14,7 +14,7 @@ public record ItemInfoDto
     /// </summary>
     public int Quantity { get; set; }
     /// <summary>
-    /// 材积, 长*宽*高/6000
+    /// 体积, 长*宽*高
     /// </summary>
     public double Volume { get; set; }
     /// <summary>

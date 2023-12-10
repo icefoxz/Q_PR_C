@@ -8,6 +8,8 @@
         public const string User_Update = "User_Update"; // User 更新
 
         public const string User_Logout = "User_Logout";
+        public const string User_DoPay_Rider = "User_DoPay_Rider";
+        public const string User_DoPay_Credit = "User_DoPay_Credit";
         
         public const string Order_Current_Set = "Order_Current_Update";
         public const string Order_Current_OptionsUpdate = "Order_Current_OptionsUpdate";

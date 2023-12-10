@@ -10,6 +10,9 @@ using OrderHelperLib.Dtos.DeliveryOrders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using OrderHelperLib.Dtos.Lingaus;
+using UnityEngine;
 
 namespace AOT.Controllers
 {
@@ -23,6 +26,15 @@ namespace AOT.Controllers
             AppModel.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
         public void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders) =>
             AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
+
+#if UNITY_EDITOR
+        protected bool IsTestMode([CallerMemberName] string methodName = null)
+        {
+            if (!App.IsTestMode) return false;
+            Debug.LogWarning($"记得写[{methodName}]的So");
+            return true;
+        }
+#endif
     }
 
     public class UserOrderController : OrderControllerBase
@@ -38,7 +50,7 @@ namespace AOT.Controllers
                         var bag = DataBag.Deserialize(message);
                         var dOrder = bag.Get<DeliveryOrder>(0);
                         var model = new DeliveryOrder(dOrder);
-                        AppModel.Resolve_Order(model);
+                        Resolve_Orders(model);
                         Do_SetCurrent(model.Id);
                         message = string.Empty;
                     }
@@ -50,7 +62,7 @@ namespace AOT.Controllers
                     ApiPanel.CreateDeliveryOrder(order, doModel =>
                     {
                         var m = new DeliveryOrder(doModel);
-                        AppModel.Resolve_Order(m);
+                        Resolve_Orders(m);
                         Do_SetCurrent(m.Id);
                         callbackAction?.Invoke(true, string.Empty);
                     }, msg =>
@@ -60,23 +72,7 @@ namespace AOT.Controllers
                 });
         }
 
-        public void Do_Payment(PaymentMethods payment, Action<bool, string> callbackAction)
-        {
-            Call(new object[] { payment }, args => ((bool)args[0], (string)args[1], (PaymentMethods)args[2]), arg =>
-            {
-                var (success, message, payMethod) = arg;
-                if (success)
-                {
-                    var current = App.Models.CurrentOrder;
-                    current.SetPaymentMethod(payMethod);
-                    message = string.Empty;
-                }
-                callbackAction(success, message);
-            }, () =>
-            {
-
-            });
-        }
+        private void Resolve_Orders(DeliveryOrder model) => AppModel.Resolve_Order(model, isRider: false);
 
         public void Do_UpdateAll(int pageIndex = 0)
         {
@@ -115,7 +111,7 @@ namespace AOT.Controllers
                     var o = AppModel.AssignedOrders.GetOrder(ordId);
                     o.Status = ((int)status);
                     o.SubState = DoSubState.SenderCancelState;
-                    AppModel.Resolve_Order(o);
+                    Resolve_Orders(o);
                     Do_SetCurrent(o.Id);
                 }
             }, () =>
@@ -126,7 +122,7 @@ namespace AOT.Controllers
                     if (success)
                     {
                         var order = bag.Get<DeliverOrderModel>(0);
-                        AppModel.Resolve_Order(new DeliveryOrder(order));
+                        Resolve_Orders(new DeliveryOrder(order));
                         Do_SetCurrent(orderId);
                         return;
                     }
@@ -137,7 +133,7 @@ namespace AOT.Controllers
 
         public void Get_SubStates()
         {
-            if (App.IsTestMode) return;
+            if (IsTestMode()) return;
             ApiPanel.User_GetSubStates(b =>
             {
                 var subStates = b.Get<DoSubState[]>(0);
@@ -152,5 +148,29 @@ namespace AOT.Controllers
         }
 
         public void Do_SetCurrent(long orderId) => App.Models.SetCurrentOrder(orderId);
+
+        public void DoPay_RiderCollect(Action<bool, string> callbackAction)
+        {
+            if (IsTestMode()) return;
+            var orderId = AppModel.CurrentOrder.Id;
+            ApiPanel.User_DoPay_Rider(orderId, b =>
+                {
+                    var order = b.Get<DeliverOrderModel>(0);
+                    Resolve_Orders(new DeliveryOrder(order));
+                    callbackAction(true, string.Empty);
+                },
+                message => callbackAction(false, message));
+        }
+
+        public void DoPay_DeductFromCredit(Action<bool, string> callbackAction)
+        {
+            if (IsTestMode()) return;
+            var orderId = AppModel.CurrentOrder.Id;
+            ApiPanel.User_DoPay_Credit(orderId, b =>
+            {
+                var lingau = b.Get<LingauModel>(0);
+                AppModel.SetUserLingau(lingau);
+            }, message => callbackAction(false, message));
+        }
     }
 }

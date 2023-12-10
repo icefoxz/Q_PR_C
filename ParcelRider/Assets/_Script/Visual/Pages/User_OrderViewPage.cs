@@ -12,6 +12,7 @@ namespace Visual.Pages
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security.Cryptography;
     using AOT.BaseUis;
     using AOT.Controllers;
     using AOT.Core;
@@ -57,8 +58,8 @@ namespace Visual.Pages
             protected override void OnUiShow()
             {
                 base.OnUiShow();
-                var state = App.Models.CurrentOrder.SubState;
-                var isAssignable = (DoStateMap.IsAssignableSubState(TransitionRoles.User, state, DoSubState.SenderCancelState));
+                var subState = App.Models.CurrentOrder.SubState;
+                var isAssignable = (DoStateMap.IsAssignableSubState(TransitionRoles.User, subState, DoSubState.SenderCancelState));
                 btn_cancel.gameObject.SetActive(isAssignable);
             }
 

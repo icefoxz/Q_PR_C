@@ -1,6 +1,7 @@
 using System;
 using AOT.BaseUis;
 using AOT.Core;
+using AOT.Model;
 using AOT.Views;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,12 +36,16 @@ namespace Visual.Sects
             App.MessagingManager.RegEvent(EventString.User_Update, _ =>
             {
                 var user = App.Models.User;
-                if (user != null) Set(user.Name, user.Avatar);
+                if (user == null) return;
+                Set(user.Name, user.Avatar);
+                var lingau = user.Lingau?.Credit ?? 0;
+                SetLingau(lingau);
             });
             App.MessagingManager.RegEvent(EventString.Rider_Update, _ =>
             {
                 var rider = App.Models.Rider;
-                if (rider != null) Set(rider.Name, null);
+                if (rider == null) return;
+                Set(rider.Name, null);
             });
         }
 
@@ -67,6 +72,6 @@ namespace Visual.Sects
             btn_lingau.OnClickAdd(onclickAction);
         }
 
-        public void Set(float value) => text_value.text = value.ToString("##.##");
+        public void Set(float value) => text_value.text = value.ToString("F");
     }
 }

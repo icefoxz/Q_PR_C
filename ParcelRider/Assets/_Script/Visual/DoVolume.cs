@@ -30,6 +30,7 @@ namespace Visual
             var fare = Math.Max(kgFare, kmFare);
             return Math.Max(fare, min);
         }
-        public float GetSize() => MathF.Pow(Length * Width * Height, 1f / 3f);
+
+        public float GetSize() => Length * Width * Height;
     }
 }
