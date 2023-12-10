@@ -6,6 +6,7 @@ using AOT.Core;
 using AOT.DataModel;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
+using OrderHelperLib.Dtos.Lingaus;
 using OrderHelperLib.Dtos.Users;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -91,15 +92,22 @@ namespace AOT.Model
         /// 自动更新当前的order并自动插入到相应的list
         /// </summary>
         /// <param name="order"></param>
-        public void Resolve_Order(DeliveryOrder order)
+        public void Resolve_Order(DeliveryOrder order, bool isRider)
         {
             var status = (DeliveryOrderStatus)order.Status;
             AssignedOrders.RemoveOrder(order.Id);
             UnassignedOrders.RemoveOrder(order.Id);
             History.RemoveOrder(order.Id);
             if (status.IsClosed()) History.AddOrder(order);
-            else if (status.IsAssigned()) AssignedOrders.AddOrder(order);
+            else if (isRider && status.IsAssigned()) AssignedOrders.AddOrder(order);//rider
+            else if(!isRider) AssignedOrders.AddOrder(order);//user
             else UnassignedOrders.AddOrder(order);
+        }
+
+        public void SetUserLingau(LingauModel lingau)
+        {
+            User.Lingau = lingau;
+            App.SendEvent(EventString.User_Update);
         }
     }
 }

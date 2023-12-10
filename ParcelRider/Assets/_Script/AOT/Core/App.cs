@@ -103,7 +103,7 @@ namespace AOT.Core
                             Width = random.Next(1, 10),
                             Height = random.Next(1, 10)
                         },
-                        PaymentInfo = new PaymentInfo
+                        PaymentInfo = new PaymentInfoDto
                         {
                             Charge = random.Next(1, 100), // Random Charge
                             Fee = random.Next(1, 100), // Random Fee

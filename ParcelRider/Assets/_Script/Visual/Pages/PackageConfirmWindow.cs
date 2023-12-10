@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Visual.Pages
 {
-    public class PackageConfirmWindow : WinUiBase
+    public class PackagePaymentWindow : WinUiBase
     {
         private Button btn_cancel { get; }
         private Button btn_riderCollect { get; }
@@ -13,40 +13,25 @@ namespace Visual.Pages
         private Button btn_paymentGateway { get; }
         private View_info view_Info { get; }
 
-        public PackageConfirmWindow(IView v, User_UiManager uiManager) : base(v, uiManager)
+        public PackagePaymentWindow(IView v, User_UiManager uiManager) : base(v, uiManager)
         {
             view_Info = new View_info(v.Get<View>("view_info"));
             btn_cancel = v.Get<Button>("btn_cancel");
             btn_riderCollect = v.Get<Button>("btn_riderCollect");
             btn_deductCredit = v.Get<Button>("btn_deductCredit");
             btn_paymentGateway = v.Get<Button>("btn_paymentGateway");
-            btn_cancel.OnClickAdd(() => Hide());
+            btn_cancel.OnClickAdd(Hide);
         }
-
 
         public void Set(float point, float kg, float length, float width, float height, 
             Action onRiderCollectAction,
             Action onDeductFromPoint, 
             Action onPaymentGateway)
         {
-            UiManager.DisplayWindows(true);
             view_Info.Set(point, kg, length, width, height);
-            btn_riderCollect.OnClickAdd(() =>
-            {
-                onRiderCollectAction?.Invoke();
-                Hide();
-            });
-            btn_deductCredit.OnClickAdd(() =>
-            {
-                onDeductFromPoint?.Invoke();
-                Hide();
-            });
-            btn_paymentGateway.OnClickAdd(() =>
-            {
-                onPaymentGateway?.Invoke();
-                Hide();
-            });
-
+            btn_riderCollect.OnClickAdd(onRiderCollectAction);
+            btn_deductCredit.OnClickAdd(onDeductFromPoint);
+            btn_paymentGateway.OnClickAdd(onPaymentGateway);
             Show();
         }
 

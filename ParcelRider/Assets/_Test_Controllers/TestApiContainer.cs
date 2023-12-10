@@ -44,13 +44,13 @@ public class TestApiContainer : MonoBehaviour
             ActiveOrderSo.CancelOrder(orderId);
             return new object[] { isSuccess, status, ordId };
         }, userOrderController);
-        RegTester(nameof(userOrderController.Do_Payment), args =>
-        {
-            var payM = (PaymentMethods)args[0];
-            var (isSuccess, message, payMethod) = OrderParcelSo.PaymentOrderService(payM);
-            ActiveOrderSo.SetPayment(payM);
-            return new object[] { isSuccess, message, payMethod };
-        }, userOrderController);
+        //RegTester(nameof(userOrderController.Do_Payment), args =>
+        //{
+        //    var payM = (PaymentMethods)args[0];
+        //    var (isSuccess, message, payMethod) = OrderParcelSo.PaymentOrderService(payM);
+        //    ActiveOrderSo.SetPayment(payM);
+        //    return new object[] { isSuccess, message, payMethod };
+        //}, userOrderController);
         RegTester(nameof(userOrderController.Do_Create), args =>
         {
             var order = (DeliverOrderModel)args[0];

@@ -2,7 +2,7 @@
 
 namespace OrderHelperLib.Dtos.DeliveryOrders;
 
-public record PaymentInfo
+public record PaymentInfoDto
 {
     /// <summary>
     /// 运送费
@@ -28,4 +28,29 @@ public enum PaymentMethods : byte
     UserCredit, // 用户扣账
     RiderCollection, // 骑手代收
     OnlinePayment, // 在线支付
+}
+
+public static class PaymentMethodsExtensions
+{
+    public static string ToDisplayString(this PaymentMethods method)
+    {
+        return method switch
+        {
+            PaymentMethods.UserCredit => "UserCredit",
+            PaymentMethods.RiderCollection => "RiderCollection",
+            PaymentMethods.OnlinePayment => "OnlinePayment",
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
+        };
+    }
+
+    public static PaymentMethods ToPaymentMethod(this string method)
+    {
+        return method switch
+        {
+            "UserCredit" => PaymentMethods.UserCredit,
+            "RiderCollection" => PaymentMethods.RiderCollection,
+            "OnlinePayment" => PaymentMethods.OnlinePayment,
+            _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
+        };
+    }
 }

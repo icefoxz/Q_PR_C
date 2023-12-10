@@ -41,7 +41,7 @@ namespace Visual.Pages
         private View_AccountSect View_AccountSect { get; set; }
 
         private User_NewPackagePage User_NewPackagePage { get; set; }
-        private PackageConfirmWindow PackageConfirmWindow { get; set; }
+        private PackagePaymentWindow PackagePaymentWindow { get; set; }
         private AccountWindow AccountWindow { get; set; }
         private ConfirmWindow ConfirmWindow { get; set; }
         private MessageWindow MessageWindow { get; set; }
@@ -61,7 +61,7 @@ namespace Visual.Pages
                 new User_MainPage(v: _mainPage, id => UserOrderController.Do_SetCurrent(id), uiManager: this);
             PaymentPage = new PaymentPage(v: _paymentPage, uiManager: this);
 
-            PackageConfirmWindow = new PackageConfirmWindow(v: _win_packageConfirm, uiManager: this);
+            PackagePaymentWindow = new PackagePaymentWindow(v: _win_packageConfirm, uiManager: this);
             AccountWindow = new AccountWindow(v: _win_account, uiManager: this);
             ConfirmWindow = new ConfirmWindow(v: _win_confirm, uiManager: this);
             MessageWindow = new MessageWindow(v: _win_message, uiManager: this);
@@ -71,7 +71,6 @@ namespace Visual.Pages
                 uiManager: this);
             User_NewPackagePage = new User_NewPackagePage(v: _newPackagePage, onSubmit: NewDo_Submit, uiManager: this);
             if (startUi) StartUi();
-            Windows.SetActive(value: false);
         }
 
         private void OnRequestCancel()
@@ -103,7 +102,7 @@ namespace Visual.Pages
         //当新的包裹提交
         private void NewDo_Submit()
         {
-            var order = User_NewPackagePage.GenerateOrder();
+            var order = User_NewPackagePage.GenerateDoModel();
             var item = order.ItemInfo;
             var payment = order.PaymentInfo;
             UserOrderController.Do_Create(order, (success, message) =>
@@ -113,7 +112,9 @@ namespace Visual.Pages
                     MessageWindow.Set(title: "Create Order Failed", content: message);
                     return;
                 }
-                PackageConfirmWindow.Set(point: payment.Charge, 
+                User_NewPackagePage.ResetUi();
+                User_NewPackagePage.Hide();
+                PackagePaymentWindow.Set(point: payment.Charge, 
                     kg: item.Weight, 
                     length: item.Length, 
                     width: item.Width, 
@@ -122,33 +123,35 @@ namespace Visual.Pages
                     onDeductFromPoint: DeductFromCredit,
                     onPaymentGateway: PaymentGateway);
             });
+            return;
 
-            void RiderCollectPayment() => CreateNewDeliveryOrder(method: PaymentMethods.RiderCollection);
+            void RiderCollectPayment()
+            {
+                UserOrderController.DoPay_RiderCollect((success, message) =>
+                {
+                    if (!success)
+                    {
+                        MessageWindow.Set(title: "Payment", content: message);
+                        return;
+                    }
+                    PackagePaymentWindow.Hide();
+                });
+            }
 
-            void DeductFromCredit() => CreateNewDeliveryOrder(method: PaymentMethods.UserCredit);
+            void DeductFromCredit()
+            {
+                UserOrderController.DoPay_DeductFromCredit((success, message) =>
+                {
+                    MessageWindow.Set(title: "Payment", content: success ? "Success!" : message);
+                    if (!success) return;
+                    PackagePaymentWindow.Hide();
+                });
+            }
 
             void PaymentGateway()
             {
                 PaymentPage.Set(onPaymentAction: success =>
-                {
-                    if (success) CreateNewDeliveryOrder(method: PaymentMethods.OnlinePayment);
-                });
-            }
-
-            void CreateNewDeliveryOrder(PaymentMethods method)
-            {
-                UserOrderController.Do_Payment(payment: method, callbackAction: (success, message) =>
-                {
-                    if (success)
-                    {
-                        User_NewPackagePage.Hide();
-                        User_NewPackagePage.ResetUi();
-                        UserOrderController.Do_UpdateAll();
-                        MessageWindow.Set(title: "Create Order", content: "Success!");
-                        return;
-                    }
-                    MessageWindow.Set(title: "Payment Failed", content: message);
-                });
+                    MessageWindow.Set(title: "Payment", content: success ? "Success!" : "Failed!"));
             }
         }
 

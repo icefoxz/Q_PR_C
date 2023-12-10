@@ -16,12 +16,6 @@ namespace AOT.Controllers
     public class RiderOrderController : OrderControllerBase
     {
         private DeliveryOrder GetOrder(long orderId) => AppModel.GetOrder(orderId);
-        private bool IsTestMode([CallerMemberName]string methodName = null)
-        {
-            if (!App.IsTestMode) return false;
-            Debug.LogWarning($"记得写[{methodName}]的So");
-            return true;
-        }
 
         public void Get_SubStates()
         {
@@ -62,7 +56,7 @@ namespace AOT.Controllers
         }
 
         //处理单个order的update, 并且更新到相应的列表中
-        private void Resolve_OrderCollections(DeliveryOrder order)=> AppModel.Resolve_Order(order);
+        private void Resolve_OrderCollections(DeliveryOrder order) => AppModel.Resolve_Order(order, isRider: true);
 
         public void Do_Get_Unassigned(int pageIndex = 0)
         {

@@ -44,7 +44,7 @@ public class HistoryOrderSo : ScriptableObject
                             Width = random.Next(1, 10),
                             Height = random.Next(1, 10)
                         },
-                        PaymentInfo = new PaymentInfo
+                        PaymentInfo = new PaymentInfoDto
                         {
                             Charge = random.Next(1,100),
                             Fee = random.Next(1, 100),

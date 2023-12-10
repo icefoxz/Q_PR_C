@@ -23,7 +23,7 @@ public record DeliverOrderModel : LongDto
     public string? RiderId { get; set; }
     public RiderModel? Rider { get; set; }
     //付款信息
-    public PaymentInfo? PaymentInfo { get; set; }
+    public PaymentInfoDto? PaymentInfo { get; set; }
     //订单状态, 正数 = 进行中, 负数 = 已完成
     public int Status { get; set; }
     //订单子状态

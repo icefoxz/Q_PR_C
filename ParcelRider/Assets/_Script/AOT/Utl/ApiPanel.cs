@@ -1,5 +1,4 @@
 ﻿using System;
-using AOT.BaseUis;
 using AOT.Core;
 using AOT.Views;
 using OrderHelperLib;
@@ -301,5 +300,13 @@ namespace AOT.Utl
         public static void Rider_UpdateState(long orderId, int subState, Action<DataBag> successAction,
             Action<string> failedAction) => CallBag(EventString.Rider_Do_StateUpdate,
             DataBag.Serialize(orderId, subState), successAction, failedAction);
+
+        public static void User_DoPay_Rider(long orderId, Action<DataBag> successAction, Action<string> failedAction) =>
+            CallBag(EventString.User_DoPay_Rider, DataBag.SerializeWithName(EventString.User_DoPay_Rider, orderId),
+                successAction, failedAction);
+
+        public static void User_DoPay_Credit(long orderId, Action<DataBag> success, Action<string> failed) =>
+            CallBag(EventString.User_DoPay_Credit, DataBag.SerializeWithName(EventString.User_DoPay_Credit, orderId), success,
+                failed);
     }
 }

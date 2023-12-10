@@ -24,8 +24,8 @@ namespace Visual.Pages
         private Element_Form element_to { get; }
         private Element_Form element_from { get; }
         private View_addressList view_addressList { get; }
-        private Coordinate FromCo { get; set; } = new(0, 0);
-        private Coordinate ToCo { get; set; } = new(0, 0);
+        private Coordinate FromCo => element_from.Coordinate;
+        private Coordinate ToCo => element_to.Coordinate;
 
         private DoVolume CurrentDo { get; set; }
         private AutofillAddressController AutocompleteAddressController => App.GetController<AutofillAddressController>();
@@ -185,7 +185,7 @@ namespace Visual.Pages
             Show();
         }
 
-        public DeliverOrderModel GenerateOrder()
+        public DeliverOrderModel GenerateDoModel()
         {
             var order = new DeliverOrderModel
             {
@@ -231,9 +231,9 @@ namespace Visual.Pages
                 };
             }
 
-            PaymentInfo GetPaymentInfo()
+            PaymentInfoDto GetPaymentInfo()
             {
-                return new PaymentInfo
+                return new PaymentInfoDto
                 {
                     Charge = CurrentDo.GetCost(),
                     Fee = CurrentDo.GetCost(),
@@ -250,18 +250,6 @@ namespace Visual.Pages
                 };
             }
         }
-
-        //private void UpdateGeocode()
-        //{
-        //    if (element_from.IsAddressReady && element_to.IsAddressReady)
-        //    {
-        //        if (!FromCo.IsEqual(element_from))
-        //            GeocodingController.GetGeocodeFrom(element_from.Address, r => SetGeo(element_from, FromCo, r));
-        //        if (!ToCo.IsEqual(element_to))
-        //            GeocodingController.GetGeocodeTo(element_to.Address, r => SetGeo(element_to, ToCo, r));
-        //    }
-        //
-        //}
 
         private void SetGeo(Element_Form form, Coordinate co)
         {
@@ -301,7 +289,6 @@ namespace Visual.Pages
             view_packageInfo.Set(0, 0, 0, 0);
             element_to.ResetUi();
             element_from.ResetUi();
-
         }
 
         private class Element_Form : UiBase
@@ -324,8 +311,7 @@ namespace Visual.Pages
             //public string PlaceId { get;private set; } //Sect_autofill_address.PlaceId;
             public string Address => input_geoLocation.InputField.text; //Sect_autofill_address.Input;
             public string Phone => input_phone.InputField.text;
-            public double Lat { get; private set; }
-            public double Lng { get; private set; }
+            public Coordinate Coordinate { get; private set; } = new(0, 0);
             public bool IsSelectedInputField => input_contact.InputField.isFocused ||
                                                 input_address.InputField.isFocused ||
                                                 input_phone.InputField.isFocused ||
@@ -394,8 +380,7 @@ namespace Visual.Pages
 
             public void SetCoordinate(Coordinate co)
             {
-                Lng = co.Lng;
-                Lat = co.Lat;
+                Coordinate = co;
                 IsAllAddressGeoLocated = true;
             }
         }
@@ -463,8 +448,8 @@ namespace Visual.Pages
             public double Lng { get; set; } = Lng;
             public bool HasCoordinate => Lat != 0 && Lng != 0;
 
-            public bool IsEqual(Element_Form form) => Math.Abs(Lat - form.Lat) < 0.00001f &&
-                                                      Math.Abs(Lng - form.Lng) < 0.00001f;
+            public bool IsEqual(Element_Form form) => Math.Abs(Lat - form.Coordinate.Lat) < 0.00001f &&
+                                                      Math.Abs(Lng - form.Coordinate.Lng) < 0.00001f;
         }
     }
 }

@@ -22,10 +22,7 @@ namespace AOT.Controllers
         public void RequestLogin(string username, string password,
             Action<(bool isSuccess, string message)> callback)
         {
-            Call(new object[]
-            {
-                username, password
-            }, testConvertFunc: args => ((bool)args[0], (string)args[1]),
+            Call(new object[] { username, password }, testConvertFunc: args => ((bool)args[0], (string)args[1]),
                 arg =>
                 {
                     var (isSuccess, message) = arg;
