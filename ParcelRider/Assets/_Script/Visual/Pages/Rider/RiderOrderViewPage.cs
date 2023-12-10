@@ -76,14 +76,16 @@ namespace Visual.Pages.Rider
             view_packageInfo.Set(payment.Charge, deliver.Distance, item.Weight, item.Size());
             element_contactFrom.Set(sender.Name, sender.Phone, deliver.StartLocation.Address);
             element_contactTo.Set(receiver.Name, receiver.PhoneNumber, deliver.EndLocation.Address);
-            UpdateState(order.State);
+            UpdateState();
             Show();
 
-            void UpdateState(DeliveryOrderStatus state)
+            void UpdateState()
             {
+                var state = order.State;
                 btn_exception.gameObject.SetActive(state.IsInProgress());
                 view_states.SetState(state);
-                view_riderOptions.SetState(state);
+                var possibleStates = DoStateMap.GetPossibleStates(TransitionRoles.Rider, order.SubState);
+                view_riderOptions.SetState(possibleStates);
             }
         }
 
@@ -140,25 +142,37 @@ namespace Visual.Pages.Rider
             private Button btn_collection { get; }
             private Button btn_complete { get; }
 
+            private event Action<int> OnStateSelected;
+
             public View_riderOptions(IView v,
                 Action<int> onStateSelected, bool display = true) : base(v, display)
             {
-                btn_takeOrder = v.Get<Button>("btn_takeOrder");
-                btn_pickItem = v.Get<Button>("btn_pickItem");
-                btn_collection = v.Get<Button>("btn_collection");
-                btn_complete = v.Get<Button>("btn_complete");
-                btn_takeOrder.OnClickAdd(() => onStateSelected(100));
-                btn_pickItem.OnClickAdd(() => onStateSelected(200));
-                btn_collection.OnClickAdd(() => onStateSelected(300));
-                btn_complete.OnClickAdd(() => onStateSelected(-2));
+                OnStateSelected = onStateSelected;
+                //btn_takeOrder = v.Get<Button>("btn_takeOrder");
+                //btn_pickItem = v.Get<Button>("btn_pickItem");
+                //btn_collection = v.Get<Button>("btn_collection");
+                //btn_complete = v.Get<Button>("btn_complete");
+                //btn_takeOrder.OnClickAdd(() => onStateSelected(100));
+                //btn_pickItem.OnClickAdd(() => onStateSelected(200));
+                //btn_collection.OnClickAdd(() => onStateSelected(300));
+                //btn_complete.OnClickAdd(() => onStateSelected(-2));
             }
 
-            public void SetState(DeliveryOrderStatus state)
+            public void SetState(DoSubState[] subStates)
             {
-                btn_takeOrder.gameObject.SetActive(state == DeliveryOrderStatus.Created);
-                btn_pickItem.gameObject.SetActive(state == DeliveryOrderStatus.Assigned);
-                btn_collection.gameObject.SetActive(state == DeliveryOrderStatus.Delivering);
-                btn_complete.gameObject.SetActive(state == DeliveryOrderStatus.Completed);
+                //todo: 这里进来的都是可能发生的 subStates
+                foreach (var state in subStates)
+                {
+                    var stateTitle = state.StateName;//状态描述
+                    var stateId = state.StateId;//状态id
+                    var status = state.GetStatus;//Major status
+                    //todo: 理想中button点击后会发射 OnStateSelected?.Invoke(stateId)
+                }
+
+                //btn_takeOrder.gameObject.SetActive(state == DeliveryOrderStatus.Created);
+                //btn_pickItem.gameObject.SetActive(state == DeliveryOrderStatus.Assigned);
+                //btn_collection.gameObject.SetActive(state == DeliveryOrderStatus.Delivering);
+                //btn_complete.gameObject.SetActive(state == DeliveryOrderStatus.Completed);
             }
         }
 

@@ -10,19 +10,21 @@ namespace AOT.Model
     /// <summary>
     /// 订单集合, 用于存储订单列表和当前订单
     /// </summary>
-    public abstract class DoDataModel 
+    public abstract class DoPageModel 
     {
         // 订单列表
         private List<DeliveryOrder> _orders = new List<DeliveryOrder>();
         public IReadOnlyList<DeliveryOrder> Orders => _orders;
         protected abstract void SendOrdersUpdateEvent();
 
+        public int PageIndex { get; private set; }
+
         /// <summary>
         /// 设置订单
         /// </summary>
-        /// <param name="orders"></param>
-        public void SetOrders(ICollection<DeliveryOrder> orders)
+        public void SetOrders(ICollection<DeliveryOrder> orders,int pageIndex)
         {
+            PageIndex = pageIndex;
             _orders.Clear();
             _orders.AddRange(orders);
             SendOrdersUpdateEvent();
@@ -51,7 +53,11 @@ namespace AOT.Model
         // 发送事件
         protected void SendEvent(string eventString) => App.SendEvent(eventString, null);
 
-        public void Reset() => _orders.Clear();
+        public void Reset()
+        {
+            _orders.Clear();
+            PageIndex = 0;
+        }
 
         /// <summary>
         /// 添加订单 (删除已有的Id)
@@ -66,7 +72,7 @@ namespace AOT.Model
         }
     }
 
-    public class UnassignedDoModel : DoDataModel
+    public class UnassignedDoModel : DoPageModel
     {
         protected override void SendOrdersUpdateEvent()
         {
@@ -74,14 +80,14 @@ namespace AOT.Model
         }
     }
 
-    public class ActiveDoModel : DoDataModel
+    public class ActiveDoModel : DoPageModel
     {
         protected override void SendOrdersUpdateEvent()
         {
             SendEvent(EventString.Orders_Assigned_Update);
         }
     }
-    public class HistoryDoModel : DoDataModel
+    public class HistoryDoModel : DoPageModel
     {
         protected override void SendOrdersUpdateEvent()
         {

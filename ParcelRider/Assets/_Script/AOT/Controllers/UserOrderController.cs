@@ -22,10 +22,10 @@ namespace AOT.Controllers
         public const float MeterToFeet = 3.280839895f;
         protected AppModels AppModel => App.Models;
 
-        public void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders) =>
-            AppModel.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
-        public void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders) =>
-            AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray());
+        public void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders, int pageIndex) =>
+            AppModel.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
+        public void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders, int pageIndex) =>
+            AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
 
 #if UNITY_EDITOR
         protected bool IsTestMode([CallerMemberName] string methodName = null)
@@ -80,10 +80,10 @@ namespace AOT.Controllers
                 {
                     var bag = DataBag.Deserialize(arg);
                     var list = bag.Get<List<DeliverOrderModel>>(0);
-                    List_ActiveOrder_Set(list.ToArray());
+                    List_ActiveOrder_Set(list.ToArray(), pageIndex);
                     return;
                 },
-                () => ApiPanel.User_GetDeliveryOrders(50, pageIndex, pg => List_ActiveOrder_Set(pg.List),
+                () => ApiPanel.User_GetDeliveryOrders(50, pageIndex, pg => List_ActiveOrder_Set(pg.List, pageIndex),
                     msg => MessageWindow.Set("Error", "Error in updating data!")));
         }
 
@@ -93,10 +93,10 @@ namespace AOT.Controllers
             {
                 var bag = DataBag.Deserialize(arg);
                 List<DeliverOrderModel> list = bag.Get<List<DeliverOrderModel>>(0);
-                List_HistoryOrderSet(list);
+                List_HistoryOrderSet(list, pageIndex);
             }, () =>
             {
-                ApiPanel.User_GetHistories(50, pageIndex, pg => List_HistoryOrderSet(pg.List),
+                ApiPanel.User_GetHistories(50, pageIndex, pg => List_HistoryOrderSet(pg.List, pageIndex),
                     msg => MessageWindow.Set("Error", "Error in updating data!"));
             });
         }

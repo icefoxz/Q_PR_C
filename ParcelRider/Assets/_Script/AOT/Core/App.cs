@@ -66,16 +66,16 @@ namespace AOT.Core
             //add testing orders
             var testList = GenerateRandomOrders(5);
                 Models.SetUser(new UserModel() { Id = "TestUser" });
-
+            var pageIndex = 0;
             if (IsUserMode)
             {
                 var userOrderController = GetController<UserOrderController>();
-                userOrderController.List_ActiveOrder_Set(testList);
+                userOrderController.List_ActiveOrder_Set(testList, pageIndex);
             }
             else
             {
                 var riderOrderController = GetController<RiderOrderController>();
-                riderOrderController.List_ActiveOrder_Set(testList);
+                riderOrderController.List_ActiveOrder_Set(testList, pageIndex);
             }
 
             #region TestRandomGenerateOrder

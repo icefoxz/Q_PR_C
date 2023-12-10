@@ -35,7 +35,9 @@ public class DoSubState
     /// 上个状态, 如果为null, 则表示是不能从上个状态执行
     /// </summary>
     public DeliveryOrderStatus[] FromStatusList { get; set; }
-
+    /// <summary>
+    /// 可操作角色
+    /// </summary>
     public TransitionRoles TransitionRole { get; set; }
     public int[] FromStates { get; set; }
 

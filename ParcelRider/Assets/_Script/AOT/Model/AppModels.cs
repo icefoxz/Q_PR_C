@@ -21,9 +21,9 @@ namespace AOT.Model
         /// <summary>
         /// Rider = Assigned orders, User = Created orders
         /// </summary>
-        public DoDataModel AssignedOrders { get; private set; } = new ActiveDoModel();
-        public DoDataModel UnassignedOrders { get; private set; } = new UnassignedDoModel();
-        public DoDataModel History { get; private set; } = new HistoryDoModel();
+        public DoPageModel AssignedOrders { get; private set; } = new ActiveDoModel();
+        public DoPageModel UnassignedOrders { get; private set; } = new UnassignedDoModel();
+        public DoPageModel History { get; private set; } = new HistoryDoModel();
 
         public DeliveryOrder? CurrentOrder { get; private set; }
         public DoSubState[] CurrentStateOptions { get; private set; } = Array.Empty<DoSubState>();
