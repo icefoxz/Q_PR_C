@@ -14,7 +14,8 @@ public class TestApiContainer : MonoBehaviour
     public LoginServiceSo LoginServiceSo;
     public OrderParcelSo OrderParcelSo;
     public HistoryOrderSo HistoryOrderSo;
-    public ActiveOrderSo ActiveOrderSo;
+    public OrderSimSo ActiveOrderSo;
+    public OrderSimSo HistorySo;
     public RiderLoginServiceSo RiderLoginServiceSo;
 
 #if UNITY_EDITOR
@@ -41,7 +42,11 @@ public class TestApiContainer : MonoBehaviour
         {
             var orderId = (long)args[0];
             var (isSuccess, status, ordId)  = OrderParcelSo.GetOrderService(orderId);
-            ActiveOrderSo.CancelOrder(orderId);
+            //var order = ActiveOrderSo.GetOrder(ordId);
+            //order.Status = (int)DeliveryOrderStatus.Canceled;
+            //order.SubSTateId = DoSubState.SenderCancelState;
+            //ActiveOrderSo.Remove(orderId);
+            //HistorySo.Add(order);
             return new object[] { isSuccess, status, ordId };
         }, userOrderController);
         //RegTester(nameof(userOrderController.Do_Payment), args =>
@@ -62,7 +67,7 @@ public class TestApiContainer : MonoBehaviour
         },userOrderController);
         RegTester(nameof(userOrderController.Do_UpdateAll), _ =>
         {
-            var message = ActiveOrderSo.GetActiveOrderList();
+            var message = ActiveOrderSo.GetOrders();
             return new object[] { message };
         }, userOrderController);
         RegTester(nameof(userOrderController.Do_UpdateHistory), _ =>
@@ -137,17 +142,17 @@ public class TestApiContainer : MonoBehaviour
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_Get_Unassigned),  _=>
         {
-            var message = ActiveOrderSo.GetActiveOrderList();
+            var message = ActiveOrderSo.GetOrders();
             return new object[] { message };
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_Get_Assigned), _ =>
         {
-            var message = ActiveOrderSo.GetActiveOrderList();
+            var message = ActiveOrderSo.GetOrders();
             return new object[] { message };
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_Get_History), _ =>
         {
-            var message = ActiveOrderSo.GetActiveOrderList();
+            var message = ActiveOrderSo.GetOrders();
             return new object[] { message };
         }, riderOrderService);
     }
