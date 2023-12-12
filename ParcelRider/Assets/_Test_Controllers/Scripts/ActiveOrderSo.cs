@@ -1,17 +1,18 @@
 using OrderHelperLib.Contracts;
-using OrderHelperLib.Dtos.DeliveryOrders;
-using OrderHelperLib.Dtos.Riders;
-using OrderHelperLib.Dtos.Users;
 using OrderHelperLib;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using OrderHelperLib.Dtos.DeliveryOrders;
+using Sirenix.OdinInspector;
+using Random = System.Random;
 
 [CreateAssetMenu(fileName = "ActiveOrderSo", menuName ="TestServices/ActiveOrderSo")]
 public class ActiveOrderSo : ScriptableObject
 {
     [SerializeField] private ActiveOrderField _activeModel;
+    
     public string GetActiveOrderList() => _activeModel.GetActiveOrderList();
     public void SetNewOrder(DeliverOrderModel order) => _activeModel.SetNewOrderToList(order);
     public void CancelOrder(long orderId) => _activeModel.CancelOrderToList(orderId);
@@ -26,99 +27,135 @@ public class ActiveOrderSo : ScriptableObject
 
     [Serializable] private class ActiveOrderField
     {
+        private enum ListModes
+        {
+            Generate,
+            Preset,
+        }
+        [SerializeField] private ListModes Listmode;
         public int Count;
         public long CurrentId;
-        public List<DeliverOrderModel> deliverOrders = new List<DeliverOrderModel>();
+        public List<Model_Do> deliverOrders = new List<Model_Do>();
+        public List<Model_Do> _preset;
         [TextArea(5,20)]
         public string DoList;
         public string GetActiveOrderList()
         {
-            if (DoList == string.Empty)
+            if(Listmode == ListModes.Generate)
             {
-                Debug.Log("Create order list");
-                var hOrder = GenerateRandomHistory(Count);
-                List<DeliverOrderModel> GenerateRandomHistory(int count)
+                if (DoList == string.Empty)
                 {
-                    var random = new System.Random();
-                    var orders = new List<DeliverOrderModel>();
+                    Debug.Log("Create order list");
+                    var hOrder = GenerateRandomHistory(Count);
 
-                    for (int i = 0; i < count; i++)
+                    List<Model_Do> GenerateRandomHistory(int count)
                     {
-                        var order = new DeliverOrderModel
+                        var random = new System.Random();
+                        var orders = new List<Model_Do>();
+
+                        for (int i = 0; i < count; i++)
                         {
-                            Id = random.Next(1000, 9999),
-                            UserId = $"User{random.Next(1000, 9999)}",
-                            User = new UserModel
-                            {
-                                //
-                            },
-                            MyState = $"State{random.Next(1, 10)}",
-                            Status = random.Next(0, 1),
-                            ItemInfo = new ItemInfoDto
-                            {
-                                Weight = random.Next(1, 10),
-                                Length = random.Next(1, 10),
-                                Width = random.Next(1, 10),
-                                Height = random.Next(1, 10)
-                            },
-                            PaymentInfo = new PaymentInfoDto
-                            {
-                                Charge = random.Next(1, 100),
-                                Fee = random.Next(1, 100),
-                                Method = PaymentMethods.UserCredit.ToString()
-                            },
-                            DeliveryInfo = new DeliveryInfoDto
-                            {
-                                Distance = random.Next(1, 100),
-                                StartLocation = new LocationDto
-                                {
-                                    Address = $"Address{random.Next(1, 10)}",
-                                    Latitude = random.NextDouble() * (90.0 - -90.0) + -90.0,
-                                    Longitude = random.NextDouble() * (180.0 - -180.0) + -180.0
-                                },
-                                EndLocation = new LocationDto
-                                {
-                                    Address = $"Address{random.Next(1, 10)}",
-                                    Latitude = random.NextDouble() * (90.0 - -90.0) + -90.0,
-                                    Longitude = random.NextDouble() * (180.0 - -180.0) + -180.0
-                                }
-                            },
-                            SenderInfo = new SenderInfoDto
-                            {
-                                User = new UserModel
-                                {
-                                    //
-                                },
-                                UserId = $"User{random.Next(1000, 9999)}"
-                            },
-                            ReceiverInfo = new ReceiverInfoDto
-                            {
-                                PhoneNumber = $"PhoneNumber{random.Next(1000, 9999)}",
-                                Name = $"Name{random.Next(1000, 9999)}"
-                            },
-                            RiderId = random.Next(1, 100).ToString(),
-                            Rider = new RiderModel
-                            {
-                                //
-                            }
-                        };
-                        orders.Add(order);
+                            var order = GenerateOrder(random);
+                            orders.Add(order);
+                        }
+
+                        return orders;
                     }
-                    return orders;
+
+                    deliverOrders.AddRange(hOrder);
+                    var data = DataBag.Serialize(deliverOrders);
+                    DoList = data;
                 }
-                deliverOrders.AddRange(hOrder);
-                var data = DataBag.Serialize(deliverOrders);
-                DoList = data;
+
+                Debug.Log("Get data from SO");
+                return DoList;
             }
-            Debug.Log("Get data from SO");
-            return DoList;
+
+            return DataBag.Serialize(_preset);
+        }
+
+        [Button(ButtonSizes.Medium),GUIColor("cyan")]public void GenerateOrderToPreset()
+        {
+            var random = new Random();
+            var orders = new List<Model_Do>();
+
+            for (int i = 0; i < Count; i++)
+            {
+                var order = GenerateOrder(random);
+                orders.Add(order);
+            }
+
+            _preset = orders;
+        }
+
+        private static Model_Do GenerateOrder(Random random)
+        {
+            var order = new Model_Do
+            {
+                Id = random.Next(1000, 9999),
+                UserId = $"User{random.Next(1000, 9999)}",
+                User = new Model_User
+                {
+                    //
+                },
+                MyState = $"State{random.Next(1, 10)}",
+                Status = random.Next(0, 1),
+                ItemInfo = new Info_Item
+                {
+                    Weight = random.Next(1, 10),
+                    Length = random.Next(1, 10),
+                    Width = random.Next(1, 10),
+                    Height = random.Next(1, 10)
+                },
+                PaymentInfo = new Info_Payment
+                {
+                    Charge = random.Next(1, 100),
+                    Fee = random.Next(1, 100),
+                    Method = PaymentMethods.UserCredit.ToString()
+                },
+                DeliveryInfo = new Info_Delivery
+                {
+                    Distance = random.Next(1, 100),
+                    StartLocation = new Info_Location
+                    {
+                        Address = $"Address{random.Next(1, 10)}",
+                        Latitude = random.NextDouble() * (90.0 - -90.0) + -90.0,
+                        Longitude = random.NextDouble() * (180.0 - -180.0) + -180.0
+                    },
+                    EndLocation = new Info_Location
+                    {
+                        Address = $"Address{random.Next(1, 10)}",
+                        Latitude = random.NextDouble() * (90.0 - -90.0) + -90.0,
+                        Longitude = random.NextDouble() * (180.0 - -180.0) + -180.0
+                    }
+                },
+                SenderInfo = new Info_Sender
+                {
+                    User = new Model_User
+                    {
+                        //
+                    },
+                    UserId = $"User{random.Next(1000, 9999)}"
+                },
+                ReceiverInfo = new Info_Receiver
+                {
+                    PhoneNumber = $"PhoneNumber{random.Next(1000, 9999)}",
+                    Name = $"Name{random.Next(1000, 9999)}"
+                },
+                RiderId = random.Next(1, 100).ToString(),
+                Rider = new Model_Rider
+                {
+                    //
+                }
+            };
+            return order;
         }
 
         public void SetNewOrderToList(DeliverOrderModel order)
         {
             DeserializeList();
             CurrentId = order.Id;
-            deliverOrders.Add(order);
+            deliverOrders.Add(order.Map<DeliverOrderModel,Model_Do>());
             SetNewList(deliverOrders);
         }
         public void CancelOrderToList(long orderId)
@@ -133,11 +170,12 @@ public class ActiveOrderSo : ScriptableObject
         {
             var order = GetOrder(CurrentId);
             var index = deliverOrders.IndexOf(order);
-            deliverOrders[index].PaymentInfo.Method = payM.ToString();
+            var mo = deliverOrders[index];
+            mo.PaymentInfo.Method = payM.ToString();
             SetNewList(deliverOrders);
         }
 
-        private DeliverOrderModel GetOrder(long currentId)
+        private Model_Do GetOrder(long currentId)
         {
             var order = deliverOrders.FirstOrDefault(o=> o.Id == currentId);
             return order;
@@ -146,21 +184,22 @@ public class ActiveOrderSo : ScriptableObject
         private void DeserializeList()
         {
             var bag = DataBag.Deserialize(DoList);
-            var DoData = bag.Get<List<DeliverOrderModel>>(0);
+            var DoData = bag.Get<List<Model_Do>>(0);
             deliverOrders.Clear();
             DoList = string.Empty;
             deliverOrders.AddRange(DoData);
         }
 
-        private void SetNewList(List<DeliverOrderModel> deliverOrderModels)
+        private void SetNewList(List<Model_Do> deliverOrderModels)
         {
             var data = DataBag.Serialize(deliverOrderModels);
             DoList = data;
         }
 
         #region Update Order Status
-        public (bool isSuccess, int status, long ordId) OrderAssignedResponse(DeliverOrderModel order)
+        public (bool isSuccess, int status, long ordId) OrderAssignedResponse(DeliverOrderModel model)
         {
+            var order = model.Map<DeliverOrderModel, Model_Do>();
             DeserializeList();
             var getOrder = GetOrder(order.Id);
             var index = deliverOrders.IndexOf(getOrder);
@@ -211,6 +250,4 @@ public class ActiveOrderSo : ScriptableObject
             return (order, stateId);
         }
     }
-
 }
-

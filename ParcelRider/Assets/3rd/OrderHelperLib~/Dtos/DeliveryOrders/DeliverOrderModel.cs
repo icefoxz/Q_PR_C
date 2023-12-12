@@ -39,5 +39,6 @@ public record StateSegmentModel
 {
     public int SubState { get; set; }
     public DateTime Timestamp { get; set; }
+    public string? ImageUrl { get; set; }
     public string? Remark { get; set; }
 }

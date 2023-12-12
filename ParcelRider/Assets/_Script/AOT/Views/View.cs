@@ -76,6 +76,10 @@ namespace AOT.Views
         public void StopCo(IEnumerator enumerator) => StopCoroutine(enumerator);
         public void StopAllCo() => StopAllCoroutines();
 
+        public void SetWidth(float width) => RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+        public void SetHeight(float height)=> RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+        public void SetSize(float width, float height) => RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+
         [Serializable]private class ResObj
         {
             public Object[] Objs;

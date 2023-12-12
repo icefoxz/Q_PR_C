@@ -5,7 +5,6 @@ using System.Linq;
 using AOT.Core;
 using AOT.DataModel;
 using OrderHelperLib.Contracts;
-using OrderHelperLib.Dtos.DeliveryOrders;
 using OrderHelperLib.Dtos.Lingaus;
 using OrderHelperLib.Dtos.Users;
 using UnityEngine;

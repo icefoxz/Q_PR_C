@@ -137,42 +137,41 @@ namespace Visual.Pages.Rider
 
         private class View_riderOptions : UiBase
         {
-            private Button btn_takeOrder { get; }
-            private Button btn_pickItem { get; }
-            private Button btn_collection { get; }
-            private Button btn_complete { get; }
-
+            private ListView<Prefab_option> OptionList { get; }
             private event Action<int> OnStateSelected;
 
             public View_riderOptions(IView v,
                 Action<int> onStateSelected, bool display = true) : base(v, display)
             {
                 OnStateSelected = onStateSelected;
-                //btn_takeOrder = v.Get<Button>("btn_takeOrder");
-                //btn_pickItem = v.Get<Button>("btn_pickItem");
-                //btn_collection = v.Get<Button>("btn_collection");
-                //btn_complete = v.Get<Button>("btn_complete");
-                //btn_takeOrder.OnClickAdd(() => onStateSelected(100));
-                //btn_pickItem.OnClickAdd(() => onStateSelected(200));
-                //btn_collection.OnClickAdd(() => onStateSelected(300));
-                //btn_complete.OnClickAdd(() => onStateSelected(-2));
+                OptionList = new ListView<Prefab_option>(v, "prefab_option");
             }
 
             public void SetState(DoSubState[] subStates)
             {
-                //todo: 这里进来的都是可能发生的 subStates
+                OptionList.ClearList(ui=>ui.Destroy());
                 foreach (var state in subStates)
                 {
-                    var stateTitle = state.StateName;//状态描述
-                    var stateId = state.StateId;//状态id
-                    var status = state.GetStatus;//Major status
-                    //todo: 理想中button点击后会发射 OnStateSelected?.Invoke(stateId)
+                    var ui = OptionList.Instance(v => new Prefab_option(v));
+                    ui.Set(state.StateName, () => OnStateSelected?.Invoke(state.StateId));
+                }
+            }
+
+            private class Prefab_option : UiBase
+            {
+                private Text text_option { get; }
+                private Button btn_option { get; }
+                public Prefab_option(IView v, bool display = true) : base(v, display)
+                {
+                    text_option = v.Get<Text>("text_option");
+                    btn_option = v.Get<Button>("btn_option");
                 }
 
-                //btn_takeOrder.gameObject.SetActive(state == DeliveryOrderStatus.Created);
-                //btn_pickItem.gameObject.SetActive(state == DeliveryOrderStatus.Assigned);
-                //btn_collection.gameObject.SetActive(state == DeliveryOrderStatus.Delivering);
-                //btn_complete.gameObject.SetActive(state == DeliveryOrderStatus.Completed);
+                public void Set(string option, Action onclickAction)
+                {
+                    text_option.text = option;
+                    btn_option.OnClickAdd(onclickAction);
+                } 
             }
         }
 

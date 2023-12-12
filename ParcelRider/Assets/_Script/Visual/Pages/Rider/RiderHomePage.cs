@@ -22,14 +22,6 @@ namespace Visual.Pages.Rider
             btn_jobList.OnClickAdd(onJobListAction.Invoke);
         }
 
-        //protected override void OnOrderListUpdate(DeliveryOrder[] deliveryOrders)
-        //{
-        //    var hasJob = deliveryOrders.Length > 0;
-        //    obj_jobGuide.SetActive(!hasJob);
-        //    btn_jobList.gameObject.SetActive(!hasJob);
-        //}
-        //
-        //protected override bool OrderListFilter(DeliveryOrder o) => (o.State).IsOnProgressing() && o.Rider?.Id == App.Models.Rider?.Id;
         protected override string SubscribeDoUpdateEventName => EventString.Orders_Unassigned_Update;
         protected override DeliveryOrder[] OnOrderListUpdate() => App.Models.UnassignedOrders.Orders.ToArray();
     }

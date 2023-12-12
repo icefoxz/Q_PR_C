@@ -26,6 +26,9 @@ namespace AOT.Views
         Coroutine StartCo(IEnumerator enumerator);
         void StopCo(IEnumerator enumerator);
         void StopAllCo();
+        void SetWidth(float width);
+        void SetHeight(float height);
+        void SetSize(float width, float height);
         event Action OnDisableEvent;
         event Action OnEnableEvent; 
         string name { get; }

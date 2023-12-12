@@ -41,7 +41,7 @@ namespace Visual.Pages
                 text_orderId = v.Get<Text>("text_orderId");
 
                 view_deliverItemInfo = new View_deliverItemInfo(v.Get<View>("view_deliverItemInfo"));
-                view_tabs = new View_tabs(v.Get<View>("view_tabs"));
+                view_tabs = new View_tabs(v.Get<View>("view_tabs"), v.RectTransform);
 
                 //ViewImages = new View_images(v: v.Get<View>("view_images"),
                 //    onImageSelectedAction: ImageSelected_PromptImageWindow,
@@ -96,6 +96,7 @@ namespace Visual.Pages
 
                 private class View_states : UiBase
                 {
+                    private Image img_created { get; set; }
                     private Image img_assigned { get; set; }
                     private Image img_delivering { get; set; }
                     private Image img_postDelivery { get; set; }
@@ -104,6 +105,7 @@ namespace Visual.Pages
 
                     public View_states(IView v, bool display = true) : base(v, display)
                     {
+                        img_created = v.Get<Image>("img_created");
                         img_assigned = v.Get<Image>("img_assigned");
                         img_delivering = v.Get<Image>("img_delivering");
                         img_postDelivery = v.Get<Image>("img_postDelivery");
@@ -113,6 +115,7 @@ namespace Visual.Pages
 
                     public void SetState(DeliveryOrderStatus state)
                     {
+                        img_created.gameObject.SetActive(state == DeliveryOrderStatus.Created);
                         img_assigned.gameObject.SetActive(state == DeliveryOrderStatus.Assigned);
                         img_delivering.gameObject.SetActive(state == DeliveryOrderStatus.Delivering);
                         img_postDelivery.gameObject.SetActive(state == DeliveryOrderStatus.PostDelivery);
@@ -136,15 +139,15 @@ namespace Visual.Pages
                 private View_progressInfo view_progressInfo { get; }
                 private View_deliveryInfo view_deliveryInfo { get; }
 
-                public View_tabs(IView v, bool display = true) : base(v, display)
+                public View_tabs(IView v,RectTransform parentRect ,bool display = true) : base(v, display)
                 {
                     element_tabBtn_progress =
                         new Element_tabBtn(v.Get<View>("element_tabBtn_progress"), () => SetSelected(0));
                     element_tabBtn_deliverInfo =
                         new Element_tabBtn(v.Get<View>("element_tabBtn_deliverInfo"), () => SetSelected(1));
                     trans_content = v.Get<RectTransform>("trans_content");
-                    view_progressInfo = new View_progressInfo(v.Get<View>("view_progressInfo"));
-                    view_deliveryInfo = new View_deliveryInfo(v.Get<View>("view_deliveryInfo"));
+                    view_progressInfo = new View_progressInfo(v.Get<View>("view_progressInfo"), parentRect.rect.width);
+                    view_deliveryInfo = new View_deliveryInfo(v.Get<View>("view_deliveryInfo"), parentRect.rect.width);
                 }
 
                 private void SetSelected(int tabIndex)
@@ -190,8 +193,11 @@ namespace Visual.Pages
                 {
                     private ListViewUi<Prefab_deliverLog> LogListView { get; }
 
-                    public View_progressInfo(IView v, bool display = true) : base(v, display)
+                    public View_progressInfo(IView v, float width,bool display = true) : base(v, display)
                     {
+                        //SetSize
+                        v.SetWidth(width);
+
                         LogListView = new ListViewUi<Prefab_deliverLog>(v, "prefab_deliverLog", "scroll_deliverLog");
                     }
 
@@ -284,8 +290,11 @@ namespace Visual.Pages
                     private Text text_riderPhone { get; }
                     private Text text_riderName { get; }
 
-                    public View_deliveryInfo(IView v, bool display = true) : base(v, display)
+                    public View_deliveryInfo(IView v, float width, bool display = true) : base(v, display)
                     {
+                        //SetSize
+                        v.SetWidth(width);
+
                         text_riderName = v.Get<Text>("text_riderName");
                         text_riderPhone = v.Get<Text>("text_riderPhone");
                         element_contactTo = new Element_contact(v.Get<View>("element_contactTo"));
