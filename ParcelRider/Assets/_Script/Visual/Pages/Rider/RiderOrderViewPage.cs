@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
@@ -42,13 +43,24 @@ namespace Visual.Pages.Rider
                 onCameraAction: () => PictureController.OpenCamera(OnPictureTaken));
             element_contactTo = new Element_contact(v.Get<View>("element_contactTo"));
             element_contactFrom = new Element_contact(v.Get<View>("element_contactFrom"));
-            view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions"), RiderOrderController.Do_State_Update);
+            view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions"), OnStateChange);
             btn_exception = v.Get<Button>("btn_exception");
             btn_exception.OnClickAdd(() => RiderOrderController.PossibleState_Update(OrderId));
             btn_close = v.Get<Button>("btn_close");
             btn_close.OnClickAdd(Hide);
 
             App.MessagingManager.RegEvent(EventString.Order_Current_Set, _ => ShowCurrentOrder());
+        }
+
+        private void OnStateChange(int stateId)
+        {
+            var current = App.Models.CurrentOrder;
+            if (current.State == DeliveryOrderStatus.Created)
+            {
+                RiderOrderController.Do_AssignRider();
+                return;
+            }
+            RiderOrderController.Do_State_Update(stateId);
         }
 
         private void OnPictureTaken(Texture2D texture)
@@ -81,10 +93,15 @@ namespace Visual.Pages.Rider
 
             void UpdateState()
             {
-                var state = order.State;
-                btn_exception.gameObject.SetActive(state.IsInProgress());
-                view_states.SetState(state);
+                var status = order.State;
                 var possibleStates = DoStateMap.GetPossibleStates(TransitionRoles.Rider, order.SubState);
+                var states = DoStateMap.GetAllSubStates().ToArray();
+                var toStates = states
+                    .Where(s => s.FromStates.Contains(order.SubState) || s.FromStatusList.Contains(status)).ToArray();
+                var ppStates = toStates.Where(s => s.IsAllowFrom(TransitionRoles.Rider, order.SubState)).ToArray();
+                btn_exception.gameObject.SetActive(
+                    possibleStates.Any(p => p.Status == (int)DeliveryOrderStatus.Canceled));
+                view_states.SetState(status);
                 view_riderOptions.SetState(possibleStates);
             }
         }
