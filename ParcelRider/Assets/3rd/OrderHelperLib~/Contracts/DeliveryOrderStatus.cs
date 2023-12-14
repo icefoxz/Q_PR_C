@@ -144,7 +144,7 @@ public class DoStateMap
     public static readonly DoSubState[] Cancel = new[]
     {
         DoSubState.Instance(DoSubState.SenderCancelState,DeliveryOrderStatus.Canceled, "Sender Cancellation",TransitionRoles.User, DeliveryOrderStatus.Created),
-        DoSubState.Instance(-101,DeliveryOrderStatus.Canceled, "Rider Cancellation", TransitionRoles.Rider, DeliveryOrderStatus.Created),
+        DoSubState.Instance(-101,DeliveryOrderStatus.Canceled, "Rider Cancellation", TransitionRoles.Rider, DeliveryOrderStatus.Assigned),
         DoSubState.Instance(-102,DeliveryOrderStatus.Canceled, "Cancellation by Ordered", TransitionRoles.None, DeliveryOrderStatus.Created),
     };
 
@@ -162,8 +162,9 @@ public class DoStateMap
 
     public static DoSubState[] GetPossibleStates(TransitionRoles role,int stateId)
     {
+        var status = stateId.ConvertToDoStatus();
         var states = GetAllSubStates().ToArray();
-        var toStates = states.Where(s => s.FromStates.Contains(stateId)).ToArray();
+        var toStates = states.Where(s => s.FromStates.Contains(stateId) || s.FromStatusList.Contains(status)).ToArray();
         return toStates.Where(s=>s.IsAllowFrom(role,stateId)).ToArray();
     }
 

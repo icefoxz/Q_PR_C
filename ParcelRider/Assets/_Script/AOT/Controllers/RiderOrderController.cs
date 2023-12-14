@@ -62,7 +62,8 @@ namespace AOT.Controllers
                 var message = arg;
                 var bag = DataBag.Deserialize(message);
                 var list = bag.Get<List<DeliverOrderModel>>(0);
-                List_ActiveOrder_Set(list.ToArray(), pageIndex);
+                AppModel.UnassignedOrders.SetOrders(
+                    list.Where(o => o.Status == 0).Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
             }, () => ApiPanel.Rider_GetUnassigned(20, pageIndex, pg =>
             {
                 var orders = pg.List;
@@ -77,14 +78,16 @@ namespace AOT.Controllers
             {
                 var message = arg;
                 var bag = DataBag.Deserialize(message);
-                var list = bag.Get<List<DeliverOrderModel>>(0);
-                List_ActiveOrder_Set(list.ToArray(), pageIndex);
+                var orders = bag.Get<List<DeliverOrderModel>>(0);
+                AppModel.AssignedOrders.SetOrders(
+                    orders.Where(o => o.Status > 0).Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
+                //List_ActiveOrder_Set(list.ToArray());
             }, () => ApiPanel.Rider_GetAssigned(20, pageIndex, pg =>
             {
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
                 var pageSize = pg.PageSize;
-                AppModel.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
+                AppModel.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
             }, m => MessageWindow.Set("Error", m)));
         }
         public void Do_Get_History(int pageIndex = 0)
@@ -104,9 +107,9 @@ namespace AOT.Controllers
             }, m => MessageWindow.Set("Error", m)));
         }
 
-        public void Do_AssignRider(long orderId)
+        public void Do_AssignRider()
         {
-            var order = GetOrder(orderId);
+            var order = App.Models.CurrentOrder;
             Call(new object[] { order },args => ((bool)args[0], (int)args[1], (long)args[2]), arg =>
             {
                 var (success, status, oId) = arg;
@@ -116,7 +119,7 @@ namespace AOT.Controllers
                 return;
             }, () =>
             {
-                var id = orderId;
+                var id = order.Id;
                 ApiPanel.Rider_AssignRider(id, dto =>
                 {
                     var o = new DeliveryOrder(dto);

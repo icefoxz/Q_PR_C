@@ -224,57 +224,62 @@ namespace Visual.Pages
                     {
                         private Text text_time { get; }
                         private Text text_message { get; }
-                        private RectTransform rectTransform { get; }
-                        private ListViewUi<Prefab_picture> PicListView { get; }
+                        private View_picture view_picture { get; }
+                        //private RectTransform rectTransform { get; }
+                        //private ListViewUi<Prefab_picture> PicListView { get; }
 
                         public Prefab_deliverLog(IView v, bool display = true) : base(v, display)
                         {
-                            rectTransform = v.RectTransform;
+                            //rectTransform = v.RectTransform;
+                            //PicListView = new ListViewUi<Prefab_picture>(v, "prefab_picture", "scroll_picture");
                             text_time = v.Get<Text>("text_time");
                             text_message = v.Get<Text>("text_message");
-                            PicListView = new ListViewUi<Prefab_picture>(v, "prefab_picture", "scroll_picture");
+                            view_picture = new View_picture(v.Get<View>("view_picture"));
                         }
 
                         public void SetMessage(string time, string log)
                         {
-                            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 60);
-                            PicListView.ClearList(ui => ui.Destroy());
+                            //rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 60);
+                            //PicListView.ClearList(ui => ui.Destroy());
+                            //PicListView.ScrollRect.gameObject.SetActive(false);
                             text_time.text = time;
                             text_message.text = log;
                             text_message.gameObject.SetActive(true);
-                            PicListView.ScrollRect.gameObject.SetActive(false);
                         }
 
-                        public void SetImages(string time, string[] imgUrls)
+                        public void SetImages(string time, string imgUrl)
                         {
-                            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 100);
-                            PicListView.ClearList(ui => ui.Destroy());
-                            foreach (var url in imgUrls)
-                            {
-                                var ui = PicListView.Instance(v => new Prefab_picture(v, ImageWindow.Set));
-                                ui.SetImage(url);
-                            }
+                            //rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 100);
+                            //PicListView.ClearList(ui => ui.Destroy());
+                            //foreach (var url in imgUrls)
+                            //{
+                            //    var ui = PicListView.Instance(v => new Prefab_picture(v, ImageWindow.Set));
+                            //    ui.SetImage(url);
+                            //}
+                            //PicListView.ScrollRect.gameObject.SetActive(true);
+                            text_time.text = time;
+                            view_picture.SetImage(imgUrl);
                             text_message.gameObject.SetActive(false);
-                            PicListView.ScrollRect.gameObject.SetActive(true);
                         }
 
-                        private class Prefab_picture : UiBase
+                        private class View_picture : UiBase
                         {
                             private Image img_pic{ get; }
                             private Button btn_pic{ get; }
 
-                            public Prefab_picture(IView v, UnityAction<Sprite> onBtnClick, bool display = true) : base(v,
+                            public View_picture(IView v, bool display = true) : base(v,
                                 display)
                             {
                                 img_pic = v.Get<Image>("img_pic");
                                 btn_pic = v.Get<Button>("btn_pic");
-                                btn_pic.onClick.AddListener(() => onBtnClick(img_pic.sprite));
                             }
 
                             public void SetImage(string url)
                             {
                                 var imgCo = App.GetController<ImageController>();
                                 imgCo.Req_Image(url, sp => img_pic.sprite = sp);
+                                btn_pic.onClick.RemoveAllListeners();
+                                btn_pic.onClick.AddListener(() => ImageWindow.Set(img_pic.sprite));
                             }
                         }
                     }

@@ -8,13 +8,13 @@ namespace Visual.Pages.Rider
 {
     internal class RiderJobListPage : DoListPage
     {
-        protected override string SubscribeDoUpdateEventName => EventString.Orders_Unassigned_Update;
+        protected override string SubscribeDoUpdateEventName => EventString.Orders_Assigned_Update;
 
         public RiderJobListPage(IView v, Action<long> onOrderSelectedAction, Rider_UiManager uiManager,
             bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
         {
         }
 
-        protected override DeliveryOrder[] OnOrderListUpdate()=>App.Models.UnassignedOrders.Orders.ToArray();
+        protected override DeliveryOrder[] OnOrderListUpdate()=>App.Models.AssignedOrders.Orders.ToArray();
     }
 }
