@@ -96,7 +96,6 @@ namespace Visual.Pages
 
                 private class View_states : UiBase
                 {
-                    private Image img_created { get; set; }
                     private Image img_assigned { get; set; }
                     private Image img_delivering { get; set; }
                     private Image img_postDelivery { get; set; }
@@ -105,7 +104,6 @@ namespace Visual.Pages
 
                     public View_states(IView v, bool display = true) : base(v, display)
                     {
-                        img_created = v.Get<Image>("img_created");
                         img_assigned = v.Get<Image>("img_assigned");
                         img_delivering = v.Get<Image>("img_delivering");
                         img_postDelivery = v.Get<Image>("img_postDelivery");
@@ -115,7 +113,6 @@ namespace Visual.Pages
 
                     public void SetState(DeliveryOrderStatus state)
                     {
-                        img_created.gameObject.SetActive(state == DeliveryOrderStatus.Created);
                         img_assigned.gameObject.SetActive(state == DeliveryOrderStatus.Assigned);
                         img_delivering.gameObject.SetActive(state == DeliveryOrderStatus.Delivering);
                         img_postDelivery.gameObject.SetActive(state == DeliveryOrderStatus.PostDelivery);

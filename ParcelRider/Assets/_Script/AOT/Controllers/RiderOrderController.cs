@@ -78,7 +78,7 @@ namespace AOT.Controllers
                 var message = arg;
                 var bag = DataBag.Deserialize(message);
                 var list = bag.Get<List<DeliverOrderModel>>(0);
-                //List_ActiveOrder_Set(list.ToArray());
+                List_ActiveOrder_Set(list.ToArray(), pageIndex);
             }, () => ApiPanel.Rider_GetAssigned(20, pageIndex, pg =>
             {
                 var orders = pg.List;

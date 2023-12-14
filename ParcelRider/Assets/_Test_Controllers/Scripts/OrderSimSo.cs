@@ -9,14 +9,16 @@ using Sirenix.OdinInspector;
 using UnityEngine.Serialization;
 using Random = System.Random;
 
-[CreateAssetMenu(fileName = "ActiveOrderSo", menuName ="TestServices/ActiveOrderSo")]
+[CreateAssetMenu(fileName = "OrderSimSo", menuName ="TestServices/OrderSimSo")]
 public class OrderSimSo : ScriptableObject
 {
     [FormerlySerializedAs("_activeModel")][SerializeField] private OrderField _field;
     
     public string GetOrders() => _field.GetOrders();
+    public string GetHistories() => _field.GetHistory();
     public void SetNewOrder(DeliverOrderModel order) => _field.SetNewOrderToList(order);
     public void CancelOrder(long orderId) => _field.CancelOrderToList(orderId);
+    public void AddToHistory(long orderId) => _field.AddToHistoryList();
     public void SetPayment(PaymentMethods payM) => _field.SetPayment(payM);
     public (string order, int state) DoStateUpdate(string order, int stateId) => _field.DoState_Update(order, stateId);
 
@@ -250,5 +252,15 @@ public class OrderSimSo : ScriptableObject
         {
             return (order, stateId);
         }
+
+        public string GetHistory()
+        {
+            return DataBag.Serialize(_preset);
+        }
+
+        public void AddToHistoryList()
+        {
+        }
     }
+
 }

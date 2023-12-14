@@ -13,7 +13,6 @@ public class TestApiContainer : MonoBehaviour
 {
     public LoginServiceSo LoginServiceSo;
     public OrderParcelSo OrderParcelSo;
-    public HistoryOrderSo HistoryOrderSo;
     public OrderSimSo ActiveOrderSo;
     public OrderSimSo HistorySo;
     public RiderLoginServiceSo RiderLoginServiceSo;
@@ -72,7 +71,7 @@ public class TestApiContainer : MonoBehaviour
         }, userOrderController);
         RegTester(nameof(userOrderController.Do_UpdateHistory), _ =>
         {
-            var message = HistoryOrderSo.GetHistoryList();
+            var message = HistorySo.GetHistories();
             return new object[] { message };
         }, userOrderController);
     }
@@ -152,7 +151,7 @@ public class TestApiContainer : MonoBehaviour
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_Get_History), _ =>
         {
-            var message = ActiveOrderSo.GetOrders();
+            var message = HistorySo.GetHistories();
             return new object[] { message };
         }, riderOrderService);
     }

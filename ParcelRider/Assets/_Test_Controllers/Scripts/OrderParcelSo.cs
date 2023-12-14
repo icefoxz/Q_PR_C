@@ -39,7 +39,7 @@ public class OrderParcelSo : ScriptableObject
         public (bool isSuccess, string databag, PaymentMethods methods) OrderPaymentResponse(PaymentMethods payM)
         {
             PayMethods = payM;
-            if (!PaymentMade) return (false, "Payment Unsuccess, try again", PayMethods);
+            if (!PaymentMade) return (false, "Payment Unsuccessful, try again", PayMethods);
             return (true, "Payment Success", PayMethods);
         }
     }
