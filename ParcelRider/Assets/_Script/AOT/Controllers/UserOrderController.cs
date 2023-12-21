@@ -151,15 +151,25 @@ namespace AOT.Controllers
 
         public void DoPay_RiderCollect(Action<bool, string> callbackAction)
         {
-            if (IsTestMode()) return;
-            var orderId = AppModel.CurrentOrder.Id;
-            ApiPanel.User_DoPay_Rider(orderId, b =>
+            Call(args => ((bool)args[0], (string)args[1]), arg =>
+            {
+                var (isSuccess, message) = arg;
+                if (isSuccess)
                 {
-                    var order = b.Get<DeliverOrderModel>(0);
-                    Resolve_Orders(new DeliveryOrder(order));
-                    callbackAction(true, string.Empty);
-                },
-                message => callbackAction(false, message));
+                    message = string.Empty;
+                }
+                callbackAction(isSuccess, message);
+            }, () =>
+            {
+                var orderId = AppModel.CurrentOrder.Id;
+                ApiPanel.User_DoPay_Rider(orderId, b =>
+                    {
+                        var order = b.Get<DeliverOrderModel>(0);
+                        Resolve_Orders(new DeliveryOrder(order));
+                        callbackAction(true, string.Empty);
+                    },
+                    message => callbackAction(false, message));
+            });
         }
 
         public void DoPay_DeductFromCredit(Action<bool, string> callbackAction)

@@ -44,6 +44,7 @@ namespace Visual.Pages
                 DeliveryOrderStatus.Delivering => 4,
                 DeliveryOrderStatus.Completed => 7,
                 DeliveryOrderStatus.Closed => 7,
+                DeliveryOrderStatus.PostDelivery => 5,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
             };
             view_spots.SetSpots(spots);

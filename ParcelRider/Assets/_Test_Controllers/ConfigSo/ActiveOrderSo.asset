@@ -15,365 +15,219 @@ MonoBehaviour:
   _field:
     Listmode: 1
     Count: 5
-    CurrentId: 0
+    CurrentId: -1
     _preset:
-    - Id: 7447
-      UserId: User3857
+    - Id: 4492
+      UserId: Tan
       User:
         Id: 
-        Name: 
-        Username: 
-        Email: 
-        Phone: 
+        Name: Sunny Tan
+        Username: Sunny
+        Email: Sunny@mimi.com
+        Phone: 125367124
         AvatarUrl: 
         Lingau:
           Id: 
           Credit: 0
       ItemInfo:
-        Weight: 6
+        Weight: 1
         Quantity: 0
         Volume: 0
         Value: 0
         Length: 1
-        Width: 7
-        Height: 5
+        Width: 1
+        Height: 1
         Remark: 
-      MyState: State9
+      MyState: Sarawak
       SenderInfo:
-        UserId: User3842
+        UserId: 
         User:
           Id: 
-          Name: 
-          Username: 
-          Email: 
-          Phone: 
+          Name: Sunny Tan
+          Username: Sunny
+          Email: Sunny@mimi.com
+          Phone: 125367124
           AvatarUrl: 
           Lingau:
             Id: 
             Credit: 0
-        Name: 
-        PhoneNumber: 
+        Name: qweqwe
+        PhoneNumber: 03546387687
         NormalizedPhoneNumber: 
       ReceiverInfo:
-        Name: Name1419
-        PhoneNumber: PhoneNumber5275
+        Name: 3eqeqe
+        PhoneNumber: 0348484
       DeliveryInfo:
         StartLocation:
           PlaceId: 
-          Address: Address3
-          Latitude: 89.94986481962255
-          Longitude: -116.75795498153099
+          Address: LONG LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia
+          Latitude: 3.762399673461914
+          Longitude: 114.40357971191406
         EndLocation:
           PlaceId: 
-          Address: Address9
-          Latitude: -36.093628800517706
-          Longitude: 67.707079056514
-        Distance: 15
-      RiderId: 12
+          Address: Post Office Long Lama, Long Lama, Sarawak, Malaysia
+          Latitude: 3.7688841819763184
+          Longitude: 114.38753509521484
+        Distance: 1.9207076
+      RiderId: 
       Rider:
         Id: 
         Name: 
         Phone: 
       PaymentInfo:
-        Fee: 14
-        Charge: 29
-        Method: UserCredit
+        Fee: 8
+        Charge: 8
+        Method: 0
         Reference: 
-        TransactionId: 
-        IsReceived: 0
-      Status: 3
-      SubState: 0
-      StateHistory: []
-    - Id: 3208
-      UserId: User5437
-      User:
-        Id: 
-        Name: 
-        Username: 
-        Email: 
-        Phone: 
-        AvatarUrl: 
-        Lingau:
-          Id: 
-          Credit: 0
-      ItemInfo:
-        Weight: 3
-        Quantity: 0
-        Volume: 0
-        Value: 0
-        Length: 4
-        Width: 5
-        Height: 2
-        Remark: 
-      MyState: State4
-      SenderInfo:
-        UserId: User7356
-        User:
-          Id: 
-          Name: 
-          Username: 
-          Email: 
-          Phone: 
-          AvatarUrl: 
-          Lingau:
-            Id: 
-            Credit: 0
-        Name: 
-        PhoneNumber: 
-        NormalizedPhoneNumber: 
-      ReceiverInfo:
-        Name: Name8217
-        PhoneNumber: PhoneNumber9216
-      DeliveryInfo:
-        StartLocation:
-          PlaceId: 
-          Address: Address8
-          Latitude: -58.0065687783093
-          Longitude: -72.43384983969565
-        EndLocation:
-          PlaceId: 
-          Address: Address7
-          Latitude: -34.67108220079499
-          Longitude: 151.40223013768076
-        Distance: 59
-      RiderId: 47
-      Rider:
-        Id: 
-        Name: 
-        Phone: 
-      PaymentInfo:
-        Fee: 55
-        Charge: 10
-        Method: UserCredit
-        Reference: 
-        TransactionId: 
-        IsReceived: 0
-      Status: 4
-      SubState: 0
-      StateHistory: []
-    - Id: 2715
-      UserId: User3594
-      User:
-        Id: 
-        Name: 
-        Username: 
-        Email: 
-        Phone: 
-        AvatarUrl: 
-        Lingau:
-          Id: 
-          Credit: 0
-      ItemInfo:
-        Weight: 7
-        Quantity: 0
-        Volume: 0
-        Value: 0
-        Length: 2
-        Width: 4
-        Height: 3
-        Remark: 
-      MyState: State2
-      SenderInfo:
-        UserId: User4030
-        User:
-          Id: 
-          Name: 
-          Username: 
-          Email: 
-          Phone: 
-          AvatarUrl: 
-          Lingau:
-            Id: 
-            Credit: 0
-        Name: 
-        PhoneNumber: 
-        NormalizedPhoneNumber: 
-      ReceiverInfo:
-        Name: Name3570
-        PhoneNumber: PhoneNumber6921
-      DeliveryInfo:
-        StartLocation:
-          PlaceId: 
-          Address: Address4
-          Latitude: -4.7275375177746355
-          Longitude: -10.420308853695303
-        EndLocation:
-          PlaceId: 
-          Address: Address8
-          Latitude: 12.864025441400727
-          Longitude: 30.243055061550365
-        Distance: 47
-      RiderId: 39
-      Rider:
-        Id: 
-        Name: 
-        Phone: 
-      PaymentInfo:
-        Fee: 99
-        Charge: 27
-        Method: UserCredit
-        Reference: 
-        TransactionId: 
-        IsReceived: 0
-      Status: 2
-      SubState: 0
-      StateHistory: []
-    - Id: 2802
-      UserId: User6226
-      User:
-        Id: 
-        Name: 
-        Username: 
-        Email: 
-        Phone: 
-        AvatarUrl: 
-        Lingau:
-          Id: 
-          Credit: 0
-      ItemInfo:
-        Weight: 8
-        Quantity: 0
-        Volume: 0
-        Value: 0
-        Length: 8
-        Width: 2
-        Height: 9
-        Remark: 
-      MyState: State6
-      SenderInfo:
-        UserId: User5758
-        User:
-          Id: 
-          Name: 
-          Username: 
-          Email: 
-          Phone: 
-          AvatarUrl: 
-          Lingau:
-            Id: 
-            Credit: 0
-        Name: 
-        PhoneNumber: 
-        NormalizedPhoneNumber: 
-      ReceiverInfo:
-        Name: Name2356
-        PhoneNumber: PhoneNumber2867
-      DeliveryInfo:
-        StartLocation:
-          PlaceId: 
-          Address: Address3
-          Latitude: 26.506260343131743
-          Longitude: -160.28885447433632
-        EndLocation:
-          PlaceId: 
-          Address: Address2
-          Latitude: -36.891740377476324
-          Longitude: 164.50685865455625
-        Distance: 56
-      RiderId: 88
-      Rider:
-        Id: 
-        Name: 
-        Phone: 
-      PaymentInfo:
-        Fee: 61
-        Charge: 76
-        Method: UserCredit
-        Reference: 
-        TransactionId: 
+        TransactionId: 0
         IsReceived: 0
       Status: 1
       SubState: 0
       StateHistory: []
-    - Id: 8423
-      UserId: User6055
+    - Id: 5878
+      UserId: Tan
       User:
         Id: 
-        Name: 
-        Username: 
-        Email: 
-        Phone: 
+        Name: Sunny Tan
+        Username: Sunny
+        Email: Sunny@mimi.com
+        Phone: 125367124
         AvatarUrl: 
         Lingau:
           Id: 
           Credit: 0
       ItemInfo:
-        Weight: 7
+        Weight: 1
         Quantity: 0
         Volume: 0
         Value: 0
-        Length: 8
-        Width: 8
-        Height: 7
+        Length: 1
+        Width: 1
+        Height: 1
         Remark: 
-      MyState: State2
+      MyState: Sarawak
       SenderInfo:
-        UserId: User9383
+        UserId: 
         User:
           Id: 
-          Name: 
-          Username: 
-          Email: 
-          Phone: 
+          Name: Sunny Tan
+          Username: Sunny
+          Email: Sunny@mimi.com
+          Phone: 125367124
           AvatarUrl: 
           Lingau:
             Id: 
             Credit: 0
-        Name: 
-        PhoneNumber: 
+        Name: eqwuegqh
+        PhoneNumber: 3408468748
         NormalizedPhoneNumber: 
       ReceiverInfo:
-        Name: Name2114
-        PhoneNumber: PhoneNumber3337
+        Name: ehjhgqwe
+        PhoneNumber: 0684684
       DeliveryInfo:
         StartLocation:
           PlaceId: 
-          Address: Address5
-          Latitude: -75.95773960741131
-          Longitude: 176.53283765378075
+          Address: LONG LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia
+          Latitude: 3.762399673461914
+          Longitude: 114.40357971191406
         EndLocation:
           PlaceId: 
-          Address: Address7
-          Latitude: 12.930148850628242
-          Longitude: -82.57680294223913
-        Distance: 26
-      RiderId: 28
+          Address: Post Office Long Lama, Long Lama, Sarawak, Malaysia
+          Latitude: 3.7688841819763184
+          Longitude: 114.38753509521484
+        Distance: 1.9207076
+      RiderId: 
       Rider:
         Id: 
         Name: 
         Phone: 
       PaymentInfo:
-        Fee: 37
-        Charge: 34
-        Method: UserCredit
+        Fee: 8
+        Charge: 8
+        Method: 0
         Reference: 
-        TransactionId: 
+        TransactionId: 0
         IsReceived: 0
       Status: 0
       SubState: 0
       StateHistory: []
-    DoList: '{"DataName":"Array[1]","Data":[[{"UserId":"Tan","User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Tags":[],"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Name":"qweqwe","PhoneNumber":"03546387687","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"3eqeqe","PhoneNumber":"0348484","NormalizedPhoneNumber":null,"UserId":null,"User":null},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
+    - Id: 6472
+      UserId: Tan
+      User:
+        Id: 
+        Name: Sunny Tan
+        Username: Sunny
+        Email: Sunny@mimi.com
+        Phone: 125367124
+        AvatarUrl: 
+        Lingau:
+          Id: 
+          Credit: 0
+      ItemInfo:
+        Weight: 1
+        Quantity: 0
+        Volume: 0
+        Value: 0
+        Length: 1
+        Width: 1
+        Height: 1
+        Remark: 
+      MyState: Sarawak
+      SenderInfo:
+        UserId: 
+        User:
+          Id: 
+          Name: Sunny Tan
+          Username: Sunny
+          Email: Sunny@mimi.com
+          Phone: 125367124
+          AvatarUrl: 
+          Lingau:
+            Id: 
+            Credit: 0
+        Name: eqwuegqh
+        PhoneNumber: 3408468748
+        NormalizedPhoneNumber: 
+      ReceiverInfo:
+        Name: ehjhgqwe
+        PhoneNumber: 0684684
+      DeliveryInfo:
+        StartLocation:
+          PlaceId: 
+          Address: LONG LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia
+          Latitude: 3.762399673461914
+          Longitude: 114.40357971191406
+        EndLocation:
+          PlaceId: 
+          Address: Post Office Long Lama, Long Lama, Sarawak, Malaysia
+          Latitude: 3.7688841819763184
+          Longitude: 114.38753509521484
+        Distance: 1.9207076
+      RiderId: 
+      Rider:
+        Id: 
+        Name: 
+        Phone: 
+      PaymentInfo:
+        Fee: 8
+        Charge: 8
+        Method: 0
+        Reference: 
+        TransactionId: 0
+        IsReceived: 0
+      Status: 0
+      SubState: 0
+      StateHistory: []
+    DoList: '{"DataName":"Array[1]","Data":[[{"Id":4492,"UserId":"Tan","User":{"Id":null,"Name":"Sunny
+      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null},"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Value":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Id":null,"Name":"Sunny
+      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null},"Name":"qweqwe","PhoneNumber":"03546387687","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"3eqeqe","PhoneNumber":"0348484"},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
       LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia","Latitude":3.7623996734619141,"Longitude":114.40357971191406},"EndLocation":{"PlaceId":null,"Address":"Post
-      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":3.7688841819763184,"Longitude":114.38753509521484},"Distance":1.92070758},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":8.0,"Charge":8.0,"Method":0,"Reference":null,"TransactionId":0,"IsReceived":false},"Status":1,"Id":4492},{"UserId":"Tan","User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Tags":[],"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Name":"wdeqwe","PhoneNumber":"0354843","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"asdasdas","PhoneNumber":"03548348","NormalizedPhoneNumber":null,"UserId":null,"User":null},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
-      LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia","Latitude":0.0,"Longitude":0.0},"EndLocation":{"PlaceId":null,"Address":"Post
-      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":0.0,"Longitude":0.0},"Distance":0.0},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":0.0,"Charge":0.0,"Method":0,"Reference":null,"TransactionId":0,"IsReceived":false},"Status":0,"Id":7373},{"UserId":"Tan","User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Tags":[],"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Name":"qweqw","PhoneNumber":"0548242","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"weqwkuh","PhoneNumber":"0378484534","NormalizedPhoneNumber":null,"UserId":null,"User":null},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
+      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":3.7688841819763184,"Longitude":114.38753509521484},"Distance":1.92070758},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":8.0,"Charge":8.0,"Method":"0","Reference":null,"TransactionId":"0","IsReceived":false},"Status":1,"SubState":0,"StateHistory":null},{"Id":5878,"UserId":"Tan","User":{"Id":null,"Name":"Sunny
+      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null},"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Value":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Id":null,"Name":"Sunny
+      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null},"Name":"eqwuegqh","PhoneNumber":"3408468748","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"ehjhgqwe","PhoneNumber":"0684684"},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
       LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia","Latitude":3.7623996734619141,"Longitude":114.40357971191406},"EndLocation":{"PlaceId":null,"Address":"Post
-      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":3.7688841819763184,"Longitude":114.38753509521484},"Distance":1.92070758},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":8.0,"Charge":8.0,"Method":0,"Reference":null,"TransactionId":0,"IsReceived":false},"Status":0,"Id":9043},{"UserId":"Tan","User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Tags":[],"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Name":"qweqw","PhoneNumber":"0548242","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"weqwkuh","PhoneNumber":"0378484534","NormalizedPhoneNumber":null,"UserId":null,"User":null},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
+      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":3.7688841819763184,"Longitude":114.38753509521484},"Distance":1.92070758},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":8.0,"Charge":8.0,"Method":"0","Reference":null,"TransactionId":"0","IsReceived":false},"Status":0,"SubState":0,"StateHistory":null},{"Id":6472,"UserId":"Tan","User":{"Id":null,"Name":"Sunny
+      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null},"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Value":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Id":null,"Name":"Sunny
+      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null},"Name":"eqwuegqh","PhoneNumber":"3408468748","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"ehjhgqwe","PhoneNumber":"0684684"},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
       LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia","Latitude":3.7623996734619141,"Longitude":114.40357971191406},"EndLocation":{"PlaceId":null,"Address":"Post
-      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":3.7688841819763184,"Longitude":114.38753509521484},"Distance":1.92070758},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":8.0,"Charge":8.0,"Method":0,"Reference":null,"TransactionId":0,"IsReceived":false},"Status":0,"Id":5076},{"UserId":"Tan","User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Tags":[],"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Name":"eqwuegqh","PhoneNumber":"3408468748","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"ehjhgqwe","PhoneNumber":"0684684","NormalizedPhoneNumber":null,"UserId":null,"User":null},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
-      LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia","Latitude":3.7623996734619141,"Longitude":114.40357971191406},"EndLocation":{"PlaceId":null,"Address":"Post
-      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":3.7688841819763184,"Longitude":114.38753509521484},"Distance":1.92070758},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":8.0,"Charge":8.0,"Method":0,"Reference":null,"TransactionId":0,"IsReceived":false},"Status":0,"Id":5878},{"UserId":"Tan","User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Tags":[],"ItemInfo":{"Weight":1.0,"Quantity":0,"Volume":0.0,"Length":1.0,"Width":1.0,"Height":1.0,"Remark":null},"MyState":"Sarawak","SenderInfo":{"UserId":null,"User":{"Name":"Sunny
-      Tan","Username":"Sunny","Email":"Sunny@mimi.com","Phone":"125367124","AvatarUrl":null,"Lingau":null,"Id":null},"Name":"eqwuegqh","PhoneNumber":"3408468748","NormalizedPhoneNumber":null},"ReceiverInfo":{"Name":"ehjhgqwe","PhoneNumber":"0684684","NormalizedPhoneNumber":null,"UserId":null,"User":null},"DeliveryInfo":{"StartLocation":{"PlaceId":null,"Address":"LONG
-      LAMA HOTEL, Jalan Lee Kai Tai, Long Lama, Sarawak, Malaysia","Latitude":3.7623996734619141,"Longitude":114.40357971191406},"EndLocation":{"PlaceId":null,"Address":"Post
-      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":3.7688841819763184,"Longitude":114.38753509521484},"Distance":1.92070758},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":8.0,"Charge":8.0,"Method":0,"Reference":null,"TransactionId":0,"IsReceived":false},"Status":0,"Id":6472}]],"Size":1}'
+      Office Long Lama, Long Lama, Sarawak, Malaysia","Latitude":3.7688841819763184,"Longitude":114.38753509521484},"Distance":1.92070758},"RiderId":null,"Rider":null,"PaymentInfo":{"Fee":8.0,"Charge":8.0,"Method":"0","Reference":null,"TransactionId":"0","IsReceived":false},"Status":0,"SubState":0,"StateHistory":null}]],"Size":1}'

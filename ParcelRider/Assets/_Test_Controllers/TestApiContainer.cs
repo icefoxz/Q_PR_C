@@ -41,20 +41,14 @@ public class TestApiContainer : MonoBehaviour
         {
             var orderId = (long)args[0];
             var (isSuccess, status, ordId)  = OrderParcelSo.GetOrderService(orderId);
-            //var order = ActiveOrderSo.GetOrder(ordId);
-            //order.Status = (int)DeliveryOrderStatus.Canceled;
-            //order.SubSTateId = DoSubState.SenderCancelState;
-            //ActiveOrderSo.Remove(orderId);
-            //HistorySo.Add(order);
+
+            var order = ActiveOrderSo.GetOrder(orderId);
+            order.Status = (int)status;
+            order.SubState = DoSubState.SenderCancelState;
+            ActiveOrderSo.CancelOrder(orderId);
+            HistorySo.SetNewOrder(order);
             return new object[] { isSuccess, status, ordId };
         }, userOrderController);
-        //RegTester(nameof(userOrderController.Do_Payment), args =>
-        //{
-        //    var payM = (PaymentMethods)args[0];
-        //    var (isSuccess, message, payMethod) = OrderParcelSo.PaymentOrderService(payM);
-        //    ActiveOrderSo.SetPayment(payM);
-        //    return new object[] { isSuccess, message, payMethod };
-        //}, userOrderController);
         RegTester(nameof(userOrderController.Do_Create), args =>
         {
             var order = (DeliverOrderModel)args[0];
@@ -64,6 +58,11 @@ public class TestApiContainer : MonoBehaviour
             ActiveOrderSo.SetNewOrder(newOrder);
             return new object[] { isSuccess, message };
         },userOrderController);
+        RegTester(nameof(userOrderController.DoPay_RiderCollect), args =>
+        {
+            var (isSuccess, message) = ActiveOrderSo.RiderCollectPayment();
+            return new object[] { isSuccess, message };
+        }, userOrderController);
         RegTester(nameof(userOrderController.Do_UpdateAll), _ =>
         {
             var message = ActiveOrderSo.GetOrders();

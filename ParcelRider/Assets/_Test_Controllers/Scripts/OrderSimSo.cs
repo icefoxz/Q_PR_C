@@ -6,6 +6,7 @@ using UnityEngine;
 using System.Linq;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using Sirenix.OdinInspector;
+using UnityEditor;
 using UnityEngine.Serialization;
 using Random = System.Random;
 
@@ -18,7 +19,8 @@ public class OrderSimSo : ScriptableObject
     public string GetHistories() => _field.GetHistory();
     public void SetNewOrder(DeliverOrderModel order) => _field.SetNewOrderToList(order);
     public void CancelOrder(long orderId) => _field.CancelOrderToList(orderId);
-    public void AddToHistory(long orderId) => _field.AddToHistoryList();
+    public (bool isSuccess, string message) RiderCollectPayment() => _field.RiderCollectPay();
+
     public void SetPayment(PaymentMethods payM) => _field.SetPayment(payM);
     public (string order, int state) DoStateUpdate(string order, int stateId) => _field.DoState_Update(order, stateId);
 
@@ -30,49 +32,11 @@ public class OrderSimSo : ScriptableObject
 
     [Serializable] private class OrderField
     {
-        private enum ListModes
-        {
-            Generate,
-            Preset,
-        }
-        [SerializeField] private ListModes Listmode;
-        public int Count;
+                public int Count;
         public long CurrentId;
         public List<Model_Do> _preset;
-        [TextArea(5,20)]
-        public string DoList;
         public string GetOrders()
         {
-            if(Listmode == ListModes.Generate)
-            {
-                if (DoList == string.Empty)
-                {
-                    Debug.Log("Create order list");
-                    var hOrder = GenerateRandomHistory(Count);
-
-                    List<Model_Do> GenerateRandomHistory(int count)
-                    {
-                        var random = new System.Random();
-                        var orders = new List<Model_Do>();
-
-                        for (int i = 0; i < count; i++)
-                        {
-                            var order = GenerateOrder(random);
-                            orders.Add(order);
-                        }
-
-                        return orders;
-                    }
-
-                    _preset.AddRange(hOrder);
-                    var data = DataBag.Serialize(_preset);
-                    DoList = data;
-                }
-
-                Debug.Log("Get data from SO");
-                return DoList;
-            }
-
             return DataBag.Serialize(_preset);
         }
 
@@ -155,27 +119,23 @@ public class OrderSimSo : ScriptableObject
 
         public void SetNewOrderToList(DeliverOrderModel order)
         {
-            DeserializeList();
             CurrentId = order.Id;
-            var data = order.Map<DeliverOrderModel, Model_Do>();
+            var data = order.JMap<DeliverOrderModel, Model_Do>();
             _preset.Add(data);
-            SetNewList(_preset);
+            AssetDatabase.Refresh();
         }
         public void CancelOrderToList(long orderId)
         {
-            DeserializeList();
             var order = _preset.FirstOrDefault(o => o.Id == orderId);
             _preset.Remove(order);
-            SetNewList(_preset);
             CurrentId = -1;
         }
         public void SetPayment(PaymentMethods payM)
         {
             var order = GetOrder(CurrentId);
-            var index = _preset.IndexOf(order);
-            var mo = _preset[index];
-            mo.PaymentInfo.Method = payM.ToString();
-            SetNewList(_preset);
+            //var index = _preset.IndexOf(order);
+            //var mo = _preset[index];
+            order.PaymentInfo.Method = payM.ToString();
         }
 
         private Model_Do GetOrder(long currentId)
@@ -184,66 +144,43 @@ public class OrderSimSo : ScriptableObject
             return order;
         }
 
-        private void DeserializeList()
-        {
-            var bag = DataBag.Deserialize(DoList);
-            var DoData = bag.Get<List<Model_Do>>(0);
-            _preset.Clear();
-            DoList = string.Empty;
-            _preset.AddRange(DoData);
-        }
-
-        private void SetNewList(List<Model_Do> deliverOrderModels)
-        {
-            var data = DataBag.Serialize(deliverOrderModels);
-            DoList = data;
-        }
-
         #region Update Order Status
         public (bool isSuccess, int status, long ordId) OrderAssignedResponse(DeliverOrderModel model)
         {
             var order = model.Map<DeliverOrderModel, Model_Do>();
-            DeserializeList();
             var getOrder = GetOrder(order.Id);
             var index = _preset.IndexOf(getOrder);
             _preset[index].RiderId = order.RiderId;
             _preset[index].Rider = order.Rider;
             var assigned = (int)DeliveryOrderStatus.Assigned;
             _preset[index].Status = assigned;
-            SetNewList(_preset);
             return (true, _preset[index].Status, order.Id);
         }
 
         internal (bool isSuccess, int status, long ordId) ItemPickedResponse(long orderId)
         {
-            DeserializeList();
             var order = GetOrder(orderId);
             var index = _preset.IndexOf(GetOrder(orderId));
             var assigned = (int)DeliveryOrderStatus.Delivering;
             _preset[index].Status = assigned;
-            SetNewList(_preset);
             return (true, _preset[index].Status, order.Id);
         }
 
         internal (bool isSuccess, int status, long oId) ItemCollectedResponse(long orderId)
         {
-            DeserializeList();
             var order = GetOrder(orderId);
             var index = _preset.IndexOf(GetOrder(orderId));
             var assigned = (int)DeliveryOrderStatus.Completed;
             _preset[index].Status = assigned;
-            SetNewList(_preset);
             return (true, _preset[index].Status, order.Id);
         }
 
         internal (bool isSuccess, int status, long ordId) DeliveryCompleteResponse(long orderId)
         {
-            DeserializeList();
             var order = GetOrder(orderId);
             var index = _preset.IndexOf(GetOrder(orderId));
             var assigned = (int)DeliveryOrderStatus.Closed;
             _preset[index].Status = assigned;
-            SetNewList(_preset);
             return (true, _preset[index].Status, order.Id);
         }
         #endregion
@@ -258,9 +195,22 @@ public class OrderSimSo : ScriptableObject
             return DataBag.Serialize(_preset);
         }
 
-        public void AddToHistoryList()
+        public DeliverOrderModel GetOrderFromList(long orderId)
         {
+            var order = GetOrder(orderId);
+            var doOrder = order.JMap<Model_Do, DeliverOrderModel>();
+            return doOrder;
+        }
+
+        public (bool isSuccess, string message) RiderCollectPay()
+        {
+            var order = GetOrder(CurrentId);
+            order.PaymentInfo.Method = PaymentMethods.RiderCollection.ToString();
+            var bag = DataBag.Serialize(order);
+            return (true, bag);
         }
     }
+
+    public DeliverOrderModel GetOrder(long orderId) => _field.GetOrderFromList(orderId);
 
 }

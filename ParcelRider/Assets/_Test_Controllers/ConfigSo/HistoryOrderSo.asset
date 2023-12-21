@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _field:
     Listmode: 1
-    Count: 0
+    Count: 1
     CurrentId: 0
     _preset: []
     DoList: 
