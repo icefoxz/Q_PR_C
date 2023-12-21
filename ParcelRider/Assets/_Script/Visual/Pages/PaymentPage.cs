@@ -10,7 +10,7 @@ namespace Visual.Pages
         private Button btn_pay { get; }
         private Button btn_cancel { get; }
 
-        public PaymentPage(IView v, User_UiManager uiManager) : base(v, uiManager)
+        public PaymentPage(IView v, User_UiManager uiManager) : base(v)
         {
             btn_pay = v.Get<Button>("btn_pay");
             btn_cancel = v.Get<Button>("btn_cancel");

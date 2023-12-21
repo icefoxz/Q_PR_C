@@ -7,10 +7,10 @@ namespace AOT.Utl
 {
     public class ApiCaller
     {
-        private string _accessToken;
+        private static string _accessToken;
         private string ServerUrl { get; }
         private static Type StringType { get; }= typeof(string);
-        private string AccessToken
+        public static string AccessToken
         {
             get
             {

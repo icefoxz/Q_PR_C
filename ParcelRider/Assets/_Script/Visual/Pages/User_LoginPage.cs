@@ -15,7 +15,7 @@ namespace Visual.Pages
         private View_RegSect view_regSect { get; }
         private LoginController LoginController => App.GetController<LoginController>();
         private event Action OnLoggedInEvent;
-        public User_LoginPage(IView v, Action onLoggedInAction, UiManagerBase uiManager) : base(v, uiManager)
+        public User_LoginPage(IView v, Action onLoggedInAction, UiManagerBase uiManager) : base(v)
         {
             OnLoggedInEvent += onLoggedInAction;
             OnLoggedInEvent += Hide;

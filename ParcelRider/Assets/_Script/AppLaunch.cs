@@ -1,5 +1,6 @@
 using System;
 using AOT.Core;
+using AOT.Network;
 using AOT.Utl;
 using AOT.Views;
 using UnityEngine;
@@ -18,11 +19,17 @@ namespace AOT
         [SerializeField] private bool _testMode;
         [SerializeField] private MapCoordinates _map;
         [SerializeField] private GestureHandler _gestureHandler;
+        [SerializeField] private SignalRClient _signalRClient;
 
         private void Start()
         {
             _map.Init(_gestureHandler);
-            App.Run(res: _res, monoService: _monoService, _map, _uiManager.IsUserMode, _testMode);
+            App.Run(res: _res, 
+                monoService: _monoService,
+                mapCoordinates: _map, 
+                signalRClient: _signalRClient, 
+                isUserMode: _uiManager.IsUserMode, 
+                isTestMode: _testMode);
             _apiPanel.Init(_serverUrl);
             App.UiInit(_mainCanvas, _uiManager.Get(), _autoStartUi);
         }

@@ -7,7 +7,7 @@ namespace AOT.BaseUis
     /// </summary>
     public abstract class WinUiBase : PageUiBase
     {
-        protected WinUiBase(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
+        protected WinUiBase(IView v, bool display = false) : base(v, display)
         {
         }
     }
@@ -16,11 +16,11 @@ namespace AOT.BaseUis
     /// </summary>
     public abstract class PageUiBase : UiBase
     {
-        protected UiManagerBase UiManager { get; }
+        
 
-        protected PageUiBase(IView v, UiManagerBase uiManager, bool display = false) : base(v, display)
+        protected PageUiBase(IView v, bool display = false) : base(v, display)
         {
-            UiManager = uiManager;
+
         }
     }
 }

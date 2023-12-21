@@ -4,6 +4,7 @@ using System.Linq;
 using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
+using AOT.DataModel;
 using AOT.Extensions;
 using AOT.Views;
 using OrderHelperLib.Contracts;
@@ -15,12 +16,10 @@ namespace Visual.Pages.Rider
     public class RiderOrderViewPage : PageUiBase
     {
         private Text text_orderId { get; }
-        private Text text_riderName { get; }
-        private Text text_riderPhone { get; }
+        private Text text_state { get; }
         private View_states view_states { get; }
+        private View_tab view_tab { get; }
         private View_packageInfo view_packageInfo { get; }
-        private Element_contact element_contactTo { get; }
-        private Element_contact element_contactFrom { get; }
         private View_riderOptions view_riderOptions { get; }
         private View_images ViewImages { get; }
         private Button btn_exception { get; }
@@ -30,22 +29,20 @@ namespace Visual.Pages.Rider
         private PictureController PictureController => App.GetController<PictureController>();
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public RiderOrderViewPage(IView v, Rider_UiManager uiManager) : base(v, uiManager)
+        public RiderOrderViewPage(IView v,Action onPossibleExceptionAction ,Rider_UiManager uiManager) : base(v)
         {
             text_orderId = v.Get<Text>("text_orderId");
-            text_riderName = v.Get<Text>("text_riderName");
-            text_riderPhone = v.Get<Text>("text_riderPhone");
+            text_state = v.Get<Text>("text_state");
             view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
             view_states = new View_states(v.Get<View>("view_states"));
+            view_tab = new View_tab(v.Get<View>("view_tab"));
             ViewImages = new View_images(v: v.Get<View>("view_images"),
                 onImageSelectedAction: ImageSelected_PromptImageWindow,
                 onGalleryAction: () => PictureController.OpenGallery(OnPictureTaken),
                 onCameraAction: () => PictureController.OpenCamera(OnPictureTaken));
-            element_contactTo = new Element_contact(v.Get<View>("element_contactTo"));
-            element_contactFrom = new Element_contact(v.Get<View>("element_contactFrom"));
             view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions"), OnStateChange);
             btn_exception = v.Get<Button>("btn_exception");
-            btn_exception.OnClickAdd(() => RiderOrderController.PossibleState_Update(OrderId));
+            btn_exception.OnClickAdd(onPossibleExceptionAction);
             btn_close = v.Get<Button>("btn_close");
             btn_close.OnClickAdd(Hide);
 
@@ -57,11 +54,14 @@ namespace Visual.Pages.Rider
             var current = App.Models.CurrentOrder;
             if (current.State == DeliveryOrderStatus.Created)
             {
-                RiderOrderController.Do_AssignRider();
+                ConfirmWindow.Set("Confirm", "Take order?", RiderOrderController.Do_AssignRider);
                 return;
             }
-            RiderOrderController.Do_State_Update(stateId);
+            var state = DoStateMap.GetState(stateId);
+            ConfirmWindow.Set("Confirm", (state?.StateName ?? "Stage Change") + "?",
+                () => RiderOrderController.Do_State_Update(stateId));
         }
+
 
         private void OnPictureTaken(Texture2D texture)
         {
@@ -77,32 +77,97 @@ namespace Visual.Pages.Rider
             //throw new Exception("No order set to current!");
             if (order == null) return;
             OrderId = order.Id;
-            var sender = order.SenderInfo.User;
-            var receiver = order.ReceiverInfo;
             var payment = order.PaymentInfo;
             var deliver = order.DeliveryInfo;
             var item = order.ItemInfo;
             text_orderId.text = order.Id.ToString();
-            text_riderName.text = order.Rider?.Name;
-            text_riderPhone.text = order.Rider?.Phone;
+            view_tab.Set(order);
             view_packageInfo.Set(payment.Charge, deliver.Distance, item.Weight, item.Size());
-            element_contactFrom.Set(sender.Name, sender.Phone, deliver.StartLocation.Address);
-            element_contactTo.Set(receiver.Name, receiver.PhoneNumber, deliver.EndLocation.Address);
+            ViewImages.SetActive(order.State.IsInProgress());
             UpdateState();
             Show();
 
             void UpdateState()
             {
+                var state = DoStateMap.GetState(order.SubState);
+                if (state == null)
+                {
+                    text_state.text = "State not found!";
+                    btn_exception.interactable = false;
+                    view_states.SetState(DeliveryOrderStatus.Closed);
+                    view_riderOptions.SetState(Array.Empty<DoSubState>());
+                    return;
+                }
+                text_state.text = state.GetStatus + $"({state.Status})\n" + state.StateName + $"({order.SubState})";
                 var status = order.State;
                 var possibleStates = DoStateMap.GetPossibleStates(TransitionRoles.Rider, order.SubState);
-                var states = DoStateMap.GetAllSubStates().ToArray();
-                var toStates = states
-                    .Where(s => s.FromStates.Contains(order.SubState) || s.FromStatusList.Contains(status)).ToArray();
-                var ppStates = toStates.Where(s => s.IsAllowFrom(TransitionRoles.Rider, order.SubState)).ToArray();
-                btn_exception.gameObject.SetActive(
-                    possibleStates.Any(p => p.Status == (int)DeliveryOrderStatus.Canceled));
+                btn_exception.interactable = possibleStates.Any(p => p.GetStatus == DeliveryOrderStatus.Exception);
                 view_states.SetState(status);
-                view_riderOptions.SetState(possibleStates);
+                view_riderOptions.SetState(possibleStates.Where(s => s.GetStatus != DeliveryOrderStatus.Exception)
+                    .ToArray());
+            }
+        }
+
+        private class View_tab : UiBase
+        {
+            private enum Tabs
+            {
+                DeliverInfo,
+                ProgressInfo
+            }
+            private Button btn_progress { get; }
+            private Button btn_info { get; }
+            private View_progressInfo view_progressInfo { get; }
+            private View_deliverInfo view_deliverInfo { get; }
+
+            public View_tab(IView v, bool display = true) : base(v, display)
+            {
+                btn_progress = v.Get<Button>("btn_progress");
+                btn_info = v.Get<Button>("btn_info");
+                view_progressInfo = new View_progressInfo(v.Get<View>("view_progressInfo"), v.RectTransform.rect.width);
+                view_deliverInfo = new View_deliverInfo(v.Get<View>("view_deliverInfo"));
+                btn_progress.OnClickAdd(() => SetTab(Tabs.ProgressInfo));
+                btn_info.OnClickAdd(() => SetTab(Tabs.DeliverInfo));
+            }
+
+            private void SetTab(Tabs mode)
+            {
+                view_progressInfo.Display(mode == Tabs.ProgressInfo);
+                view_deliverInfo.Display(mode == Tabs.DeliverInfo);
+            }
+
+            public void Set(DeliveryOrder order)
+            {
+                view_deliverInfo.Set(order);
+                view_progressInfo.Set(order, 110);
+                SetTab(Tabs.ProgressInfo);
+            }
+
+            private class View_deliverInfo : UiBase
+            {
+                private Text text_riderName { get; }
+                private Text text_riderPhone { get; }
+                private Element_contact element_contactTo { get; }
+                private Element_contact element_contactFrom { get; }
+
+                public View_deliverInfo(IView v, bool display = true) : base(v, display)
+                {
+                    text_riderName = v.Get<Text>("text_riderName");
+                    text_riderPhone = v.Get<Text>("text_riderPhone");
+                    element_contactTo = new Element_contact(v.Get<View>("element_contactTo"));
+                    element_contactFrom = new Element_contact(v.Get<View>("element_contactFrom"));
+                }
+
+                public void Set(DeliveryOrder order)
+                {
+                    var sender = order.SenderInfo.User;
+                    var receiver = order.ReceiverInfo;
+                    var deliver = order.DeliveryInfo;
+                    text_riderName.text = order.Rider?.Name;
+                    text_riderPhone.text = order.Rider?.Phone;
+                    element_contactFrom.Set(sender.Name, sender.Phone, deliver.StartLocation.Address);
+                    element_contactTo.Set(receiver.Name, receiver.PhoneNumber, deliver.EndLocation.Address);
+                }
             }
         }
 
@@ -154,14 +219,14 @@ namespace Visual.Pages.Rider
 
         private class View_riderOptions : UiBase
         {
-            private ListView<Prefab_option> OptionList { get; }
+            private ListView_Trans<Prefab_option> OptionList { get; }
             private event Action<int> OnStateSelected;
 
             public View_riderOptions(IView v,
                 Action<int> onStateSelected, bool display = true) : base(v, display)
             {
                 OnStateSelected = onStateSelected;
-                OptionList = new ListView<Prefab_option>(v, "prefab_option");
+                OptionList = new ListView_Trans<Prefab_option>(v, "prefab_option");
             }
 
             public void SetState(DoSubState[] subStates)
@@ -215,7 +280,7 @@ namespace Visual.Pages.Rider
 
         private class View_images : UiBase
         {
-            private ListViewUi<Prefab_image> ImageListView { get; }
+            private ListView_Scroll<Prefab_image> ImageListView { get; }
             private Button btn_camera { get; }
             private Button btn_gallery { get; }
             private event Action<int> OnImageSelected;
@@ -230,11 +295,12 @@ namespace Visual.Pages.Rider
                 btn_camera.OnClickAdd(onCameraAction);
                 btn_gallery = v.Get<Button>("btn_gallery");
                 btn_gallery.OnClickAdd(onGalleryAction);
-                ImageListView = new ListViewUi<Prefab_image>(v, "prefab_image", "scroll_image");
+                ImageListView = new ListView_Scroll<Prefab_image>(v, "prefab_image", "scroll_image");
             }
 
             public void Set(Sprite[] images)
             {
+                ImageListView.ScrollRect.enabled = images.Length > 0;
                 ImageListView.ClearList(ui => ui.Destroy());
                 for (var i = 0; i < images.Length; i++)
                 {
@@ -257,6 +323,12 @@ namespace Visual.Pages.Rider
                     img_item.sprite = image;
                     btn_image.OnClickAdd(onclickAction);
                 }
+            }
+
+            public void SetActive(bool active)
+            {
+                btn_camera.interactable = active;
+                btn_gallery.interactable = active;
             }
         }
     }

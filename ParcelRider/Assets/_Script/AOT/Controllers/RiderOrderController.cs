@@ -12,6 +12,7 @@ namespace AOT.Controllers
 {
     public class RiderOrderController : OrderControllerBase
     {
+        private const int OrderPageSize = 50;
         private DeliveryOrder GetOrder(long orderId) => AppModel.GetOrder(orderId);
 
         public void Get_SubStates()
@@ -45,13 +46,6 @@ namespace AOT.Controllers
 
         public void Do_Current_Set(long orderId) => AppModel.SetCurrentOrder(orderId);
 
-        public void PossibleState_Update(long orderId)
-        {
-            var o = GetOrder(orderId);
-            var subStates = DoStateMap.GetPossibleStates(TransitionRoles.Rider, o.SubState);
-            AppModel.SetStateOptions(subStates);
-        }
-
         //处理单个order的update, 并且更新到相应的列表中
         private void Resolve_OrderCollections(DeliveryOrder order) => AppModel.Resolve_Order(order, isRider: true);
 
@@ -64,7 +58,7 @@ namespace AOT.Controllers
                 var list = bag.Get<List<DeliverOrderModel>>(0);
                 AppModel.UnassignedOrders.SetOrders(
                     list.Where(o => o.Status == 0).Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
-            }, () => ApiPanel.Rider_GetUnassigned(20, pageIndex, pg =>
+            }, () => ApiPanel.Rider_GetUnassigned(OrderPageSize, pageIndex, pg =>
             {
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
@@ -82,7 +76,7 @@ namespace AOT.Controllers
                 AppModel.AssignedOrders.SetOrders(
                     orders.Where(o => o.Status > 0).Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
                 //List_ActiveOrder_Set(list.ToArray());
-            }, () => ApiPanel.Rider_GetAssigned(20, pageIndex, pg =>
+            }, () => ApiPanel.Rider_GetAssigned(OrderPageSize, pageIndex, pg =>
             {
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
@@ -98,7 +92,7 @@ namespace AOT.Controllers
                 var bag = DataBag.Deserialize(message);
                 var list = bag.Get<List<DeliverOrderModel>>(0);
                 List_HistoryOrderSet(list.ToArray(), pageIndex);
-            }, () => ApiPanel.Rider_GetHistories(20, pageIndex, pg =>
+            }, () => ApiPanel.Rider_GetHistories(OrderPageSize, pageIndex, pg =>
             {
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
@@ -125,7 +119,15 @@ namespace AOT.Controllers
                     var o = new DeliveryOrder(dto);
                     Resolve_OrderCollections(o);
                     Do_Current_Set(o.Id);
-                }, msg => MessageWindow.Set("Error", msg));
+                }, msg =>
+                {
+                    ApiPanel.Rider_GetUnassigned(OrderPageSize, AppModel.UnassignedOrders.PageIndex, pg =>
+                    {
+                        var list = pg.List.Select(o => new DeliveryOrder(o)).ToArray();
+                        AppModel.UnassignedOrders.SetOrders(list,pg.PageIndex);
+                    }, _ => MessageWindow.Set("Network error", "Unable to connect to server."));
+                    MessageWindow.Set("Error", msg);
+                });
             });
         }
 

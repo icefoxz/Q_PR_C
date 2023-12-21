@@ -18,7 +18,7 @@ namespace Visual.Pages.Rider
         private View_avatar view_avatar { get; }
         private User_UiManager Mgr { get; }
 
-        public AccountWindow(IView v, User_UiManager uiManager, bool display = false) : base(v, uiManager, display)
+        public AccountWindow(IView v, User_UiManager uiManager, bool display = false) : base(v, display)
         {
             Mgr = uiManager;
             //btn_regRider = v.GetObject<Button>("btn_regRider");
