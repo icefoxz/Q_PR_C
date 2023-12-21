@@ -1,20 +1,8 @@
-using System;
-using AOT.BaseUis;
-using AOT.Core;
-using AOT.Extensions;
-using AOT.Views;
-using OrderHelperLib.Contracts;
-using UnityEngine.Events;
-using UnityEngine.UI;
-
 namespace Visual.Pages
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Security.Cryptography;
     using AOT.BaseUis;
-    using AOT.Controllers;
     using AOT.Core;
     using AOT.DataModel;
     using AOT.Extensions;
@@ -36,7 +24,7 @@ namespace Visual.Pages
             private View_deliverItemInfo view_deliverItemInfo { get; }
             private View_tabs view_tabs { get; }
 
-            public User_OrderViewPage(IView v, Action onCancelAction, User_UiManager uiManager) : base(v, uiManager)
+            public User_OrderViewPage(IView v, Action onCancelAction, User_UiManager uiManager) : base(v)
             {
                 text_orderId = v.Get<Text>("text_orderId");
 
@@ -96,12 +84,13 @@ namespace Visual.Pages
 
                 private class View_states : UiBase
                 {
-                    private Image img_created { get; set; }
-                    private Image img_assigned { get; set; }
-                    private Image img_delivering { get; set; }
-                    private Image img_postDelivery { get; set; }
-                    private Image img_completed { get; set; }
-                    private Image img_exception { get; set; }
+                    private Image img_created { get; }
+                    private Image img_assigned { get; }
+                    private Image img_delivering { get; }
+                    private Image img_postDelivery { get; }
+                    private Image img_completed { get; }
+                    private Image img_exception { get; }
+                    private Text text_state { get; }
 
                     public View_states(IView v, bool display = true) : base(v, display)
                     {
@@ -111,6 +100,7 @@ namespace Visual.Pages
                         img_postDelivery = v.Get<Image>("img_postDelivery");
                         img_completed = v.Get<Image>("img_completed");
                         img_exception = v.Get<Image>("img_exception");
+                        text_state = v.Get<Text>("text_state");
                     }
 
                     public void SetState(DeliveryOrderStatus state)
@@ -121,6 +111,7 @@ namespace Visual.Pages
                         img_postDelivery.gameObject.SetActive(state == DeliveryOrderStatus.PostDelivery);
                         img_completed.gameObject.SetActive(state == DeliveryOrderStatus.Completed);
                         img_exception.gameObject.SetActive(state == DeliveryOrderStatus.Exception);
+                        text_state.text = state.ToString();
                     }
                 }
             }
@@ -164,13 +155,7 @@ namespace Visual.Pages
                 public void SetOrder(DeliveryOrder order)
                 {
                     view_deliveryInfo.SetOrder(order);
-                    var history = order.StateHistory ?? Array.Empty<StateSegmentModel>();
-                    var subStates = DoStateMap.GetAllSubStates();
-                    var logs = history.Join(subStates, h => h.SubState, s => s.StateId,
-                            (h, s) => new { history = h, state = s })
-                        .Select(a => (a.history.Timestamp, $"{a.state.StateName} {a.history.Remark}"))
-                        .ToList();
-                    view_progressInfo.Set(logs);
+                    view_progressInfo.Set(order);
                     SetSelected(0);
                 }
 
@@ -187,105 +172,6 @@ namespace Visual.Pages
                     }
 
                     public void SetSelected(bool selected) => img_selected.gameObject.SetActive(selected);
-                }
-
-                private class View_progressInfo : UiBase
-                {
-                    private ListViewUi<Prefab_deliverLog> LogListView { get; }
-
-                    public View_progressInfo(IView v, float width,bool display = true) : base(v, display)
-                    {
-                        //SetSize
-                        v.SetWidth(width);
-
-                        LogListView = new ListViewUi<Prefab_deliverLog>(v, "prefab_deliverLog", "scroll_deliverLog");
-                    }
-
-                    public void Set(List<(DateTime time, string message)> logs)
-                    {
-                        LogListView.ClearList(l => l.Destroy());
-                        logs.ForEach(arg =>
-                        {
-                            var (time, message) = arg;
-                            LogListView.Instance(v =>
-                            {
-                                var ui = new Prefab_deliverLog(v);
-                                ui.SetMessage(time.ToLocalTime().ToString("hh:mm d/M/yy"), ResolveCharsLimit(message, 55));
-                                return ui;
-                            });
-                        });
-                        LogListView.ScrollRect.verticalNormalizedPosition = 1;
-                    }
-
-                    private string ResolveCharsLimit(string message, int limit)
-                    {
-                        if (message.Length <= limit) return message;
-                        return message.Substring(0, limit) + "...";
-                    }
-
-                    private class Prefab_deliverLog : UiBase
-                    {
-                        private Text text_time { get; }
-                        private Text text_message { get; }
-                        private View_picture view_picture { get; }
-                        //private RectTransform rectTransform { get; }
-                        //private ListViewUi<Prefab_picture> PicListView { get; }
-
-                        public Prefab_deliverLog(IView v, bool display = true) : base(v, display)
-                        {
-                            //rectTransform = v.RectTransform;
-                            //PicListView = new ListViewUi<Prefab_picture>(v, "prefab_picture", "scroll_picture");
-                            text_time = v.Get<Text>("text_time");
-                            text_message = v.Get<Text>("text_message");
-                            view_picture = new View_picture(v.Get<View>("view_picture"));
-                        }
-
-                        public void SetMessage(string time, string log)
-                        {
-                            //rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 60);
-                            //PicListView.ClearList(ui => ui.Destroy());
-                            //PicListView.ScrollRect.gameObject.SetActive(false);
-                            text_time.text = time;
-                            text_message.text = log;
-                            text_message.gameObject.SetActive(true);
-                        }
-
-                        public void SetImages(string time, string imgUrl)
-                        {
-                            //rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 100);
-                            //PicListView.ClearList(ui => ui.Destroy());
-                            //foreach (var url in imgUrls)
-                            //{
-                            //    var ui = PicListView.Instance(v => new Prefab_picture(v, ImageWindow.Set));
-                            //    ui.SetImage(url);
-                            //}
-                            //PicListView.ScrollRect.gameObject.SetActive(true);
-                            text_time.text = time;
-                            view_picture.SetImage(imgUrl);
-                            text_message.gameObject.SetActive(false);
-                        }
-
-                        private class View_picture : UiBase
-                        {
-                            private Image img_pic{ get; }
-                            private Button btn_pic{ get; }
-
-                            public View_picture(IView v, bool display = true) : base(v,
-                                display)
-                            {
-                                img_pic = v.Get<Image>("img_pic");
-                                btn_pic = v.Get<Button>("btn_pic");
-                            }
-
-                            public void SetImage(string url)
-                            {
-                                var imgCo = App.GetController<ImageController>();
-                                imgCo.Req_Image(url, sp => img_pic.sprite = sp);
-                                btn_pic.onClick.RemoveAllListeners();
-                                btn_pic.onClick.AddListener(() => ImageWindow.Set(img_pic.sprite));
-                            }
-                        }
-                    }
                 }
 
                 private class View_deliveryInfo : UiBase
@@ -342,7 +228,7 @@ namespace Visual.Pages
 
             private class View_images : UiBase
             {
-                private ListViewUi<Prefab_image> ImageListView { get; }
+                private ListView_Scroll<Prefab_image> ImageListView { get; }
                 private Button btn_camera { get; }
                 private Button btn_gallery { get; }
                 private event Action<int> OnImageSelected;
@@ -357,7 +243,7 @@ namespace Visual.Pages
                     btn_camera.OnClickAdd(onCameraAction);
                     btn_gallery = v.Get<Button>("btn_gallery");
                     btn_gallery.OnClickAdd(onGalleryAction);
-                    ImageListView = new ListViewUi<Prefab_image>(v, "prefab_image", "scroll_image");
+                    ImageListView = new ListView_Scroll<Prefab_image>(v, "prefab_image", "scroll_image");
                 }
 
                 public void Set(Sprite[] images)
@@ -387,6 +273,5 @@ namespace Visual.Pages
                 }
             }
         }
-
     }
 }

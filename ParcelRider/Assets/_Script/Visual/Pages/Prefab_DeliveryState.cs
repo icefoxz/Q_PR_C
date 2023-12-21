@@ -13,6 +13,7 @@ namespace Visual.Pages
     {
         private Image img_waitState { get; }
         private Image img_deliveryState { get; }
+        private Image img_assignedState { get; }
         private Image img_dropState { get; }
         private Image img_errState { get; }
         private Image img_completeState { get; }
@@ -22,6 +23,7 @@ namespace Visual.Pages
         {
             img_waitState = v.Get<Image>("img_waitState");
             img_deliveryState = v.Get<Image>("img_deliveryState");
+            img_assignedState = v.Get<Image>("img_assignedState");
             img_dropState = v.Get<Image>("img_dropState");
             img_errState = v.Get<Image>("img_errState");
             img_completeState = v.Get<Image>("img_completeState");
@@ -31,17 +33,20 @@ namespace Visual.Pages
         public void SetState(DeliveryOrderStatus state)
         {
             img_waitState.gameObject.SetActive(state is DeliveryOrderStatus.Created);
-            img_deliveryState.gameObject.SetActive(state is DeliveryOrderStatus.Assigned);
-            img_dropState.gameObject.SetActive(state is DeliveryOrderStatus.Delivering);
+            img_assignedState.gameObject.SetActive(state is DeliveryOrderStatus.Assigned);
+            img_deliveryState.gameObject.SetActive(state is DeliveryOrderStatus.Delivering);
+            img_dropState.gameObject.SetActive(state is DeliveryOrderStatus.PostDelivery);
             img_errState.gameObject.SetActive(state == DeliveryOrderStatus.Exception);
-            img_completeState.gameObject.SetActive(state == DeliveryOrderStatus.Completed);
+            img_completeState.gameObject.SetActive(state is DeliveryOrderStatus.Completed
+                or DeliveryOrderStatus.Canceled);
             var spots = state switch
             {
                 DeliveryOrderStatus.Created => 0,
                 DeliveryOrderStatus.Exception => 0,
                 DeliveryOrderStatus.Canceled => 0,
-                DeliveryOrderStatus.Assigned => 3,
+                DeliveryOrderStatus.Assigned => 2,
                 DeliveryOrderStatus.Delivering => 4,
+                DeliveryOrderStatus.PostDelivery => 5,
                 DeliveryOrderStatus.Completed => 7,
                 DeliveryOrderStatus.Closed => 7,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)

@@ -6,6 +6,7 @@ namespace AOT.DataModel
     public record DeliveryOrder : DeliverOrderModel
     {
         public DeliveryOrderStatus State => (DeliveryOrderStatus)Status;
+
         public DeliveryOrder() { }
 
         public DeliveryOrder(DeliverOrderModel dto): base(dto)

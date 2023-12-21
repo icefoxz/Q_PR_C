@@ -22,9 +22,9 @@ namespace AOT.Controllers
         public const float MeterToFeet = 3.280839895f;
         protected AppModels AppModel => App.Models;
 
-        public void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders, int pageIndex) =>
+        protected void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders, int pageIndex) =>
             AppModel.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
-        public void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders, int pageIndex) =>
+        protected void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders, int pageIndex) =>
             AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
 
 #if UNITY_EDITOR
@@ -141,11 +141,7 @@ namespace AOT.Controllers
             }, msg => MessageWindow.Set("Error", "Error in updating data!"));
         }
 
-        public void Logout()
-        {
-            AppModel.Reset();
-            App.SendEvent(EventString.User_Logout);
-        }
+        public void Logout() => AppModel.UserLogout();
 
         public void Do_SetCurrent(long orderId) => App.Models.SetCurrentOrder(orderId);
 

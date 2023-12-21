@@ -11,7 +11,7 @@ namespace AOT.Views
         private static Button btn_close { get; set; }
         private static ImageWindow Instance { get; set; }
 
-        public ImageWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
+        public ImageWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, display)
         {
             img_image = v.Get<Image>("img_image");
             btn_x = v.Get<Button>("btn_x");

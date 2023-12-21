@@ -1,29 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using AOT.BaseUis;
-using AOT.Controllers;
 using AOT.Core;
 using AOT.DataModel;
 using AOT.Extensions;
 using AOT.Views;
-using OrderHelperLib;
-using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine.UI;
 
 namespace Visual.Pages.Rider
 {
-    internal abstract class DoListPage : PageUiBase
+    internal abstract class RiderOrderListPage : PageUiBase
     {
         /// <summary>
         /// Orders Event Name
         /// </summary>
         protected abstract string SubscribeDoUpdateEventName { get; }
-        protected View_doList view_doList { get; }
-        protected UserOrderController UserOrderController => App.GetController<UserOrderController>();
+        private View_doList view_doList { get; }
 
-        protected DoListPage(IView v, Action<long> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
-            : base(v, uiManager, display)
+        protected RiderOrderListPage(IView v, Action<long> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
+            : base(v, display)
         {
             view_doList = new View_doList(v.Get<View>("view_doList"), onOrderSelectedAction);
             RegEvents();
@@ -42,14 +37,14 @@ namespace Visual.Pages.Rider
 
     internal class View_doList : UiBase
     {
-        private ListViewUi<Prefab_do> DoListView { get; }
+        private ListView_Scroll<Prefab_do> DoListView { get; }
         private Action<long> OnOrderSelected { get; }
         public int Count => DoListView.List.Count;
 
         public View_doList(IView v, Action<long> onOrderSelected, bool display = true) : base(v, display)
         {
             OnOrderSelected = onOrderSelected;
-            DoListView = new ListViewUi<Prefab_do>(v, "prefab_do", "scroll_do");
+            DoListView = new ListView_Scroll<Prefab_do>(v, "prefab_do", "scroll_do");
         }
 
         public void Set(IReadOnlyCollection<DeliveryOrder> orders)

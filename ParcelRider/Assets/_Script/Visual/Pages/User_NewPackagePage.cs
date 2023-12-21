@@ -35,7 +35,7 @@ namespace Visual.Pages
         private MyStates[] MyStates { get; set; }
         private bool _isUpperUi;
 
-        public User_NewPackagePage(IView v, Action onSubmit, User_UiManager uiManager) : base(v, uiManager)
+        public User_NewPackagePage(IView v, Action onSubmit, User_UiManager uiManager) : base(v)
         {
             CurrentDo = new DoVolume();
             btn_submit = v.Get<Button>("btn_submit");

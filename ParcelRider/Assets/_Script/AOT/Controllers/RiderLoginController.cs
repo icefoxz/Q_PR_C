@@ -18,7 +18,7 @@ namespace AOT.Controllers
                 {
                     var bag = DataBag.Deserialize(message);
                     var rider = bag.Get<UserModel>(0);
-                    App.Models.SetRider(rider);
+                    App.Models.RiderLogin(rider);
                     message = string.Empty;
                 }
                 callback((isSuccess, message));
@@ -26,17 +26,13 @@ namespace AOT.Controllers
             {
                 ApiPanel.Rider_Login(username, password, result =>
                 {
-                    App.Models.SetRider(result.User);
+                    App.Models.RiderLogin(result.User);
                     callback?.Invoke((true, string.Empty));
                 }, msg =>
                     callback?.Invoke((false, msg)));
             });
         }
 
-        public void Logout()
-        {
-            App.Models.Reset();
-            App.SendEvent(EventString.Rider_Logout);
-         }
+        public void Logout() => App.Models.RiderLogout();
     }
 }

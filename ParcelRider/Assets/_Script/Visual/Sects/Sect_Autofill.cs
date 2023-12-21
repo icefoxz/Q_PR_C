@@ -13,7 +13,7 @@ namespace Visual.Sects
     public class Sect_Autofill : UiBase
     {
         private InputField input_autofill { get; }
-        private ListViewUi<Prefab_Address> AutofillListView { get; }
+        private ListView_Scroll<Prefab_Address> AutofillListView { get; }
         private Button btn_x { get; }
         public string Input => input_autofill.text;
         private string SelectedAddress { get; set; }
@@ -36,7 +36,7 @@ namespace Visual.Sects
         {
             OnAddressConfirmAction = onAddressConfirmAction;
             input_autofill = v.Get<InputField>("input_autofill");
-            AutofillListView = new ListViewUi<Prefab_Address>(v, "prefab_autofill", "scroll_autofill");
+            AutofillListView = new ListView_Scroll<Prefab_Address>(v, "prefab_autofill", "scroll_autofill");
             btn_x = v.Get<Button>("btn_x");
             ContentHeight = contentHeight;
             ContentPadding = contentPadding;

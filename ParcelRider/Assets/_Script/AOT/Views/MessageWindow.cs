@@ -10,7 +10,7 @@ namespace AOT.Views
         private static Button btn_ok { get; set; }
         private static MessageWindow Instance { get; set; }
 
-        public MessageWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, uiManager, display)
+        public MessageWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, display)
         {
             text_title = v.Get<Text>("text_title");
             text_content = v.Get<Text>("text_content");

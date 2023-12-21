@@ -17,7 +17,7 @@ namespace Visual.Pages.Rider
         private Element_input element_inputPhone { get; }
         private View_avatar view_avatar { get; }
 
-        public RiderAccountWindow(IView v, UiManagerBase uiManager) : base(v, uiManager)
+        public RiderAccountWindow(IView v, UiManagerBase uiManager) : base(v)
         {
             btn_close = v.Get<Button>("btn_close");
             text_lastLogin = v.Get<Text>("text_lastLogin");

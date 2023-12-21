@@ -7,10 +7,10 @@ namespace Visual.Pages
 {
     public class View_paging : UiBase
     {
-        private ListViewUi<Prefab_page> PageListView { get; }
+        private ListView_Scroll<Prefab_page> PageListView { get; }
         public View_paging(IView v, bool display = true) : base(v, display)
         {
-            PageListView = new ListViewUi<Prefab_page>(v, "prefab_page", "scroll_paging");
+            PageListView = new ListView_Scroll<Prefab_page>(v, "prefab_page", "scroll_paging");
         }
 
         public void Set(int pageCount, Action<int> onclickAction)

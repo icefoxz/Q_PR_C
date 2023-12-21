@@ -54,7 +54,7 @@ namespace Visual.Pages.Rider
         {
             switch (page)
             {
-                case Rider_UiManager.ActivityPages.ListPage:
+                case Rider_UiManager.ActivityPages.UnassignPage:
                     SelectedPage(element_pageJobs);
                     break;
                 case Rider_UiManager.ActivityPages.HomePage:

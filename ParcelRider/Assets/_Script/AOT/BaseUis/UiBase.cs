@@ -34,7 +34,7 @@ namespace AOT.BaseUis
         protected virtual void OnUiHide() { }
         public void Show() => Display(true);
         public void Hide() => Display(false);
-        private void Display(bool display)
+        public void Display(bool display)
         {
             if (display) OnUiShow();
             else OnUiHide();
@@ -49,26 +49,32 @@ namespace AOT.BaseUis
         public void Destroy() => Object.Destroy(GameObject);
     }
 
-    public class ListView<T> : UiBase
+    /// <summary>
+    /// 用于管理列表的ui, 但是不包含滚动条<br/>
+    /// 要使用滚动条, 请使用<see cref="ListView_Scroll{T}"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class ListView_Trans<T> : UiBase
     {
         private List<T> _list { get; } = new List<T>();
         public IReadOnlyList<T> List => _list;
         public View Prefab { get; }
         public Transform Content { get; }
 
-        public ListView(IView v, View prefab, Transform content, bool display = true) : base(v, display)
+        public ListView_Trans(IView v, View prefab, Transform content, bool hideChildrenViews = true, bool display = true) : base(v, display)
         {
             Prefab = prefab;
             Content = content;
+            if (hideChildrenViews) HideChildren();
         }
 
-        public ListView(IView v, string prefabName, string contentName, bool display = true) : this(v,
+        public ListView_Trans(IView v, string prefabName, string contentName, bool display = true) : this(v,
             v.Get<View>(prefabName), v.Get<Transform>(contentName), display)
         {
 
         }
 
-        public ListView(IView v, string prefabName, bool display = true) : this(v,
+        public ListView_Trans(IView v, string prefabName, bool display = true) : this(v,
             v.Get<View>(prefabName), v.RectTransform, display)
         {
         }
@@ -100,7 +106,12 @@ namespace AOT.BaseUis
         public void Remove(T obj) => _list.Remove(obj);
     }
 
-    public class ListViewUi<T> : ListView<T>
+    /// <summary>
+    /// 滚动条列表ui, 用于管理列表的ui, 包含滚动条<br/>
+    /// 如果不用滚动条, 请使用<see cref="ListView_Trans{T}"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class ListView_Scroll<T> : ListView_Trans<T>
     {
         private readonly ScrollRect _scrollRect;
         public ScrollRect ScrollRect
@@ -113,14 +124,14 @@ namespace AOT.BaseUis
             }
         }
 
-        public ListViewUi(View prefab, ScrollRect scrollRect, IView v, bool hideChildrenViews = true,
+        public ListView_Scroll(View prefab, ScrollRect scrollRect, IView v, bool hideChildrenViews = true,
             bool display = true) : base(v, prefab, scrollRect.content, display)
         {
             _scrollRect = scrollRect;
             if (hideChildrenViews) HideChildren();
         }
 
-        public ListViewUi(IView v, string prefabName, string scrollRectName, bool hideChildrenViews = true,
+        public ListView_Scroll(IView v, string prefabName, string scrollRectName, bool hideChildrenViews = true,
             bool display = true) : this(
             v.Get<View>(prefabName),
             v.Get<ScrollRect>(scrollRectName), v, hideChildrenViews, display)

@@ -1,5 +1,6 @@
 using System;
 using AOT.Core;
+using AOT.Model;
 using AOT.Test;
 using AOT.Utl;
 using OrderHelperLib;
@@ -37,6 +38,7 @@ namespace AOT.Controllers
                 () =>
                 {
                     #region ServerRequest
+
                     ApiPanel.User_Login(username, password,
                         successCallbackAction: result =>
                         {
@@ -49,14 +51,14 @@ namespace AOT.Controllers
 
         }
 
-        private void DeserializeSetModel(string text)
+        void DeserializeSetModel(string text)
         {
             var bag = DataBag.Deserialize(text);
             var user = bag.Get<UserModel>(0);
             OnSuccessSetModel(user);
         }
 
-        private void OnSuccessSetModel(UserModel user) => App.Models.SetUser(user);
+        void OnSuccessSetModel(UserModel user) => App.Models.UserLogin(user);
 
         public void RequestGoogle(Action<bool> callback)
         {
@@ -101,6 +103,7 @@ namespace AOT.Controllers
                 {
                     DeserializeSetModel(message);
                 }
+
                 callback(isSuccess);
             }, () =>
             {
@@ -122,15 +125,14 @@ namespace AOT.Controllers
                     callback?.Invoke(true);
                 });
             });
-        } 
+        }
 
         public void RequestRegister(User_RegDto registerModel,
             Action<(bool isSuccess, string message)> onCallbackAction)
         {
-            
             Call(args => args[0], arg =>
             {
-                App.Models.SetUser(new UserModel()
+                App.Models.UserLogin(new UserModel()
                 {
                     Username = registerModel.Username,
                     Name = registerModel.Name,
@@ -142,7 +144,7 @@ namespace AOT.Controllers
             {
                 ApiPanel.User_Register(registerModel, obj =>
                 {
-                    App.Models.SetUser(obj.User);
+                    App.Models.UserLogin(obj.User);
                     onCallbackAction?.Invoke((true, "Login success!"));
                 }, msg =>
                     onCallbackAction?.Invoke((false, msg)));

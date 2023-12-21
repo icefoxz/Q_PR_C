@@ -13,7 +13,7 @@ namespace Visual.Pages
         public enum ActivityPages
         {
             HomePage,
-            ListPage,
+            UnassignPage,
             OrderPage,
             HistoryPage,
             ExceptionPage
@@ -60,25 +60,21 @@ namespace Visual.Pages
 
             AccountSect = new View_AccountSect(_accountSect, SetProfile, RiderLoginController.Logout);
             View_pageButtons = new View_pageButtons(v: _pageButtons,
-                onJobsPageAction: () => ActivityPageSwitch(ActivityPages.ListPage),
+                onJobsPageAction: () => ActivityPageSwitch(ActivityPages.UnassignPage),
                 onHomePageAction: () => ActivityPageSwitch(ActivityPages.HomePage),
                 onHistoryPageAction: () => ActivityPageSwitch(ActivityPages.HistoryPage));
             RiderHomePage = new RiderHomePage(_riderHomePage, 
                 OrderCurrentSelected,
-                () => ActivityPageSwitch(ActivityPages.ListPage),
+                () => ActivityPageSwitch(ActivityPages.UnassignPage),
                 this);
 
             RiderHistoryPage = new RiderHistoryPage(_orderHistoryPage,
-                onOrderSelectedAction: id =>
-                {
-                    OrderCurrentSelected(id);
-                    ActivityPageSwitch(ActivityPages.OrderPage);
-                }, this);
+                onOrderSelectedAction: OrderCurrentSelected, this);
             RiderJobListPage = new RiderJobListPage(_orderListPage, OrderCurrentSelected, this);
             RiderLoginPage = new RiderLoginPage(_riderLoginPage, onLoggedInAction: LoggedIn_InitHomePage, this);
             //OrderViewPage = new OrderViewPage(_orderViewPage, this);
-            RiderOrderViewPage = new RiderOrderViewPage(_orderPage, this);
             OrderExceptionPage = new OrderExceptionPage(_orderExceptionPage, this);
+            RiderOrderViewPage = new RiderOrderViewPage(_orderPage, OrderExceptionPage.DisplayPossibleExceptions, this);
             if(startUi) RiderLoginPage.Show();
         }
 
@@ -88,7 +84,7 @@ namespace Visual.Pages
         private void ActivityPageSwitch(ActivityPages page)
         {
             Display(RiderHomePage, page == ActivityPages.HomePage);
-            Display(RiderJobListPage, page == ActivityPages.ListPage);
+            Display(RiderJobListPage, page == ActivityPages.UnassignPage);
             Display(RiderOrderViewPage, page == ActivityPages.OrderPage);
             Display(RiderHistoryPage, page == ActivityPages.HistoryPage);
             Display(OrderExceptionPage, page == ActivityPages.ExceptionPage);

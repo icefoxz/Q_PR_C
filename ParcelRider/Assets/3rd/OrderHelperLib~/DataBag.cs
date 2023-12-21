@@ -22,7 +22,7 @@ namespace OrderHelperLib
             var bag = new DataBag();
             bag.Data = data;
             bag.Size = data.Length;
-            bag.DataName = $"{name}[{data.Length}]";
+            bag.DataName = name;
             return Json.Serialize(bag);
         }
         /// <summary>
@@ -35,7 +35,7 @@ namespace OrderHelperLib
             var bag = new DataBag();
             bag.Data = data;
             bag.Size = data.Length;
-            bag.DataName = $"Array[{data.Length}]";
+            bag.DataName = $"Data[{data.Length}]";
             return Json.Serialize(bag);
         }
 

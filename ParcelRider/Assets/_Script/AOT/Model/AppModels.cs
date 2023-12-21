@@ -25,7 +25,6 @@ namespace AOT.Model
         public DoPageModel History { get; private set; } = new HistoryDoModel();
 
         public DeliveryOrder? CurrentOrder { get; private set; }
-        public DoSubState[] CurrentStateOptions { get; private set; } = Array.Empty<DoSubState>();
 
         public IEnumerable<DeliveryOrder> AllOrders => AssignedOrders.Orders.Concat(UnassignedOrders.Orders).Concat(History.Orders);
         public DeliveryOrder? GetOrder(long orderId) => AllOrders.FirstOrDefault(o => o.Id == orderId);
@@ -40,13 +39,13 @@ namespace AOT.Model
 
         public void SetSubStates(DoSubState[] subStates) => SubStates = subStates;
 
-        public void SetRider(UserModel u)
+        private void SetRider(UserModel u)
         {
             Rider = new Rider { Id = 0.ToString(), Name = u.Name, Phone = u.Phone };
             App.SendEvent(EventString.Rider_Update);
         }
 
-        public void SetUser(UserModel user)
+        private void SetUser(UserModel user)
         {
             User = new User(user);
             App.SendEvent(EventString.User_Update);
@@ -81,12 +80,6 @@ namespace AOT.Model
             History.Reset();
         }
 
-        public void SetStateOptions(DoSubState[] subStates)
-        {
-            CurrentStateOptions = subStates;
-            App.SendEvent(EventString.Order_Current_OptionsUpdate);
-        }
-
         /// <summary>
         /// 自动更新当前的order并自动插入到相应的list
         /// </summary>
@@ -98,7 +91,7 @@ namespace AOT.Model
             UnassignedOrders.RemoveOrder(order.Id);
             History.RemoveOrder(order.Id);
             if (status.IsClosed()) History.AddOrder(order);
-            else if (isRider && status.IsAssigned()) AssignedOrders.AddOrder(order);//rider
+            else if (isRider && status == DeliveryOrderStatus.Assigned) AssignedOrders.AddOrder(order);//rider
             else if(!isRider) AssignedOrders.AddOrder(order);//user
             else UnassignedOrders.AddOrder(order);
         }
@@ -107,6 +100,30 @@ namespace AOT.Model
         {
             User.Lingau = lingau;
             App.SendEvent(EventString.User_Update);
+        }
+
+        public void UserLogin(UserModel user)
+        {
+            SetUser(user);
+            App.SendEvent(EventString.User_Login);
+        }
+
+        public void RiderLogin(UserModel user)
+        {
+            SetRider(user);
+            App.SendEvent(EventString.Rider_Login);
+        }
+
+        public void UserLogout()
+        {
+            Reset();
+            App.SendEvent(EventString.User_Logout);
+        }
+
+        public void RiderLogout()
+        {
+            Reset();
+            App.SendEvent(EventString.Rider_Logout);
         }
     }
 }

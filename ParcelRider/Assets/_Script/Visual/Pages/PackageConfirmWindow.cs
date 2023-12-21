@@ -13,7 +13,7 @@ namespace Visual.Pages
         private Button btn_paymentGateway { get; }
         private View_info view_Info { get; }
 
-        public PackagePaymentWindow(IView v, User_UiManager uiManager) : base(v, uiManager)
+        public PackagePaymentWindow(IView v, User_UiManager uiManager) : base(v)
         {
             view_Info = new View_info(v.Get<View>("view_info"));
             btn_cancel = v.Get<Button>("btn_cancel");

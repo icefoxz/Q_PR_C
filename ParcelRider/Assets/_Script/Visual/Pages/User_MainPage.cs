@@ -17,16 +17,16 @@ namespace Visual.Pages
 {
     public class User_MainPage : PageUiBase
     {
-        private ListViewUi<Prefab_Order> OrderListView { get; }
+        private ListView_Scroll<Prefab_Order> OrderListView { get; }
         private View_packagePlayer view_packagePlayer { get; }
         private View_historySect view_historySect { get; }
         private UserOrderController UserOrderController => App.GetController<UserOrderController>();
 
         private event Action<long> OrderSelectedAction;
-        public User_MainPage(IView v,Action<long> onOrderSelectedAction ,User_UiManager uiManager) : base(v, uiManager)
+        public User_MainPage(IView v,Action<long> onOrderSelectedAction ,User_UiManager uiManager) : base(v)
         {
             OrderSelectedAction = onOrderSelectedAction;
-            OrderListView = new ListViewUi<Prefab_Order>(v, "prefab_order", "scroll_orders");
+            OrderListView = new ListView_Scroll<Prefab_Order>(v, "prefab_order", "scroll_orders");
             view_packagePlayer = new View_packagePlayer(v.Get<View>("view_packagePlayer"),
                 uiManager, a => uiManager.NewPackage(a.point, a.kg, a.length, a.width, a.height));
             view_historySect = new View_historySect(v.Get<View>("view_historySect"), OrderSelectedAction);
@@ -434,7 +434,7 @@ namespace Visual.Pages
 
         private class View_historySect : UiBase
         {
-            private ListViewUi<Prefab_history> HistoryView { get; }
+            private ListView_Scroll<Prefab_history> HistoryView { get; }
             private View_paging view_paging { get; }
             private event Action<long> OnSelectedHistoryAction;
 
@@ -444,7 +444,7 @@ namespace Visual.Pages
             {
                 OnSelectedHistoryAction = onSelectedHistoryAction;
 
-                HistoryView = new ListViewUi<Prefab_history>(v, "prefab_history", "scroll_history");
+                HistoryView = new ListView_Scroll<Prefab_history>(v, "prefab_history", "scroll_history");
                 view_paging = new View_paging(v.Get<View>("view_paging"));
             }
 

@@ -1,32 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.Views;
 using OrderHelperLib;
+using OrderHelperLib.Contracts;
 using UnityEngine.UI;
 
 namespace Visual.Pages.Rider
 {
     public class OrderExceptionPage : PageUiBase
     {
-        private ListViewUi<Prefab_option> OptionListView { get; set; }
+        private ListView_Scroll<Prefab_option> OptionListView { get; set; }
         private Button btn_close { get; }
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
         public OrderExceptionPage(IView v, Rider_UiManager uiManager) :
-            base(v, uiManager)
+            base(v)
         {
             btn_close = v.Get<Button>("btn_close");
             btn_close.OnClickAdd(Hide);
-            OptionListView = new ListViewUi<Prefab_option>(v, "prefab_option", "scroll_options", true, false);
-            App.RegEvent(EventString.Order_Current_OptionsUpdate, OptionsUpdate);
+            OptionListView = new ListView_Scroll<Prefab_option>(v, "prefab_option", "scroll_options", true, false);
         }
 
-        private void OptionsUpdate(DataBag b)
+        public void DisplayPossibleExceptions()
         {
-            var options = App.Models.CurrentStateOptions;
+            var options = DoStateMap.GetPossibleStates(TransitionRoles.Rider, App.Models.CurrentOrder.SubState)
+                .Where(s => s.GetStatus == DeliveryOrderStatus.Exception)
+                .ToArray();
             OptionListView.ClearList(ui => ui.Destroy());
             for (var i = 0; i < options.Length; i++)
             {
