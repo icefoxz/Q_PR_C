@@ -170,13 +170,23 @@ namespace AOT.Controllers
 
         public void DoPay_DeductFromCredit(Action<bool, string> callbackAction)
         {
-            if (IsTestMode()) return;
-            var orderId = AppModel.CurrentOrder.Id;
-            ApiPanel.User_DoPay_Credit(orderId, b =>
+            Call(args => ((bool)args[0], (string)args[1]), arg =>
             {
-                var lingau = b.Get<LingauModel>(0);
-                AppModel.SetUserLingau(lingau);
-            }, message => callbackAction(false, message));
+                var (isSuccess, message) = arg;
+                if (isSuccess)
+                {
+                    message = String.Empty;
+                }
+                callbackAction(isSuccess, message);
+            }, () =>
+            {
+                var orderId = AppModel.CurrentOrder.Id;
+                ApiPanel.User_DoPay_Credit(orderId, b =>
+                {
+                    var lingau = b.Get<LingauModel>(0);
+                    AppModel.SetUserLingau(lingau);
+                }, message => callbackAction(false, message));
+            });
         }
     }
 }

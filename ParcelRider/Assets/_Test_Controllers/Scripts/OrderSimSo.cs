@@ -17,10 +17,11 @@ public class OrderSimSo : ScriptableObject
     
     public string GetOrders() => _field.GetOrders();
     public string GetHistories() => _field.GetHistory();
+    public DeliverOrderModel GetOrder(long orderId) => _field.GetOrderFromList(orderId);
     public void SetNewOrder(DeliverOrderModel order) => _field.SetNewOrderToList(order);
     public void CancelOrder(long orderId) => _field.CancelOrderToList(orderId);
-    public (bool isSuccess, string message) RiderCollectPayment() => _field.RiderCollectPay();
-
+    public (bool isSuccess, string message) PaymentRiderCollect() => _field.RiderCollectPay();
+    public (bool isSuccess, string message) PaymentCreditDeduction() => _field.CreditDeductPay();
     public void SetPayment(PaymentMethods payM) => _field.SetPayment(payM);
     public (string order, int state) DoStateUpdate(string order, int stateId) => _field.DoState_Update(order, stateId);
 
@@ -206,11 +207,16 @@ public class OrderSimSo : ScriptableObject
         {
             var order = GetOrder(CurrentId);
             order.PaymentInfo.Method = PaymentMethods.RiderCollection.ToString();
-            var bag = DataBag.Serialize(order);
-            return (true, bag);
+            return (true, "Paid: Rider Collection!");
+        }
+
+        public (bool isSuccess, string message) CreditDeductPay()
+        {
+            var order = GetOrder(CurrentId);
+            order.PaymentInfo.Method = PaymentMethods.UserCredit.ToString();
+            return (true, "Paid: User Credit!");
         }
     }
 
-    public DeliverOrderModel GetOrder(long orderId) => _field.GetOrderFromList(orderId);
 
 }

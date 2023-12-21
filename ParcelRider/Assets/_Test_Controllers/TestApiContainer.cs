@@ -41,7 +41,6 @@ public class TestApiContainer : MonoBehaviour
         {
             var orderId = (long)args[0];
             var (isSuccess, status, ordId)  = OrderParcelSo.GetOrderService(orderId);
-
             var order = ActiveOrderSo.GetOrder(orderId);
             order.Status = (int)status;
             order.SubState = DoSubState.SenderCancelState;
@@ -60,7 +59,12 @@ public class TestApiContainer : MonoBehaviour
         },userOrderController);
         RegTester(nameof(userOrderController.DoPay_RiderCollect), args =>
         {
-            var (isSuccess, message) = ActiveOrderSo.RiderCollectPayment();
+            var (isSuccess, message) = ActiveOrderSo.PaymentRiderCollect();
+            return new object[] { isSuccess, message };
+        }, userOrderController);
+        RegTester(nameof(userOrderController.DoPay_DeductFromCredit), args =>
+        {
+            var (isSuccess, message) = ActiveOrderSo.PaymentCreditDeduction();
             return new object[] { isSuccess, message };
         }, userOrderController);
         RegTester(nameof(userOrderController.Do_UpdateAll), _ =>
@@ -70,7 +74,7 @@ public class TestApiContainer : MonoBehaviour
         }, userOrderController);        
         RegTester(nameof(userOrderController.Do_UpdateHistory), _ =>
         {
-            var message = HistorySo.GetHistories();
+            var message = HistorySo.GetOrders();
             return new object[] { message };
         }, userOrderController);
     }
@@ -150,7 +154,7 @@ public class TestApiContainer : MonoBehaviour
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_Get_History), _ =>
         {
-            var message = HistorySo.GetHistories();
+            var message = HistorySo.GetOrders();
             return new object[] { message };
         }, riderOrderService);
     }
