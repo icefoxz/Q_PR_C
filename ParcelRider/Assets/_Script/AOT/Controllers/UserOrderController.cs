@@ -13,20 +13,43 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using OrderHelperLib.Dtos.Lingaus;
 using UnityEngine;
+using System.Collections.Concurrent;
 
 namespace AOT.Controllers
 {
-    public class OrderControllerBase : ControllerBase
+    public abstract class OrderControllerBase : ControllerBase
     {
         public const float KgToPounds = 2.2046226218f;
         public const float MeterToFeet = 3.280839895f;
         protected AppModels AppModel => App.Models;
+        private OrderSyncHandler OrderSyncHandler { get; }
+
+        protected OrderControllerBase(OrderSyncHandler orderSyncHandler)
+        {
+            OrderSyncHandler = orderSyncHandler;
+        }
 
         protected void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders, int pageIndex) =>
-            AppModel.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
+            AppModel.Assigned.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
         protected void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders, int pageIndex) =>
             AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
 
+        private ConcurrentDictionary<string, bool> MethodExecutionLocks { get; } = new ConcurrentDictionary<string, bool>();
+        protected void SynchronizeOrder(IReadOnlyList<DeliveryOrder> orders,
+            Action onUnSyncAction, 
+            [CallerMemberName]string methodName = null)
+        {
+            if (MethodIsLocked(methodName)) return;
+            OrderSyncHandler.Req_Do_Version(orders, isSync =>
+            {
+                if (isSync) return;
+                onUnSyncAction();
+                MethodUnlock(methodName);
+            });
+        }
+
+        private bool MethodIsLocked(string methodName) => MethodExecutionLocks.TryAdd(methodName, false);
+        private void MethodUnlock(string methodName) => MethodExecutionLocks[methodName] = false;
 #if UNITY_EDITOR
         protected bool IsTestMode([CallerMemberName] string methodName = null)
         {
@@ -39,6 +62,9 @@ namespace AOT.Controllers
 
     public class UserOrderController : OrderControllerBase
     {
+        public UserOrderController(OrderSyncHandler orderSyncHandler) : base(orderSyncHandler)
+        {
+        }
         public void Do_Create(DeliverOrderModel order, Action<bool, string> callbackAction)
         {
             Call(new object[] { order }, args => ((bool)args[0], (string)args[1]),
@@ -74,8 +100,9 @@ namespace AOT.Controllers
 
         private void Resolve_Orders(DeliveryOrder model) => AppModel.Resolve_Order(model, isRider: false);
 
-        public void Do_UpdateAll(int pageIndex = 0)
+        public void Do_UpdateActives(int pageIndex = -1)
         {
+            pageIndex = ResolvePageIndex(AppModel.Assigned,pageIndex);
             Call(args => args[0], arg =>
                 {
                     var bag = DataBag.Deserialize(arg);
@@ -83,12 +110,13 @@ namespace AOT.Controllers
                     List_ActiveOrder_Set(list.ToArray(), pageIndex);
                     return;
                 },
-                () => ApiPanel.User_GetDeliveryOrders(50, pageIndex, pg => List_ActiveOrder_Set(pg.List, pageIndex),
+                () => ApiPanel.User_GetActives(50, pageIndex, pg => List_ActiveOrder_Set(pg.List, pageIndex),
                     msg => MessageWindow.Set("Error", "Error in updating data!")));
         }
 
-        public void Do_UpdateHistory(int pageIndex = 0)
+        public void Do_UpdateHistory(int pageIndex = -1)
         {
+            pageIndex = ResolvePageIndex(AppModel.History, pageIndex);
             Call(args => (string)args[0], arg =>
             {
                 var bag = DataBag.Deserialize(arg);
@@ -108,7 +136,7 @@ namespace AOT.Controllers
                 var (success, status, ordId) = arg;
                 if (success)
                 {
-                    var o = AppModel.AssignedOrders.GetOrder(ordId);
+                    var o = AppModel.Assigned.GetOrder(ordId);
                     o.Status = ((int)status);
                     o.SubState = DoSubState.SenderCancelState;
                     Resolve_Orders(o);
@@ -116,7 +144,7 @@ namespace AOT.Controllers
                 }
             }, () =>
             {
-                var o = AppModel.AssignedOrders.GetOrder(orderId);
+                var o = AppModel.Assigned.GetOrder(orderId);
                 ApiPanel.CancelDeliveryOrder(orderId, o.SubState, (success, bag, message) =>
                 {
                     if (success)
@@ -133,7 +161,9 @@ namespace AOT.Controllers
 
         public void Get_SubStates()
         {
+#if UNITY_EDITOR
             if (IsTestMode()) return;
+#endif
             ApiPanel.User_GetSubStates(b =>
             {
                 var subStates = b.Get<DoSubState[]>(0);

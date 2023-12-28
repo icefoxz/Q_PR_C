@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AOT.Core;
 using AOT.DataModel;
 using AOT.Model;
 using AOT.Network;
-using OrderHelperLib;
 
 namespace AOT.Controllers
 {
@@ -15,42 +13,32 @@ namespace AOT.Controllers
         private SignalRCaller _caller;
         private AppModels AppModel => App.Models;
         
-        public OrderSyncHandler(SignalRClient signalRClient)
+        public OrderSyncHandler(SignalRCaller caller)
         {
-            _caller = new SignalRCaller(signalRClient);
+            _caller = caller;
         }
 
-        private Task Req_Do_Version(long[] ids,
-            Action<DataBag> onSuccess,
-            Func<string, Task<bool>> onErrRetry) =>
-            _caller.Req_Do_Version(ids, onSuccess, onErrRetry);
-
-        public async void SynchronizeOrders(Func<string, Task<bool>> onErrRetry, 
-            Action<bool> assignedSyncAction,
-            Action<bool> historySyncAction,
-            Action<bool> unassignedSyncAction)
-        {
-            var orderIds = AppModel.AllOrders.Select(o => o.Id).ToArray();
-            await Req_Do_Version(orderIds, bag => VerifyVersions(bag.Get<Dictionary<long, int>>(0)), onErrRetry);
-
-            void VerifyVersions(Dictionary<long, int> dic)
+        /// <summary>
+        /// SignalR请求检查服务器订单版本号
+        /// </summary>
+        /// <param name="orders"></param>
+        /// <param name="onSuccess">如果版本号不一致, 则返回false</param>
+        public void Req_Do_Version(IReadOnlyList<DeliveryOrder> orders, Action<bool> onSuccess) =>
+            _caller.Req_Do_Version(orders.Select(o => o.Id).ToArray(), b =>
             {
-                var isASync = IsAllSynchronized(dic, AppModel.AssignedOrders.Orders);
-                var isUSync = IsAllSynchronized(dic, AppModel.UnassignedOrders.Orders);
-                var isHSync = IsAllSynchronized(dic, AppModel.History.Orders);
-                assignedSyncAction(isASync);
-                historySyncAction(isHSync);
-                unassignedSyncAction?.Invoke(isUSync);
-            }
-        }
+                var result = b.Get<Dictionary<long, int>>(0);
+                onSuccess(IsAllSynchronized(result));
+                return;
 
-        private static bool IsAllSynchronized(Dictionary<long, int> dic, IReadOnlyList<DeliveryOrder> orders)
-        {
-            var assignedIds = orders.Select(o => new { o.Id, o.Version }).ToArray();
-            var map = dic.Join(assignedIds, a => a.Key, o => o.Id, (a, o) => a.Value == o.Version).ToArray();
-            var isSameLength = assignedIds.Length == map.Length;
-            var isSameVersion = map.All(t => t);
-            return isSameLength && isSameVersion;
-        }
+                bool IsAllSynchronized(Dictionary<long, int> dic)
+                {
+                    var assignedIds = orders.Select(o => new { o.Id, o.Version }).ToArray();
+                    var map = dic.Join(assignedIds, a => a.Key, o => o.Id, (a, o) => a.Value == o.Version)
+                        .ToArray();
+                    var isSameLength = assignedIds.Length == map.Length;
+                    var isSameVersion = map.All(t => t);
+                    return isSameLength && isSameVersion;
+                }
+            }, "Connection error.");
     }
 }

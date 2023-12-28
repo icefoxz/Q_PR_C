@@ -15,7 +15,7 @@ namespace AOT.Views
         private static GameObject obj_content { get; set; }
         private static ConfirmWindow Instance { get; set; }
 
-        public ConfirmWindow(IView v, UiManagerBase uiManager, bool display = false) : base(v, display)
+        public ConfirmWindow(IView v, bool display = false) : base(v, display)
         {
             btn_yes = v.Get<Button>("btn_yes");
             btn_no = v.Get<Button>("btn_no");

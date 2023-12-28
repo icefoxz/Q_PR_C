@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections;
 using AOT.Controllers;
@@ -17,12 +18,10 @@ public class TestApiContainer : MonoBehaviour
     public OrderSimSo HistorySo;
     public RiderLoginServiceSo RiderLoginServiceSo;
 
-#if UNITY_EDITOR
     void Start()
     {
         StartCoroutine(InitCo());
     }
-#endif
 
     private IEnumerator InitCo()
     {
@@ -67,7 +66,7 @@ public class TestApiContainer : MonoBehaviour
             var (isSuccess, message) = ActiveOrderSo.PaymentCreditDeduction();
             return new object[] { isSuccess, message };
         }, userOrderController);
-        RegTester(nameof(userOrderController.Do_UpdateAll), _ =>
+        RegTester(nameof(userOrderController.Do_UpdateActives), _ =>
         {
             var message = ActiveOrderSo.GetOrders();
             return new object[] { message };
@@ -81,7 +80,7 @@ public class TestApiContainer : MonoBehaviour
 
     private void RegLoginService()
     {
-        var userLoginController = App.GetController<LoginController>();
+        var userLoginController = App.GetController<UserLoginController>();
 
         RegTester(nameof(userLoginController.RequestLogin), args =>
         {
@@ -161,3 +160,4 @@ public class TestApiContainer : MonoBehaviour
 
     private void RegTester(string method, Func<object[], object[]> func, ControllerBase controller) => controller.RegTester(func, method);
 }
+#endif

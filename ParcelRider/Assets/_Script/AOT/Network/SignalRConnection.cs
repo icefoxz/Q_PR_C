@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AOT.Utl;
 using Best.SignalR;
 using Best.SignalR.Encoders;
 using UnityEngine;
-using Best.HTTP;
 
 namespace AOT.Network
 {
+    //SignalR连接实例
     public class SignalRConnection
     {
         public const string ServerCall = "ServerCall";
@@ -16,18 +15,17 @@ namespace AOT.Network
         public ConnectionStates? State => _hub?.State;
         public event Action<string> OnServerCall;
         public SignalRConnection(string url,
-            Action onConnected,
             Action<SignalRConnection> onDisconnectOrError)
         {
             var uri = new Uri(url + "?access_token=" + ApiCaller.AccessToken);
             _hub = new HubConnection(uri, new JsonProtocol(new JsonDotNetEncoder(Json.Settings)));
-            _hub.On<string>(ServerCall, ServerCallInvoke);
+            _hub.On<string>(ServerCall, msg => OnServerCall?.Invoke(msg));
             _hub.OnError += OnError;
             _hub.OnClosed += OnClosed;
-            _hub.OnConnected += OnConnected;
+            //_hub.OnConnected += OnConnected;
             return;
 
-            void OnConnected(HubConnection obj) => onConnected?.Invoke();
+            //void OnConnected(HubConnection obj) => onConnected?.Invoke();
 
             void OnClosed(HubConnection obj)
             {
@@ -51,14 +49,12 @@ namespace AOT.Network
             }
         }
 
-        private void ServerCallInvoke(string message) => OnServerCall?.Invoke(message);
-
         public async Task<bool> ConnectAsync()
         {
             try
             {
                 await _hub.ConnectAsync();
-                return true;
+                return _hub.State == ConnectionStates.Connected;
             }
             catch (Exception e)
             {

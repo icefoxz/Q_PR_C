@@ -6,7 +6,6 @@ using UnityEngine;
 using System.Linq;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using Sirenix.OdinInspector;
-using UnityEditor;
 using UnityEngine.Serialization;
 using Random = System.Random;
 
@@ -123,7 +122,6 @@ public class OrderSimSo : ScriptableObject
             CurrentId = order.Id;
             var data = order.JMap<DeliverOrderModel, Model_Do>();
             _preset.Add(data);
-            AssetDatabase.Refresh();
         }
         public void CancelOrderToList(long orderId)
         {

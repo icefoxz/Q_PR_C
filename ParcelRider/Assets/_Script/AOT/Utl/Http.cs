@@ -1,36 +1,48 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace AOT.Utl
 {
     public static class Http
     {
-        private static HttpClient httpClient = new();
+        private static HttpClient HttpClient => new HttpClient();
 
-        private static HttpClient HttpClient => httpClient ??= new HttpClient();
+        private const string JsonMediaType = "application/json";
 
-        public static async Task<(bool isSuccess, string content, HttpStatusCode code)> SendStringContentAsync(string baseUrl, HttpMethod method,
-            string content = null, string token = null, params (string, string)[] queryParams)
+        public static Uri GetUri(string url, string action, params (string, string)[] queries)
+        {
+            var builder = new UriBuilder(url);
+            var query = HttpUtility.ParseQueryString(builder.Query);
+            builder.Path = builder.Path.TrimEnd('/') + $"api/{action}";
+            foreach (var (q, value) in queries)
+                query[q] = value.ToString();
+            builder.Query = query.ToString();
+            return builder.Uri;
+        }
+
+        private static HttpContent GetContent(string stringContent) =>
+            new StringContent(stringContent, Encoding.UTF8, JsonMediaType);
+
+        public static async Task<(bool isSuccess, string content, HttpStatusCode code)> SendStringContentAsync(Uri uri, HttpMethod method,
+            string content = null, string token = null)
         {
             var httpContent = content != null ? new StringContent(content, Encoding.UTF8, "application/json") : null;
-            return await SendAsync(baseUrl, method, httpContent, token, queryParams);
+            return await SendAsync(uri, method, httpContent, token);
         }
-        public static async Task<(bool isSuccess, string content, HttpStatusCode code)> SendAsync(string baseUrl, HttpMethod method,
-            HttpContent content = null, string token = null, params (string, string)[] queryParams)
+        public static async Task<(bool isSuccess, string content, HttpStatusCode code)> SendAsync(Uri uri, HttpMethod method,
+            HttpContent content = null, string token = null)
         {
-            var query = queryParams is { Length: > 0 }
-                ? "?" + string.Join("&",
-                    queryParams.Select(qp => $"{Uri.EscapeDataString(qp.Item1)}={Uri.EscapeDataString(qp.Item2)}"))
-                : string.Empty;
-            var url = $"{baseUrl}{query}";
-
-            using var request = new HttpRequestMessage(method, url);
+            //var query = queryParams is { Length: > 0 }
+            //    ? "?" + string.Join("&",
+            //        queryParams.Select(qp => $"{Uri.EscapeDataString(qp.Item1)}={Uri.EscapeDataString(qp.Item2)}"))
+            //    : string.Empty;
+            //var url = $"{baseUrl}{query}";
+            using var request = new HttpRequestMessage(method, uri);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             if (!string.IsNullOrEmpty(token))
@@ -40,9 +52,9 @@ namespace AOT.Utl
 
             if (content != null) request.Content = content;
 
-            var client = HttpClient;
+            using var client = HttpClient;
 #if UNITY_EDITOR
-            UnityEngine.Debug.Log($"<color=cyan>Http requesting ... {url}</color> with token = {token}");
+            UnityEngine.Debug.Log($"<color=cyan>Http requesting ... {uri}</color> with token = {token}");
 #endif
             var response = await client.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();

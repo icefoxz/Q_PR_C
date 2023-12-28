@@ -8,12 +8,14 @@ using AOT.Views;
 using OrderHelperLib;
 using UnityEngine;
 using UnityEngine.Events;
+using Color = System.Drawing.Color;
 
 namespace AOT.Core
 {
     public static class App
     {
         private static MonoService _monoService;
+        private static SignalRClient _signalRClient;
         private static bool IsRunning { get; set; }
         private static ControllerServiceContainer ServiceContainer { get; set; }
 
@@ -26,7 +28,11 @@ namespace AOT.Core
         public static IMapCoordinates MapCoordinates { get; private set; }
         public static bool IsTestMode { get; private set; }
         public static bool IsUserMode { get; private set; }
-        private static SignalRClient SignalRClient { get; set; }
+        public static IMainThreadDispatcher MainThread { get; private set; }
+
+        public static ISignalRClient SignalRClient => _signalRClient;
+
+        private static ServerCallHandler ServerCallHandler { get; } = new ServerCallHandler();
 
         public static MonoService MonoService
         {
@@ -55,8 +61,9 @@ namespace AOT.Core
             IsRunning = true;
             Res = res;
             MonoService = monoService;
+            MainThread = MonoService.gameObject.AddComponent<MainThreadDispatcher>();
             MapCoordinates = mapCoordinates;
-            SignalRClient = signalRClient;
+            InitSignalR(signalRClient);//必须在ControllerReg之前
             MapCoordinates.Display(false);
             Models = new AppModels();
             ControllerReg();
@@ -65,20 +72,20 @@ namespace AOT.Core
 
             void ControllerReg()
             {
+                var orderSyncHandler = new OrderSyncHandler(SignalRClient.Caller);
                 ServiceContainer = new ControllerServiceContainer();
                 //User
-                ServiceContainer.Reg(new LoginController(), IsTestMode);
+                ServiceContainer.Reg(new UserLoginController(), IsTestMode);
                 ServiceContainer.Reg(new AutofillAddressController(), IsTestMode);
                 ServiceContainer.Reg(new GeocodingController(), IsTestMode);
-                ServiceContainer.Reg(new UserOrderController(), IsTestMode);
+                ServiceContainer.Reg(new UserOrderController(orderSyncHandler), IsTestMode);
 
                 //Rider
                 ServiceContainer.Reg(new RiderLoginController(), IsTestMode);
-                ServiceContainer.Reg(new RiderOrderController(), IsTestMode);
+                ServiceContainer.Reg(new RiderOrderController(orderSyncHandler), IsTestMode);
 
                 //Common
-                ServiceContainer.Reg(new PictureController(MonoService), IsTestMode);
-                ServiceContainer.Reg(new ImageController(), IsTestMode);
+                ServiceContainer.Reg(new ImageController(MonoService), IsTestMode);
             }
 
             void RegEventsForApp()
@@ -91,8 +98,13 @@ namespace AOT.Core
 
                 void SetLoginStatus(bool isSuccess) => IsLoggedIn = isSuccess;
             }
-        }
 
+            void InitSignalR(SignalRClient client)
+            {
+                _signalRClient = client;
+                _signalRClient.Init();
+            }
+        }
 
         public static void UiInit(Canvas canvas, UiManagerBase uiManager,bool startUi)
         {
@@ -101,6 +113,7 @@ namespace AOT.Core
             UiManager.Init(startUi);
         }
 
+        public static void SendEvent(string eventName, DataBag bag) => MessagingManager.Send(eventName, bag);
         public static void SendEvent(string eventName, params object[] args)
         {
             args ??= Array.Empty<object>();
@@ -112,5 +125,11 @@ namespace AOT.Core
 
         public static void SetMap(double lat, double lng, UnityAction<(double lat, double lng)> onGeoCallback) =>
             MapCoordinates.StartMap(lat, lng, onGeoCallback);
+
+        public static void SetSignalServerUrl(string url)
+        {
+            _signalRClient.SetServerUrl(url);
+            Debug.Log($"SetSignalServerUrl: {url.Color(Color.LightPink)}");
+        }
     }
 }

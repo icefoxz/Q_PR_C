@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using AOT.Core;
+using AOT.Model;
+using AOT.Network;
 
 namespace AOT.Test
 {
@@ -37,10 +39,15 @@ namespace AOT.Test
                 testModeCallback?.Invoke(testConvertFunc(responseAction(args)));
                 return;
             }
-
             reqAction?.Invoke();
         }
-
+        /// <summary>
+        /// 如果index = -1, 则使用Model.PageIndex, 否则使用当前的pageIndex
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="pageIndex"></param>
+        /// <returns></returns>
+        protected int ResolvePageIndex(DoPageModel model, int pageIndex) => pageIndex < 0 ? model.PageIndex : pageIndex;
         public void SetTestMode(bool isTestMode)
         {
             TestMode = isTestMode;

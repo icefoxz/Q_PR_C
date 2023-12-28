@@ -26,7 +26,7 @@ namespace Visual.Pages.Rider
         private Button btn_close { get; }
         private long OrderId { get; set; }
         private List<Sprite> images { get; set; } = new List<Sprite>();
-        private PictureController PictureController => App.GetController<PictureController>();
+        private ImageController ImageController => App.GetController<ImageController>();
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
         public RiderOrderViewPage(IView v,Action onPossibleExceptionAction ,Rider_UiManager uiManager) : base(v)
@@ -38,8 +38,8 @@ namespace Visual.Pages.Rider
             view_tab = new View_tab(v.Get<View>("view_tab"));
             ViewImages = new View_images(v: v.Get<View>("view_images"),
                 onImageSelectedAction: ImageSelected_PromptImageWindow,
-                onGalleryAction: () => PictureController.OpenGallery(OnPictureTaken),
-                onCameraAction: () => PictureController.OpenCamera(OnPictureTaken));
+                onGalleryAction: () => ImageController.OpenGallery(OnPictureTaken),
+                onCameraAction: () => ImageController.OpenCamera(OnPictureTaken));
             view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions"), OnStateChange);
             btn_exception = v.Get<Button>("btn_exception");
             btn_exception.OnClickAdd(onPossibleExceptionAction);
@@ -83,7 +83,7 @@ namespace Visual.Pages.Rider
             text_orderId.text = order.Id.ToString();
             view_tab.Set(order);
             view_packageInfo.Set(payment.Charge, deliver.Distance, item.Weight, item.Size());
-            ViewImages.SetActive(order.State.IsInProgress());
+            ViewImages.SetActive(order.State != DeliveryOrderStatus.Created && order.State.IsInProgress());
             UpdateState();
             Show();
 
@@ -235,7 +235,10 @@ namespace Visual.Pages.Rider
                 foreach (var state in subStates)
                 {
                     var ui = OptionList.Instance(v => new Prefab_option(v));
-                    ui.Set(state.StateName, () => OnStateSelected?.Invoke(state.StateId));
+                    var option = state.StateName;
+                    if (state.StateId == 100) //rider assigned
+                        option = "Take order.";
+                    ui.Set(option, () => OnStateSelected?.Invoke(state.StateId));
                 }
             }
 

@@ -43,7 +43,7 @@ namespace Visual.Pages
 
         private void RefreshOrderList()
         {
-            SetOrders(App.Models.AssignedOrders.Orders.OrderBy(o => o.Status).ToArray());
+            SetOrders(App.Models.Assigned.Orders.OrderBy(o => o.Status).ToArray());
 
             void SetOrders(DeliveryOrder[] orders)
             {

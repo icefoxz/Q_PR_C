@@ -13,22 +13,22 @@ namespace Visual.Pages
     {
         private View_loginSect view_loginSect { get; }
         private View_RegSect view_regSect { get; }
-        private LoginController LoginController => App.GetController<LoginController>();
+        private UserLoginController UserLoginController => App.GetController<UserLoginController>();
         private event Action OnLoggedInEvent;
         public User_LoginPage(IView v, Action onLoggedInAction, UiManagerBase uiManager) : base(v)
         {
             OnLoggedInEvent += onLoggedInAction;
             OnLoggedInEvent += Hide;
             view_regSect = new View_RegSect(v.Get<View>("view_regSect"),
-                () => LoginController.RequestRegister(view_regSect.GetRegisterModel(), OnRegisterCallback)
+                () => UserLoginController.RequestRegister(view_regSect.GetRegisterModel(), OnRegisterCallback)
             );
             view_loginSect = new View_loginSect(v: v.Get<View>("view_loginSect"), onLoginAction: arg =>
                 {
                     var (username, password) = arg;
-                    LoginController.RequestLogin(username, password, OnLoginCallback);
+                    UserLoginController.RequestLogin(username, password, OnLoginCallback);
                 },
-                onGoogleAction: () => LoginController.RequestGoogle(OnLoginCallback),
-                onFacebookAction: () => LoginController.RequestFacebook(OnLoginCallback),
+                onGoogleAction: () => UserLoginController.RequestGoogle(OnLoginCallback),
+                onFacebookAction: () => UserLoginController.RequestFacebook(OnLoginCallback),
                 onRegAction: () => view_regSect.Show());
             App.RegEvent(EventString.User_Logout, _ => Show());
         }

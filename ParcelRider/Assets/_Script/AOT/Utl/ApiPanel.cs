@@ -1,6 +1,7 @@
 ﻿using System;
 using AOT.Core;
 using AOT.Views;
+using Facebook.Unity;
 using OrderHelperLib;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using OrderHelperLib.Req_Models.Users;
@@ -50,49 +51,24 @@ namespace AOT.Utl
 
         #region Calls
 
-        private static void Call<T>(string method, Action<T> callbackAction,
-            Action<string> failedCallbackAction)
-            where T : class => Call(method, null, callbackAction, failedCallbackAction);
-
-        private static void Call<T>(string method, object content, Action<T> callbackAction,
-            Action<string> failedCallbackAction)
-            where T : class => Call(method, content, callbackAction, failedCallbackAction,
-            Array.Empty<(string, string)>());
-
-        private static void Call<T>(string method, object content, Action<T> callbackAction,
-            Action<string> failedCallbackAction, params (string, string)[] queryParams) where T : class
-        {
-            Panel.StartCall(method, false, true);
-            Caller.Call<T>(method: method, content: content, result =>
-                {
-                    Panel.EndCall(method);
-                    callbackAction?.Invoke(result);
-                }, result =>
-                {
-                    Panel.EndCall(method);
-                    failedCallbackAction?.Invoke(result);
-                }, isNeedAccessToken: true,
-                queryParams: queryParams);
-        }
-
-        private static void CallWithoutToken<T>(string method, object content,
-            Action<T> callbackAction, Action<string> failedCallbackAction,
-            params (string, string)[] queryParams)
-            where T : class
-        {
-            Panel.StartCall(method, false, true);
-            Caller.Call<T>(method: method, content: content, result =>
-                {
-                    Panel.EndCall(method);
-                    callbackAction?.Invoke(result);
-                },
-                result =>
-                {
-                    Panel.EndCall(method);
-                    failedCallbackAction?.Invoke(result);
-                },
-                isNeedAccessToken: false, queryParams: queryParams);
-        }
+        //private static void CallWithoutToken<T>(string method, object content,
+        //    Action<T> callbackAction, Action<string> failedCallbackAction,
+        //    params (string, string)[] queryParams)
+        //    where T : class
+        //{
+        //    Panel.StartCall(method, false, true);
+        //    Caller.Call<T>(method: method, content: content, result =>
+        //        {
+        //            Panel.EndCall(method);
+        //            callbackAction?.Invoke(result);
+        //        },
+        //        result =>
+        //        {
+        //            Panel.EndCall(method);
+        //            failedCallbackAction?.Invoke(result);
+        //        },
+        //        isNeedAccessToken: false, queryParams: queryParams);
+        //}
 
         private static void CallBag(string method, Action<DataBag> callbackAction,
             Action<string> failedCallbackAction) =>
@@ -110,10 +86,10 @@ namespace AOT.Utl
                 {
                     Panel.EndCall(method);
                     callbackAction?.Invoke(result);
-                }, (code, result) =>
+                }, message =>
                 {
                     Panel.EndCall(method);
-                    failedCallbackAction?.Invoke(result);
+                    failedCallbackAction?.Invoke(message);
                 }, isNeedAccessToken: true,
                 queryParams: queryParams);
         }
@@ -123,15 +99,16 @@ namespace AOT.Utl
             params (string, string)[] queryParams)
         {
             Panel.StartCall(method, false, true);
+            //var result = await Caller.CallBag()
             Caller.CallBag(method: method, databag, result =>
                 {
                     Panel.EndCall(method);
                     callbackAction?.Invoke(result);
                 },
-                (code, result) =>
+                message =>
                 {
                     Panel.EndCall(method);
-                    failedCallbackAction?.Invoke(result);
+                    failedCallbackAction?.Invoke(message);
                 },
                 isNeedAccessToken: false, queryParams: queryParams);
         }
@@ -144,6 +121,7 @@ namespace AOT.Utl
             CallBagWithoutToken(User_RegisterApi, DataBag.SerializeWithName(nameof(User_RegDto), registerModel), bag =>
             {
                 var loginResult = bag.Get<Login_Result>(0);
+                App.SetSignalServerUrl(loginResult.signalRUrl);
                 Caller.RegAccessToken(loginResult.access_token);
                 callbackAction?.Invoke(loginResult);
             }, failedCallbackAction);
@@ -160,6 +138,7 @@ namespace AOT.Utl
             CallBagWithoutToken(User_LoginApi, DataBag.SerializeWithName(nameof(User_LoginDto), content), bag =>
             {
                 var obj = bag.Get<Login_Result>(0);
+                App.SetSignalServerUrl(obj.signalRUrl);
                 Caller.RegAccessToken(obj.access_token);
                 successCallbackAction?.Invoke(obj);
             }, msg => failedCallbackAction?.Invoke(msg));
@@ -176,6 +155,7 @@ namespace AOT.Utl
             CallBagWithoutToken(Rider_LoginApi, DataBag.SerializeWithName(nameof(User_LoginDto), content), bag =>
             {
                 var obj = bag.Get<Login_Result>(0);
+                App.SetSignalServerUrl(obj.signalRUrl);
                 Caller.RegAccessToken(obj.access_token);
                 callbackAction?.Invoke(obj);
             }, msg => failedCallbackAction?.Invoke(msg));
@@ -189,17 +169,13 @@ namespace AOT.Utl
                 refreshToken, bag =>
                 {
                     var obj = bag.Get<Login_Result>(0);
+                    App.SetSignalServerUrl(obj.signalRUrl);
                     Caller.RegAccessToken(obj.access_token);
                     callbackAction?.Invoke(obj);
-                }, (code, message) => failedCallbackAction(message));
+                }, failedCallbackAction);
         }
 
-        // CreateRider
-        public static void CreateRider(Action<(bool isSuccess, string arg)> callbackAction) =>
-            Call<string>(User_CreateRiderApi, msg => callbackAction?.Invoke((true, msg)),
-                msg => callbackAction?.Invoke((false, msg)));
-
-        // CreateDeliveryOrder
+         // CreateDeliveryOrder
         public static void CreateDeliveryOrder(DeliverOrderModel orderDto,
             Action<DeliverOrderModel> successAction,
             Action<string> failedAction)
@@ -227,7 +203,7 @@ namespace AOT.Utl
             CallBag("User_CreateRider", bag => { callbackAction?.Invoke(true); }, arg => callbackAction?.Invoke(false));
         }
 
-        public static void User_GetDeliveryOrders(int pageSize, int pageIndex,
+        public static void User_GetActives(int pageSize, int pageIndex,
             Action<PageList<DeliverOrderModel>> successAction, Action<string> failedAction)
         {
             CallBag(User_Get_Active, DataBag.Serialize(pageSize, pageIndex), bag =>

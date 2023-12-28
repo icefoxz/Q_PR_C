@@ -49,7 +49,7 @@ namespace AOT.Model
         public DeliveryOrder GetOrder(long id) => Orders.FirstOrDefault(o => o.Id == id);
 
         // 发送事件
-        protected void SendEvent(string eventString) => App.SendEvent(eventString, null);
+        protected void SendEvent(string eventString) => App.SendEvent(eventString);
 
         public void Reset()
         {

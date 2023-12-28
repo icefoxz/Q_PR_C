@@ -9,11 +9,11 @@ namespace AOT
 {
     public class AppLaunch : MonoBehaviour
     {
+        [SerializeField] private string _serverUrl;
         [SerializeField] private Res _res;
         [SerializeField] private Canvas _mainCanvas;
         [SerializeField] private UiManagerField _uiManager;
         [SerializeField] private MonoService _monoService;
-        [SerializeField] private string _serverUrl;
         [SerializeField] private ApiPanel _apiPanel;
         [SerializeField] private bool _autoStartUi;
         [SerializeField] private bool _testMode;

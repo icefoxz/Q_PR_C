@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net.Http;
 using AOT.Controllers;
@@ -8,18 +9,18 @@ using UnityEngine.UI;
 
 public class TestPicture : MonoBehaviour
 {
-    private PictureController PictureController { get; set; }
+    private ImageController ImageController { get; set; }
     [SerializeField] private MonoService _monoService;
     [SerializeField] private Image _image;
     [SerializeField] private string _uploadImageApi;
     void Start()
     {
-        PictureController = new PictureController(_monoService);
+        ImageController = new ImageController(_monoService);
     }
 
     public void TakePicture()
     {
-        PictureController.OpenCamera(texture2D =>
+        ImageController.OpenCamera(texture2D =>
         {
             _image.sprite = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), Vector2.zero);
         });
@@ -27,7 +28,7 @@ public class TestPicture : MonoBehaviour
 
     public void TakePictureFromGallery()
     {
-        PictureController.OpenGallery(texture2D =>
+        ImageController.OpenGallery(texture2D =>
         {
             _image.sprite = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), Vector2.zero);
         });
@@ -48,7 +49,7 @@ public class TestPicture : MonoBehaviour
         // Now you can encode the new texture to JPG or PNG.
         var jpgData = newTexture.EncodeToJPG();
         var content = new StreamContent(new MemoryStream(jpgData));
-        var response = await Http.SendAsync(_uploadImageApi, HttpMethod.Post, content);
+        var response = await Http.SendAsync(new Uri(_uploadImageApi), HttpMethod.Post, content);
         Debug.Log(response.isSuccess ? "Image Up success!" : "Image Up error!");
     }
 }

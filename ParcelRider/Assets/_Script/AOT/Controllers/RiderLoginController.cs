@@ -27,6 +27,7 @@ namespace AOT.Controllers
                 ApiPanel.Rider_Login(username, password, result =>
                 {
                     App.Models.RiderLogin(result.User);
+                    App.SignalRClient.Connect();
                     callback?.Invoke((true, string.Empty));
                 }, msg =>
                     callback?.Invoke((false, msg)));

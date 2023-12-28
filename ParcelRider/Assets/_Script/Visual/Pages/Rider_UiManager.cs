@@ -13,7 +13,7 @@ namespace Visual.Pages
         public enum ActivityPages
         {
             HomePage,
-            UnassignPage,
+            UnassignedPage,
             OrderPage,
             HistoryPage,
             ExceptionPage
@@ -31,11 +31,13 @@ namespace Visual.Pages
         [SerializeField] private Page _win_message;
         [SerializeField] private Page _win_image;
         [SerializeField] private Page _win_account;
+        [SerializeField] private Page _win_reqRetry;
 
         private ConfirmWindow ConfirmWindow { get; set; }
         private MessageWindow MessageWindow { get; set; }
         private ImageWindow ImageWindow { get; set; }
         private RiderAccountWindow AccountWindow { get; set; }
+        private ReqRetryWindow ReqRetryWindow { get; set; }
 
         private View_AccountSect AccountSect { get; set; }
         private View_pageButtons View_pageButtons { get; set; }
@@ -53,19 +55,20 @@ namespace Visual.Pages
 
         public override void Init(bool startUi)
         {
-            ConfirmWindow = new ConfirmWindow(_win_confirm, this);
-            MessageWindow = new MessageWindow(_win_message, this);
-            ImageWindow = new ImageWindow(_win_image, this);
-            AccountWindow = new RiderAccountWindow(_win_account, this);
+            ConfirmWindow = new ConfirmWindow(_win_confirm);
+            MessageWindow = new MessageWindow(_win_message);
+            ImageWindow = new ImageWindow(_win_image);
+            AccountWindow = new RiderAccountWindow(_win_account);
+            ReqRetryWindow = new ReqRetryWindow(_win_reqRetry);
 
             AccountSect = new View_AccountSect(_accountSect, SetProfile, RiderLoginController.Logout);
             View_pageButtons = new View_pageButtons(v: _pageButtons,
-                onJobsPageAction: () => ActivityPageSwitch(ActivityPages.UnassignPage),
+                onJobsPageAction: () => ActivityPageSwitch(ActivityPages.UnassignedPage),
                 onHomePageAction: () => ActivityPageSwitch(ActivityPages.HomePage),
                 onHistoryPageAction: () => ActivityPageSwitch(ActivityPages.HistoryPage));
             RiderHomePage = new RiderHomePage(_riderHomePage, 
                 OrderCurrentSelected,
-                () => ActivityPageSwitch(ActivityPages.UnassignPage),
+                () => ActivityPageSwitch(ActivityPages.UnassignedPage),
                 this);
 
             RiderHistoryPage = new RiderHistoryPage(_orderHistoryPage,
@@ -84,7 +87,7 @@ namespace Visual.Pages
         private void ActivityPageSwitch(ActivityPages page)
         {
             Display(RiderHomePage, page == ActivityPages.HomePage);
-            Display(RiderJobListPage, page == ActivityPages.UnassignPage);
+            Display(RiderJobListPage, page == ActivityPages.UnassignedPage);
             Display(RiderOrderViewPage, page == ActivityPages.OrderPage);
             Display(RiderHistoryPage, page == ActivityPages.HistoryPage);
             Display(OrderExceptionPage, page == ActivityPages.ExceptionPage);

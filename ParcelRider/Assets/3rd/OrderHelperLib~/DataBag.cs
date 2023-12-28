@@ -63,6 +63,8 @@ namespace OrderHelperLib
             return Parse<T>(value);
         }
 
+        public string Serialize() => Json.Serialize(this);
+
         public static T Parse<T>(object value)
         {
             var t = typeof(T);

@@ -15,6 +15,10 @@ namespace AOT.Controllers
         private const int OrderPageSize = 50;
         private DeliveryOrder GetOrder(long orderId) => AppModel.GetOrder(orderId);
 
+        public RiderOrderController(OrderSyncHandler orderSyncHandler) : base(orderSyncHandler)
+        {
+        }
+
         public void Get_SubStates()
         {
             if (App.IsTestMode) return;
@@ -49,31 +53,33 @@ namespace AOT.Controllers
         //处理单个order的update, 并且更新到相应的列表中
         private void Resolve_OrderCollections(DeliveryOrder order) => AppModel.Resolve_Order(order, isRider: true);
 
-        public void Do_Get_Unassigned(int pageIndex = 0)
+        public void Do_Get_Unassigned(int pageIndex = -1)
         {
+            pageIndex = ResolvePageIndex(AppModel.Unassigned, pageIndex);
             Call(args => args[0], arg =>
             {
                 var message = arg;
                 var bag = DataBag.Deserialize(message);
                 var list = bag.Get<List<DeliverOrderModel>>(0);
-                AppModel.UnassignedOrders.SetOrders(
+                AppModel.Unassigned.SetOrders(
                     list.Where(o => o.Status == 0).Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
             }, () => ApiPanel.Rider_GetUnassigned(OrderPageSize, pageIndex, pg =>
             {
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
                 var pageSize = pg.PageSize;
-                AppModel.UnassignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
+                AppModel.Unassigned.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
             }, m => MessageWindow.Set("Error", m)));
         }
-        public void Do_Get_Assigned(int pageIndex = 0)
+        public void Do_Get_Assigned(int pageIndex = -1)
         {
+            pageIndex = ResolvePageIndex(AppModel.Assigned, pageIndex);
             Call(args => args[0], arg =>
             {
                 var message = arg;
                 var bag = DataBag.Deserialize(message);
                 var orders = bag.Get<List<DeliverOrderModel>>(0);
-                AppModel.AssignedOrders.SetOrders(
+                AppModel.Assigned.SetOrders(
                     orders.Where(o => o.Status > 0).Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
                 //List_ActiveOrder_Set(list.ToArray());
             }, () => ApiPanel.Rider_GetAssigned(OrderPageSize, pageIndex, pg =>
@@ -81,11 +87,12 @@ namespace AOT.Controllers
                 var orders = pg.List;
                 var pageIndex = pg.PageIndex;
                 var pageSize = pg.PageSize;
-                AppModel.AssignedOrders.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
+                AppModel.Assigned.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToList(), pageIndex);
             }, m => MessageWindow.Set("Error", m)));
         }
-        public void Do_Get_History(int pageIndex = 0)
+        public void Do_Get_History(int pageIndex = -1)
         {
+            pageIndex = ResolvePageIndex(AppModel.History, pageIndex);
             Call(args => args[0], arg =>
             {
                 var message = arg;
@@ -121,14 +128,31 @@ namespace AOT.Controllers
                     Do_Current_Set(o.Id);
                 }, msg =>
                 {
-                    ApiPanel.Rider_GetUnassigned(OrderPageSize, AppModel.UnassignedOrders.PageIndex, pg =>
+                    ApiPanel.Rider_GetUnassigned(OrderPageSize, AppModel.Unassigned.PageIndex, pg =>
                     {
                         var list = pg.List.Select(o => new DeliveryOrder(o)).ToArray();
-                        AppModel.UnassignedOrders.SetOrders(list,pg.PageIndex);
+                        AppModel.Unassigned.SetOrders(list,pg.PageIndex);
                     }, _ => MessageWindow.Set("Network error", "Unable to connect to server."));
                     MessageWindow.Set("Error", msg);
                 });
             });
+        }
+
+        //同步订单版本, 如果版本号不一致, 需要请求更新
+        public void Do_Sync_Assigned()
+        {
+            var assigned = AppModel.Assigned;
+            SynchronizeOrder(assigned.Orders, () => Do_Get_Assigned(assigned.PageIndex));
+        }
+        public void Do_Sync_Unassigned()
+        {
+            var assigned = AppModel.Unassigned;
+            SynchronizeOrder(assigned.Orders, () => Do_Get_Unassigned(assigned.PageIndex));
+        }
+        public void Do_Sync_History()
+        {
+            var assigned = AppModel.History;
+            SynchronizeOrder(assigned.Orders, () => Do_Get_History(assigned.PageIndex));
         }
 
         public void LoggedInTasks()

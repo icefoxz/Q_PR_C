@@ -20,13 +20,13 @@ namespace AOT.Model
         /// <summary>
         /// Rider = Assigned orders, User = Created orders
         /// </summary>
-        public DoPageModel AssignedOrders { get; private set; } = new ActiveDoModel();
-        public DoPageModel UnassignedOrders { get; private set; } = new UnassignedDoModel();
+        public DoPageModel Assigned { get; private set; } = new ActiveDoModel();
+        public DoPageModel Unassigned { get; private set; } = new UnassignedDoModel();
         public DoPageModel History { get; private set; } = new HistoryDoModel();
 
         public DeliveryOrder? CurrentOrder { get; private set; }
 
-        public IEnumerable<DeliveryOrder> AllOrders => AssignedOrders.Orders.Concat(UnassignedOrders.Orders).Concat(History.Orders);
+        public IEnumerable<DeliveryOrder> AllOrders => Assigned.Orders.Concat(Unassigned.Orders).Concat(History.Orders);
         public DeliveryOrder? GetOrder(long orderId) => AllOrders.FirstOrDefault(o => o.Id == orderId);
 
         public void SetCurrentOrder(long orderId)=> SetCurrentOrder(GetOrder(orderId));
@@ -75,8 +75,8 @@ namespace AOT.Model
             SubStates = Array.Empty<DoSubState>();
             User = null;
             Rider = null;
-            AssignedOrders.Reset();
-            UnassignedOrders.Reset();
+            Assigned.Reset();
+            Unassigned.Reset();
             History.Reset();
         }
 
@@ -87,13 +87,13 @@ namespace AOT.Model
         public void Resolve_Order(DeliveryOrder order, bool isRider)
         {
             var status = (DeliveryOrderStatus)order.Status;
-            AssignedOrders.RemoveOrder(order.Id);
-            UnassignedOrders.RemoveOrder(order.Id);
+            Assigned.RemoveOrder(order.Id);
+            Unassigned.RemoveOrder(order.Id);
             History.RemoveOrder(order.Id);
             if (status.IsClosed()) History.AddOrder(order);
-            else if (isRider && status == DeliveryOrderStatus.Assigned) AssignedOrders.AddOrder(order);//rider
-            else if(!isRider) AssignedOrders.AddOrder(order);//user
-            else UnassignedOrders.AddOrder(order);
+            else if (isRider && status == DeliveryOrderStatus.Assigned) Assigned.AddOrder(order);//rider
+            else if(!isRider) Assigned.AddOrder(order);//user
+            else Unassigned.AddOrder(order);
         }
 
         public void SetUserLingau(LingauModel lingau)

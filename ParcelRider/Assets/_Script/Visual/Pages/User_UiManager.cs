@@ -28,6 +28,7 @@ namespace Visual.Pages
         [SerializeField] private Page _win_confirm;
         [SerializeField] private Page _win_message;
         [SerializeField] private Page _win_image;
+        [SerializeField] private Page _win_reqRetry;
 
         [SerializeField] private View _view_accountSect;
 
@@ -46,9 +47,10 @@ namespace Visual.Pages
         private ConfirmWindow ConfirmWindow { get; set; }
         private MessageWindow MessageWindow { get; set; }
         private ImageWindow ImageWindow { get; set; }
+        private ReqRetryWindow ReqRetryWindow { get; set; }
 
         private UserOrderController UserOrderController => App.GetController<UserOrderController>();
-        private LoginController LoginController => App.GetController<LoginController>();
+        private UserLoginController UserLoginController => App.GetController<UserLoginController>();
 
         public override void Init(bool startUi)
         {
@@ -63,9 +65,10 @@ namespace Visual.Pages
 
             PackagePaymentWindow = new PackagePaymentWindow(v: _win_packageConfirm, uiManager: this);
             AccountWindow = new AccountWindow(v: _win_account, uiManager: this);
-            ConfirmWindow = new ConfirmWindow(v: _win_confirm, uiManager: this);
-            MessageWindow = new MessageWindow(v: _win_message, uiManager: this);
-            ImageWindow = new ImageWindow(v: _win_image, uiManager: this);
+            ConfirmWindow = new ConfirmWindow(v: _win_confirm);
+            MessageWindow = new MessageWindow(v: _win_message);
+            ImageWindow = new ImageWindow(v: _win_image);
+            ReqRetryWindow = new ReqRetryWindow(v: _win_reqRetry);
 
             User_OrderViewPage = new User_OrderViewPage(v: _orderViewPage, OnRequestCancel,
                 uiManager: this);
@@ -94,7 +97,7 @@ namespace Visual.Pages
             IEnumerator InitCheckLogin()
             {
                 yield return new WaitForSeconds(3);
-                LoginController.CheckLoginStatus(onLoginAction: OnLoginAction);
+                UserLoginController.CheckLoginStatus(onLoginAction: OnLoginAction);
             }
         }
 
@@ -174,7 +177,7 @@ namespace Visual.Pages
         private void Login_Init()
         {
             UserOrderController.Get_SubStates();
-            UserOrderController.Do_UpdateAll();
+            UserOrderController.Do_UpdateActives();
             UserOrderController.Do_UpdateHistory();
             User_MainPage.Show();
         }

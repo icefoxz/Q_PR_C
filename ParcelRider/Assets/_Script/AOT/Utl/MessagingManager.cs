@@ -18,18 +18,19 @@ namespace AOT.Utl
         /// </summary>
         /// <param name="eventName"></param>
         /// <param name="objs"></param>
-        public void SendParams(string eventName, params object[] objs) => Send(eventName, DataBag.Serialize(objs));
-        public void Send(string eventName, object obj) => Send(eventName, DataBag.Serialize(obj));
+        public void SendParams(string eventName, params object[] objs) => SendSerialized(eventName, DataBag.Serialize(objs));
+        public void Send(string eventName, object obj) => SendSerialized(eventName, DataBag.Serialize(obj));
+        public void Send(string eventName, DataBag bag) => SendSerialized(eventName, bag.Serialize());
         /// <summary>
         /// 发送事件, 参数为<see cref="string"/>
         /// </summary>
         /// <param name="eventName"></param>
-        /// <param name="args"></param>
-        public void Send(string eventName, string args)
+        /// <param name="dataBag"></param>
+        public void SendSerialized(string eventName, string dataBag)
         {
             if (EventMap.ContainsKey(eventName))
                 foreach (var (_, action) in EventMap[eventName])
-                    action?.Invoke(string.IsNullOrEmpty(args) ? string.Empty : args);
+                    action?.Invoke(string.IsNullOrEmpty(dataBag) ? string.Empty : dataBag);
             else
             {
                 Debug.LogWarning($"{eventName} 没有注册事件!");
@@ -68,4 +69,4 @@ namespace AOT.Utl
                 EventMap[eventName].Remove(key);
         }
     }
-}
+} 
