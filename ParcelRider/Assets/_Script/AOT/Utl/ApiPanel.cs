@@ -152,7 +152,13 @@ namespace AOT.Utl
                 Username = username,
                 Password = password
             };
-            CallBagWithoutToken(Rider_LoginApi, DataBag.SerializeWithName(nameof(User_LoginDto), content), bag =>
+            var b = new DataBag
+            {
+                Data = new object[] { content },
+                Size = 1,
+            };
+            var databag = DataBag.SerializeWithName(nameof(User_LoginDto), content);
+            CallBagWithoutToken(Rider_LoginApi, databag , bag =>
             {
                 var obj = bag.Get<Login_Result>(0);
                 App.SetSignalServerUrl(obj.signalRUrl);

@@ -30,6 +30,11 @@ public record DeliverOrderModel : LongDto
     public int SubState { get; set; }
     //订单状态进程, 用于记录订单的状态变化
     public StateSegmentModel[] StateHistory { get; set; }
+
+    public DeliverOrderModel()
+    {
+        
+    }
 }
 
 /// <summary>
@@ -41,4 +46,9 @@ public record StateSegmentModel
     public DateTime Timestamp { get; set; }
     public string? ImageUrl { get; set; }
     public string? Remark { get; set; }
+
+    public StateSegmentModel()
+    {
+        
+    }
 }

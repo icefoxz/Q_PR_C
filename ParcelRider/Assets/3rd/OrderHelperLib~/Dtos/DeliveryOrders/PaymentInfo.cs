@@ -21,6 +21,11 @@ public record PaymentInfoDto
     /// </summary>
     public string TransactionId { get; set; } = string.Empty;
     public bool IsReceived { get; set; } // 是否已经完成付款
+
+    public PaymentInfoDto()
+    {
+        
+    }
 }
 
 public enum PaymentMethods : byte

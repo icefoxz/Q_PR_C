@@ -13,4 +13,9 @@ public record SenderInfoDto
     public string Name { get; set; }
     public string PhoneNumber { get; set; }
     public string NormalizedPhoneNumber { get; set; }
+
+    public SenderInfoDto()
+    {
+        
+    }
 }

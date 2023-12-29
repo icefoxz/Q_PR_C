@@ -10,4 +10,9 @@ public record DeliveryInfoDto
     /// 距离, 单位是公里
     /// </summary>
     public float Distance { get; set; }
+
+    public DeliveryInfoDto()
+    {
+        
+    }
 }

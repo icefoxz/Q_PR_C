@@ -23,4 +23,9 @@ public record ReceiverInfoDto
     public string? UserId { get; set; }
     //收件人(如果有账号的话)
     public UserModel? User { get; set; }
+
+    public ReceiverInfoDto()
+    {
+        
+    }
 }

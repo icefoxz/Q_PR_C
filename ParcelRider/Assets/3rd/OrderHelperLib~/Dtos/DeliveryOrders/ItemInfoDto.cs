@@ -37,4 +37,9 @@ public record ItemInfoDto
     /// 附加信息
     /// </summary>
     public string? Remark { get; set; }
+
+    public ItemInfoDto()
+    {
+        
+    }
 }
