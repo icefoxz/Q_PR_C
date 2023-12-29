@@ -8938,7 +8938,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &231463167
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14116,7 +14116,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.030918185, b: 0, a: 0.101960786}
+  m_Color: {r: 1, g: 0.8218091, b: 0.8160377, a: 0.101960786}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -57389,7 +57389,7 @@ MonoBehaviour:
   _res: {fileID: 2098635533}
   _mainCanvas: {fileID: 1623062855}
   _uiManager:
-    _mode: 1
+    _mode: 0
     _user: {fileID: 1299781214}
     _rider: {fileID: 95446277165297355}
   _monoService: {fileID: 1096816974}
@@ -89767,7 +89767,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 200, y: -31.666666}
+  m_AnchoredPosition: {x: 200, y: -31.666664}
   m_SizeDelta: {x: 380, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &114556987771431048

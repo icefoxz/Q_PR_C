@@ -8,12 +8,14 @@ using OrderHelperLib;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using OrderHelperLib.Dtos.Lingaus;
 using UnityEngine;
 using System.Collections.Concurrent;
+using Cysharp.Threading.Tasks;
 
 namespace AOT.Controllers
 {
@@ -29,10 +31,8 @@ namespace AOT.Controllers
             OrderSyncHandler = orderSyncHandler;
         }
 
-        protected void List_ActiveOrder_Set(ICollection<DeliverOrderModel> orders, int pageIndex) =>
-            AppModel.Assigned.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
-        protected void List_HistoryOrderSet(ICollection<DeliverOrderModel> orders, int pageIndex) =>
-            AppModel.History.SetOrders(orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
+        protected void List_Set(AppModels.PageOrders page, ICollection<DeliverOrderModel> orders, int pageIndex) =>
+            AppModel.SetPageOrders(page, orders.Select(o => new DeliveryOrder(o)).ToArray(), pageIndex);
 
         private ConcurrentDictionary<string, bool> MethodExecutionLocks { get; } = new ConcurrentDictionary<string, bool>();
         protected void SynchronizeOrder(IReadOnlyList<DeliveryOrder> orders,
@@ -100,32 +100,49 @@ namespace AOT.Controllers
 
         private void Resolve_Orders(DeliveryOrder model) => AppModel.Resolve_Order(model, isRider: false);
 
-        public void Do_UpdateActives(int pageIndex = -1)
+        public void Do_UpdateActives(int pageIndex = -1,Action<bool> resultAction = null)
         {
-            pageIndex = ResolvePageIndex(AppModel.Assigned,pageIndex);
+            pageIndex = ResolvePageIndex(AppModel.GetDoPageModel(AppModels.PageOrders.Assigned),pageIndex);
             Call(args => args[0], arg =>
                 {
                     var bag = DataBag.Deserialize(arg);
                     var list = bag.Get<List<DeliverOrderModel>>(0);
-                    List_ActiveOrder_Set(list.ToArray(), pageIndex);
-                    return;
+                    List_Set(AppModels.PageOrders.Assigned,list.ToArray(), pageIndex);
+                    resultAction?.Invoke(true);
                 },
-                () => ApiPanel.User_GetActives(50, pageIndex, pg => List_ActiveOrder_Set(pg.List, pageIndex),
-                    msg => MessageWindow.Set("Error", "Error in updating data!")));
+                () => ApiPanel.User_GetActives(50, pageIndex, pg =>
+                    {
+                        List_Set(AppModels.PageOrders.Assigned, pg.List, pageIndex);
+                        resultAction?.Invoke(true);
+                    },
+                    msg =>
+                    {
+                        MessageWindow.Set("Error", "Error in updating data!");
+                        resultAction?.Invoke(false);
+                    }));
         }
 
-        public void Do_UpdateHistory(int pageIndex = -1)
+        public void Do_UpdateHistory(int pageIndex = -1,Action<bool> resultAction = null)
         {
-            pageIndex = ResolvePageIndex(AppModel.History, pageIndex);
+            pageIndex = ResolvePageIndex(AppModel.GetDoPageModel(AppModels.PageOrders.History), pageIndex);
             Call(args => (string)args[0], arg =>
             {
                 var bag = DataBag.Deserialize(arg);
                 List<DeliverOrderModel> list = bag.Get<List<DeliverOrderModel>>(0);
-                List_HistoryOrderSet(list, pageIndex);
+                List_Set(AppModels.PageOrders.History, list, pageIndex);
+                resultAction?.Invoke(true);
             }, () =>
             {
-                ApiPanel.User_GetHistories(50, pageIndex, pg => List_HistoryOrderSet(pg.List, pageIndex),
-                    msg => MessageWindow.Set("Error", "Error in updating data!"));
+                ApiPanel.User_GetHistories(50, pageIndex, pg =>
+                    {
+                        List_Set(AppModels.PageOrders.History, pg.List, pageIndex);
+                        resultAction?.Invoke(true);
+                    },
+                    msg =>
+                    {
+                        MessageWindow.Set("Error", "Error in updating data!");
+                        resultAction?.Invoke(false);
+                    });
             });
         }
 
@@ -136,7 +153,7 @@ namespace AOT.Controllers
                 var (success, status, ordId) = arg;
                 if (success)
                 {
-                    var o = AppModel.Assigned.GetOrder(ordId);
+                    var o = AppModel.TryGetOrder(AppModels.PageOrders.Assigned, ordId);
                     o.Status = ((int)status);
                     o.SubState = DoSubState.SenderCancelState;
                     Resolve_Orders(o);
@@ -144,7 +161,7 @@ namespace AOT.Controllers
                 }
             }, () =>
             {
-                var o = AppModel.Assigned.GetOrder(orderId);
+                var o = AppModel.TryGetOrder(AppModels.PageOrders.Assigned, orderId);
                 ApiPanel.CancelDeliveryOrder(orderId, o.SubState, (success, bag, message) =>
                 {
                     if (success)
@@ -217,6 +234,17 @@ namespace AOT.Controllers
                     AppModel.SetUserLingau(lingau);
                 }, message => callbackAction(false, message));
             });
+        }
+
+        public async UniTask OnLoginLoadingTask()
+        {
+            var activeSuccess = false;
+            var historySuccess = false;
+            Do_UpdateActives(-1, success => activeSuccess= success);
+            await UniTask.WaitUntil(() => activeSuccess);
+            Do_UpdateHistory(-1, success => historySuccess = success);
+            await UniTask.WaitUntil(() => historySuccess);
+            Get_SubStates();
         }
     }
 }

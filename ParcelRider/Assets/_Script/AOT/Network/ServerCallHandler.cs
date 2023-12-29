@@ -22,11 +22,12 @@ namespace AOT.Network
             var orderId = bag.Get<long>(0);
             var version = bag.Get<int>(1);
             var status = bag.Get<int>(2);
+            var subState = bag.Get<int>(3);
             var updatedState = status.ConvertToDoStatus();
             var model = App.Models;
             var order = model.AllOrders.FirstOrDefault(o => o.Id == orderId);
-            var isNeedToSync = order == null || order.Version != version;
-            if (!isNeedToSync) return;
+            var isOrderNotFoundOrVersionNotMatch = order == null || order.Version != version;
+            if (!isOrderNotFoundOrVersionNotMatch) return;
             if (App.IsUserMode)
             {
                 var uoc = App.GetController<UserOrderController>();
@@ -52,7 +53,8 @@ namespace AOT.Network
                 var roc = App.GetController<RiderOrderController>();
                 if (order == null)
                 {
-                    if (updatedState == DeliveryOrderStatus.Created)
+                    if (updatedState is 
+                        DeliveryOrderStatus.Created)
                         //如果没有订单, 则说明这是新创建的订单, 需要重新获取未分配的订单
                         roc.Do_Get_Unassigned();
                     return;
@@ -69,6 +71,10 @@ namespace AOT.Network
                     return;
                 }
 
+                if (subState == DoSubState.SenderCancelState)//如果是用户取消订单, 需要检查是不是还未分配就取消了. 所以Unassigned也要更新
+                {
+                    roc.Do_Get_Unassigned();
+                }
                 roc.Do_Get_History();
                 roc.Do_Get_Assigned();
             }

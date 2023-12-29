@@ -1,10 +1,13 @@
+using System.Collections;
 using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.Views;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Visual.Pages.Rider;
 using Visual.Sects;
+
 
 namespace Visual.Pages
 {
@@ -55,6 +58,7 @@ namespace Visual.Pages
 
         public override void Init(bool startUi)
         {
+            base.Init(startUi);
             ConfirmWindow = new ConfirmWindow(_win_confirm);
             MessageWindow = new MessageWindow(_win_message);
             ImageWindow = new ImageWindow(_win_image);
@@ -101,9 +105,13 @@ namespace Visual.Pages
 
         private void LoggedIn_InitHomePage()
         {
-            RiderOrderController.LoggedInTasks();
+            //StartCoroutine(RiderOrderController.OnLoginLoadTask().ToCoroutine());
+            RiderOrderController.Do_Get_Assigned();
+            RiderOrderController.Do_Get_Unassigned();
+            RiderOrderController.Do_Get_History();
             ActivityPageSwitch(ActivityPages.HomePage);
         }
+
 
         private void SetProfile() => AccountWindow.Show();
 

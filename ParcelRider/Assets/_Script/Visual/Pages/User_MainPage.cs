@@ -11,7 +11,6 @@ using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using UnityEngine.UI;
-using WebUtlLib;
 
 namespace Visual.Pages
 {
@@ -43,7 +42,7 @@ namespace Visual.Pages
 
         private void RefreshOrderList()
         {
-            SetOrders(App.Models.Assigned.Orders.OrderBy(o => o.Status).ToArray());
+            SetOrders(App.Models.Assigned.OrderBy(o => o.Status).ToArray());
 
             void SetOrders(DeliveryOrder[] orders)
             {
@@ -57,7 +56,7 @@ namespace Visual.Pages
         }
         private void RefreshHistoryList()
         {
-            var orders = App.Models.History.Orders.ToArray();
+            var orders = App.Models.History.ToArray();
             view_historySect.UpdateHistories(orders);
         }
 

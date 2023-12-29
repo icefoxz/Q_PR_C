@@ -7,6 +7,9 @@ onBoardingDoNotAskAgain = true
 showPackageIndexes = false
 showStatusBar = false
 scopes = {
+	"last_search.DA949528" = "firebase"
+	"OpenInspectorPreview.DA949528" = "0"
+	"currentGroup.DA949528" = "menu"
 }
 providers = {
 	adb = {
@@ -49,6 +52,11 @@ providers = {
 		priority = 50
 		defaultAction = null
 	}
+	profilermarkers = {
+		active = false
+		priority = 100
+		defaultAction = null
+	}
 }
 objectSelectors = {
 }
@@ -64,3 +72,4 @@ queryBuilder = false
 ignoredProperties = "id;name;classname;imagecontentshash"
 helperWidgetCurrentArea = "all"
 disabledIndexers = ""
+minIndexVariations = 2

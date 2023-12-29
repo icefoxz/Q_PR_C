@@ -6,8 +6,8 @@ namespace AOT.Views
 {
     public interface IUiManager
     {
-        void ShowPanel(bool transparent, bool displayLoadingImage = true);
-        void HidePanel();
+        void ShowPanelWithCall(bool transparent, bool displayLoadingImage = true);
+        void HidePanelWithCall();
         void PlayCoroutine(IEnumerator co, bool transparentPanel, Action callback);
     }
     public abstract class UiManagerBase : MonoBehaviour, IUiManager
@@ -16,12 +16,15 @@ namespace AOT.Views
         [SerializeField] private Panel _panel;
         protected Panel Panel => _panel;
 
-        public abstract void Init(bool startUi);
+        public virtual void Init(bool startUi)
+        {
+            _panel.gameObject.SetActive(false);
+        }
 
-        public void ShowPanel(bool transparent, bool displayLoadingImage = true) =>
+        public void ShowPanelWithCall(bool transparent, bool displayLoadingImage = true) =>
             _panel.StartCall(UiManagerName, transparent, displayLoadingImage);
 
-        public void HidePanel() => _panel.EndCall(UiManagerName);
+        public void HidePanelWithCall() => _panel.EndCall(UiManagerName);
 
         public void PlayCoroutine(IEnumerator co, bool transparentPanel, Action callback)
         {
@@ -29,10 +32,10 @@ namespace AOT.Views
 
             IEnumerator WaitForCo()
             {
-                ShowPanel(transparentPanel);
+                ShowPanelWithCall(transparentPanel);
                 yield return co;
                 callback?.Invoke();
-                HidePanel();
+                HidePanelWithCall();
             }
         }
     }

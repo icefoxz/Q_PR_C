@@ -1,10 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace OrderHelperLib
+namespace AOT.Utl
 {
     /// <summary>
     ///  数据袋,作为数据传输的载体标准
@@ -73,7 +75,6 @@ namespace OrderHelperLib
             try
             {
                 if (value is long longValue) return (T)Convert.ChangeType(longValue, t);
-                if (value is JObject obj) return obj.ToObject<T>();
                 if (value is JToken token) return token.ToObject<T>();
                 return (T)value;
             }

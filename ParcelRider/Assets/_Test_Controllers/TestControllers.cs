@@ -11,7 +11,7 @@ public class TestControllers : MonoBehaviour
     private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
     private UserOrderController UserOrderController => App.GetController<UserOrderController>();
 
-    [Button]public void SynchronizeOrders()
+    [Button]public void TestSynchronizeOrders()
     {
         CheckSupport();
         RiderOrderController.Do_Sync_History();

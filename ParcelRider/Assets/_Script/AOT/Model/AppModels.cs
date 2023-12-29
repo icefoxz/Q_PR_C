@@ -14,20 +14,43 @@ namespace AOT.Model
 {
     public class AppModels
     {
+
+        public enum PageOrders
+        {
+            Assigned,
+            Unassigned,
+            History
+        }
         public DoSubState[] SubStates { get; private set; }
         public User User { get; private set; }
         public Rider Rider { get; private set; }
+
         /// <summary>
         /// Rider = Assigned orders, User = Created orders
         /// </summary>
-        public DoPageModel Assigned { get; private set; } = new ActiveDoModel();
-        public DoPageModel Unassigned { get; private set; } = new UnassignedDoModel();
-        public DoPageModel History { get; private set; } = new HistoryDoModel();
+        private DoPageModel _assigned = new ActiveDoModel();
+        private DoPageModel _unassigned = new UnassignedDoModel();
+        private DoPageModel _history = new HistoryDoModel();
+        public IReadOnlyList<DeliveryOrder> Assigned => _assigned.Orders;
+        public IReadOnlyList<DeliveryOrder> Unassigned => _unassigned.Orders;
+        public IReadOnlyList<DeliveryOrder> History => _history.Orders;
 
         public DeliveryOrder? CurrentOrder { get; private set; }
 
-        public IEnumerable<DeliveryOrder> AllOrders => Assigned.Orders.Concat(Unassigned.Orders).Concat(History.Orders);
+        public IEnumerable<DeliveryOrder> AllOrders => Assigned.Concat(Unassigned).Concat(History);
         public DeliveryOrder? GetOrder(long orderId) => AllOrders.FirstOrDefault(o => o.Id == orderId);
+        public DeliveryOrder? TryGetOrder(PageOrders page,long orderId) => GetDoPageModel(page).GetOrder(orderId);
+        public DoPageModel GetDoPageModel(PageOrders page)
+        {
+            var doPage = page switch
+            {
+                PageOrders.Assigned => _assigned,
+                PageOrders.Unassigned => _unassigned,
+                PageOrders.History => _history,
+                _ => throw new ArgumentOutOfRangeException(nameof(page), page, null)
+            };
+            return doPage;
+        }
 
         public void SetCurrentOrder(long orderId)=> SetCurrentOrder(GetOrder(orderId));
 
@@ -36,6 +59,21 @@ namespace AOT.Model
             CurrentOrder = order;
             App.SendEvent(EventString.Order_Current_Set);
         }
+
+        public void SetPageOrders(PageOrders page, ICollection<DeliveryOrder> list, int pageIndex = -1)
+        {
+            var current = list.FirstOrDefault(o => o.Id == CurrentOrder?.Id);
+            var doPage = GetDoPageModel(page);
+            doPage.SetOrders(list, ResolvePageIndex(doPage.PageIndex));
+            if (current != null) SetCurrentOrder(current);
+            return;
+
+            int ResolvePageIndex(int assignedIndex)
+            {
+                return pageIndex <= -1 ? assignedIndex : pageIndex;
+            }
+        }
+
 
         public void SetSubStates(DoSubState[] subStates) => SubStates = subStates;
 
@@ -75,9 +113,9 @@ namespace AOT.Model
             SubStates = Array.Empty<DoSubState>();
             User = null;
             Rider = null;
-            Assigned.Reset();
-            Unassigned.Reset();
-            History.Reset();
+            _assigned.Reset();
+            _unassigned.Reset();
+            _history.Reset();
         }
 
         /// <summary>
@@ -87,13 +125,13 @@ namespace AOT.Model
         public void Resolve_Order(DeliveryOrder order, bool isRider)
         {
             var status = (DeliveryOrderStatus)order.Status;
-            Assigned.RemoveOrder(order.Id);
-            Unassigned.RemoveOrder(order.Id);
-            History.RemoveOrder(order.Id);
-            if (status.IsClosed()) History.AddOrder(order);
-            else if (isRider && status == DeliveryOrderStatus.Assigned) Assigned.AddOrder(order);//rider
-            else if(!isRider) Assigned.AddOrder(order);//user
-            else Unassigned.AddOrder(order);
+            _assigned.RemoveOrder(order.Id);
+            _unassigned.RemoveOrder(order.Id);
+            _history.RemoveOrder(order.Id);
+            if (status.IsClosed()) _history.AddOrder(order);
+            else if (isRider && status == DeliveryOrderStatus.Assigned) _assigned.AddOrder(order);//rider
+            else if(!isRider) _assigned.AddOrder(order);//user
+            else _unassigned.AddOrder(order);
         }
 
         public void SetUserLingau(LingauModel lingau)

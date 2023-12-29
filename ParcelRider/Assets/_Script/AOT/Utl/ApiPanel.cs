@@ -1,13 +1,11 @@
 ﻿using System;
 using AOT.Core;
 using AOT.Views;
-using Facebook.Unity;
-using OrderHelperLib;
+using OrderHelperLib.Dtos;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using OrderHelperLib.Req_Models.Users;
 using OrderHelperLib.Results;
 using UnityEngine;
-using WebUtlLib;
 
 namespace AOT.Utl
 {

@@ -1,8 +1,8 @@
-﻿namespace WebUtlLib;
+﻿namespace OrderHelperLib.Dtos;
 
 public static class PageList
 {
-    public static PageList<T> Instance<T>(int pageIndex, int pageSize, int itemCount, IList<T> list) where T : class =>
+    public static PageList<T> Instance<T>(int pageIndex, int pageSize, int itemCount, List<T> list) where T : class =>
         new(pageIndex, pageSize, itemCount, list);
 }
 public record PageList<T> where T : class
@@ -30,9 +30,9 @@ public record PageList<T> where T : class
     /// <summary>
     /// 数据
     /// </summary>
-    public IList<T> List { get; set; }
+    public List<T> List { get; set; }
     public PageList() { }
-    public PageList(int pageIndex, int pageSize, int itemCount, IList<T> list)
+    public PageList(int pageIndex, int pageSize, int itemCount, List<T> list)
     {
         PageIndex = pageIndex;
         PageSize = pageSize;

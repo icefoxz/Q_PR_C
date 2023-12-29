@@ -35,9 +35,9 @@ namespace AOT.Utl
             Action<DataBag> callbackAction,
             Action<string> failedCallbackAction)
         {
-            CallWAwaitRetry(() => Http.SendStringContentAsync(
-                Http.GetUri(ServerUrl, method), HttpMethod.Post, stringContent, refreshToken), 
-                callbackAction, failedCallbackAction, "Login error.");
+            var requestUri = Http.GetUri(ServerUrl, method);
+            CallWAwaitRetry(() => Http.SendStringContentAsync(requestUri, HttpMethod.Post, stringContent, refreshToken), 
+                callbackAction, err => failedCallbackAction($"{requestUri} --- {err}"), "Login error.");
         }
 
         private void CallWAwaitRetry(Func<Task<(bool isSuccess, string content, HttpStatusCode code)>> func,

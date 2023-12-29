@@ -1,10 +1,9 @@
-using System;
 using System.Collections;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.Views;
+using Cysharp.Threading.Tasks;
 using OrderHelperLib.Contracts;
-using OrderHelperLib.Dtos.DeliveryOrders;
 using UnityEngine;
 using Visual.Pages.Rider;
 using Visual.Pages.Visual.Pages.Rider;
@@ -54,6 +53,7 @@ namespace Visual.Pages
 
         public override void Init(bool startUi)
         {
+            base.Init(startUi);
             View_AccountSect = new View_AccountSect(v: _view_accountSect, 
                 onAccountAction: () => AccountWindow.Show(),
                 logoutAction: 
@@ -176,9 +176,7 @@ namespace Visual.Pages
 
         private void Login_Init()
         {
-            UserOrderController.Get_SubStates();
-            UserOrderController.Do_UpdateActives();
-            UserOrderController.Do_UpdateHistory();
+            StartCoroutine(UserOrderController.OnLoginLoadingTask().ToCoroutine());
             User_MainPage.Show();
         }
 

@@ -22,7 +22,7 @@ namespace Visual.Pages.Rider
             //var jobDoneList = model.AssignedOrders.Orders
             //    .Where(o => DoStateMap.GetState(o.SubState)?.IsRiderJobDone()?? false)
             //    .ToArray();
-            return model.History.Orders.ToArray();
+            return model.History.ToArray();
         }
     }
 }

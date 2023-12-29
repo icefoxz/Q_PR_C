@@ -70,6 +70,7 @@ namespace AOT.Network
         public void Init()
         {
             _caller = new SignalRCaller(this);
+            Blocking(false);
         }
 
         public void Connect(Action<bool> connectAction) => ConnectWithDebouncing(connectAction);

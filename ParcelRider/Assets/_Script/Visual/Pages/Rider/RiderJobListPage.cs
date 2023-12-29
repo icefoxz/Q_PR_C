@@ -15,6 +15,6 @@ namespace Visual.Pages.Rider
         {
         }
 
-        protected override DeliveryOrder[] OnOrderListUpdate()=>App.Models.Unassigned.Orders.ToArray();
+        protected override DeliveryOrder[] OnOrderListUpdate()=>App.Models.Unassigned.ToArray();
     }
 }
