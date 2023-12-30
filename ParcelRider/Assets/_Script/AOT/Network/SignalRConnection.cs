@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using AOT.Utl;
 using Best.SignalR;
 using Best.SignalR.Encoders;
-using OrderHelperLib;
 using UnityEngine;
+using Color = System.Drawing.Color;
 
 namespace AOT.Network
 {
@@ -12,62 +12,42 @@ namespace AOT.Network
     public class SignalRConnection
     {
         public const string ServerCall = "ServerCall";
-        private HubConnection _hub;
-        public ConnectionStates? State => _hub?.State;
+
+        public ConnectionStates? State => _connHandler.State;
+        public bool IsAwait => _connHandler.IsAwait;
+
         public event Action<string> OnServerCall;
-        public SignalRConnection(string url,
-            Action<SignalRConnection> onDisconnectOrError)
+        private SignalRConnectionHandler _connHandler;
+
+        public SignalRConnection(string url)
         {
-            var uri = new Uri(url + "?access_token=" + ApiCaller.AccessToken);
-            _hub = new HubConnection(uri, new JsonProtocol(new JsonDotNetEncoder(Json.Settings)));
-            _hub.On<string>(ServerCall, msg => OnServerCall?.Invoke(msg));
-            _hub.OnError += OnError;
-            _hub.OnClosed += OnClosed;
-            //_hub.OnConnected += OnConnected;
+            _connHandler = new SignalRConnectionHandler(InstanceHub, h => h.StartClose(), OnDebug);
             return;
 
-            //void OnConnected(HubConnection obj) => onConnected?.Invoke();
-
-            void OnClosed(HubConnection obj)
+            HubConnection InstanceHub()
             {
-                RemoveEvents();
-                onDisconnectOrError?.Invoke(this);
-            }
-
-            void RemoveEvents()
-            {
-                _hub.OnError -= OnError;
-                _hub.OnClosed -= OnClosed;
-            }
-
-            void OnError(HubConnection hub, string message)
-            {
-#if UNITY_EDITOR
-                Debug.Log(message);
-#endif
-                RemoveEvents();
-                onDisconnectOrError?.Invoke(this);
+                var hub = new HubConnection(new Uri(url + "?access_token=" + ApiCaller.AccessToken), new JsonProtocol(new JsonDotNetEncoder(Json.Settings)));
+                hub.On<string>(ServerCall, msg => OnServerCall?.Invoke(msg));
+                hub.OnError += OnError;
+                return hub;
             }
         }
 
-        public async Task<bool> ConnectAsync()
+        private void OnError(HubConnection hub, string message)
         {
-            try
-            {
-                await _hub.ConnectAsync();
-                return _hub.State == ConnectionStates.Connected;
-            }
-            catch (Exception e)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning(e);
-#endif
-                return false;
-            }
+            Debug.LogError($"Hub State:{hub.State}----> {message}".Color(Color.Tomato));
         }
 
-        public void StartConnect() => _hub.StartConnect();
-        public async Task DisconnectAsync() => await _hub.CloseAsync();
-        public Task<string> InvokeAsync(string method, params object[] args) => _hub.InvokeAsync<string>(method, args);
+        private void OnDebug(string errMessage, Exception e)
+        {
+            if (!string.IsNullOrEmpty(errMessage)) Debug.Log(errMessage);
+            if(e!= null) Debug.LogException(e);
+        }
+
+        public async Task<bool> ConnectAsync() => await _connHandler.ConnectAsync();
+
+        public async Task DisconnectAsync() => await _connHandler.DisconnectAsync();
+
+        public Task<string> InvokeAsync(string method, params object[] args) => _connHandler.InvokeTask<string>(method, args);
     }
 }

@@ -174,18 +174,23 @@ namespace AOT.Controllers
             SynchronizeOrder(assigned.Orders, () => Do_Get_History(assigned.PageIndex));
         }
 
-        public async UniTask OnLoginLoadTask()
+        public UniTask OnLoginLoadTask()
         {
-            var unassignedSuccess = false;
-            var assignedSuccess = false;
-            var historySuccess = false;
-            Do_Get_Unassigned(-1, success => unassignedSuccess = success);
-            await UniTask.WaitUntil(() => unassignedSuccess);
-            Do_Get_Assigned(-1, success => assignedSuccess = success);
-            await UniTask.WaitUntil(() => assignedSuccess);
-            Do_Get_History(-1, success => historySuccess = success);
-            await UniTask.WaitUntil(() => historySuccess);
+            Do_Get_Unassigned();
+            Do_Get_Assigned();
+            Do_Get_History();
             Get_SubStates();
+            return UniTask.CompletedTask;
+            //var unassignedSuccess = false;
+            //var assignedSuccess = false;
+            //var historySuccess = false;
+            //Do_Get_Unassigned(-1, success => unassignedSuccess = success);
+            //await UniTask.WaitUntil(() => unassignedSuccess);
+            //Do_Get_Assigned(-1, success => assignedSuccess = success);
+            //await UniTask.WaitUntil(() => assignedSuccess);
+            //Do_Get_History(-1, success => historySuccess = success);
+            //await UniTask.WaitUntil(() => historySuccess);
+            //Get_SubStates();
         }
     }
 }

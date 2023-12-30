@@ -43,8 +43,8 @@ namespace AOT.Controllers
                         successCallbackAction: result =>
                         {
                             OnSuccessSetModel(result.User);
-                            App.SignalRClient.Connect();
                             callback?.Invoke((true, string.Empty));
+                            App.SignalRClient.Connect();
                         }, failedCallbackAction: msg => callback?.Invoke((false, msg)));
 
                     #endregion

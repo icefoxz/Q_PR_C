@@ -236,15 +236,19 @@ namespace AOT.Controllers
             });
         }
 
-        public async UniTask OnLoginLoadingTask()
+        public UniTask OnLoginLoadingTask()
         {
-            var activeSuccess = false;
-            var historySuccess = false;
-            Do_UpdateActives(-1, success => activeSuccess= success);
-            await UniTask.WaitUntil(() => activeSuccess);
-            Do_UpdateHistory(-1, success => historySuccess = success);
-            await UniTask.WaitUntil(() => historySuccess);
+            Do_UpdateActives();
+            Do_UpdateHistory();
             Get_SubStates();
+            return UniTask.CompletedTask;
+            //var activeSuccess = false;
+            //var historySuccess = false;
+            //Do_UpdateActives(-1, success => activeSuccess= success);
+            //await UniTask.WaitUntil(() => activeSuccess);
+            //Do_UpdateHistory(-1, success => historySuccess = success);
+            //await UniTask.WaitUntil(() => historySuccess);
+            //Get_SubStates();
         }
     }
 }

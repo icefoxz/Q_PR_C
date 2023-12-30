@@ -105,10 +105,7 @@ namespace Visual.Pages
 
         private void LoggedIn_InitHomePage()
         {
-            //StartCoroutine(RiderOrderController.OnLoginLoadTask().ToCoroutine());
-            RiderOrderController.Do_Get_Assigned();
-            RiderOrderController.Do_Get_Unassigned();
-            RiderOrderController.Do_Get_History();
+            StartCoroutine(RiderOrderController.OnLoginLoadTask().ToCoroutine());
             ActivityPageSwitch(ActivityPages.HomePage);
         }
 

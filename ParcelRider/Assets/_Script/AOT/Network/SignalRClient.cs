@@ -15,9 +15,7 @@ namespace AOT.Network
     {
         SignalRClient.States State { get; }
         SignalRCaller Caller { get; }
-        void Connect(Action<bool> connectAction = null);
-        void Disconnect();
-        Task<string> InvokeAsync(string methodName, params object[] args);
+        void Connect();
     }
 
     /// <summary>
@@ -66,22 +64,21 @@ namespace AOT.Network
         /// </summary>
         public event Action<string> OnServerCall;
 
-        //抖动时间内不允许重复连接
         public void Init()
         {
             _caller = new SignalRCaller(this);
+            _connection = new SignalRConnection(_serverUrl);
+            _connection.OnServerCall += ServerCall;
             Blocking(false);
         }
 
         public void Connect(Action<bool> connectAction) => ConnectWithDebouncing(connectAction);
 
+        //抖动时间内不允许重复连接
         private async void ConnectWithDebouncing(Action<bool> connectAction =null)
         {
             if (IsDebouncing()) return;
-            if (_connection is { State: not (ConnectionStates.Closed 
-                    or ConnectionStates.Initial
-                    or ConnectionStates.CloseInitiated) })
-                return;
+            if (_connection is { IsAwait: true }) return;
             var isConnected = await ConnectAsync();
             connectAction?.Invoke(isConnected);
             UpdateDebounce();
@@ -90,20 +87,11 @@ namespace AOT.Network
         public async Task<bool> ConnectAsync()
         {
             Blocking(true);
-            _connection = new SignalRConnection(_serverUrl, OnDisconnectOrError);
-            _connection.OnServerCall += ServerCall;
             var isConnected = await _connection.ConnectAsync();
             Debug.Log(isConnected ? "Connected to server!" : "Connection error!");
             Blocking(false);
             return isConnected;
 
-            void OnDisconnectOrError(SignalRConnection conn)
-            {
-                if (_connection != conn) return;
-                conn.OnServerCall -= ServerCall;
-                Debug.Log("Remove ServerCall!");
-                _connection = null;
-            }
         }
 
         private void ServerCall(string data)
@@ -147,7 +135,9 @@ namespace AOT.Network
             }
         }
 
-#if !UNITY_EDITOR
+        public void Connect() => ConnectWithDebouncing();
+
+#if UNITY_EDITOR
         void OnApplicationFocus(bool focus)
         {
             if (!Application.isPlaying)return;
