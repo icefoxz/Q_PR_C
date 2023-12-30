@@ -10,6 +10,13 @@ namespace AOT.Network
     /// </summary>
     public class SignalRConnectionHandler
     {
+        public enum States
+        {
+            Disconnected,
+            Connected,
+            Await,
+        }
+
         event Func<HubConnection> NewHubConnection;
         event Action<HubConnection> CloseHub;
         event Action<string, Exception> DebugLog;
@@ -33,15 +40,25 @@ namespace AOT.Network
         private SemaphoreSlim _connectLock = new(1, 1);
 
         // 这是一个内置的连接状态，用于判断是否已经连接。
-        public bool IsConnected => _conn is { State: ConnectionStates.Connected };
-        public bool IsAwait => State != null && IsWaitingState(State.Value);
         private HubConnection _conn;
-        public ConnectionStates? State => _conn?.State;
+
+        public States Status
+        {
+            get
+            {
+                if (HubState is null or ConnectionStates.CloseInitiated or ConnectionStates.Closed ) return States.Disconnected;
+                if (IsWaitingState(HubState.Value)) return States.Await;
+                if (HubState is ConnectionStates.Connected) return States.Connected;
+                throw new ArgumentOutOfRangeException($"{HubState} not a valid state!");
+            }
+        }
+        public ConnectionStates? HubState => _conn?.State;
+        private bool IsConnected() => Status == States.Connected;
 
         public async ValueTask<bool> ConnectAsync()
         {
             await AwaitConnectionWithCancellationToken();
-            return IsConnected;
+            return IsConnected();
         }
 
         public async ValueTask DisconnectAsync() => await _conn.CloseAsync();
@@ -49,14 +66,14 @@ namespace AOT.Network
         public async Task<T> InvokeTask<T>(string method,params object[] args)
         {
             await AwaitConnectionWithCancellationToken();
-            if (!IsConnected) return default;
+            if (!IsConnected()) return default;
             var result = await _conn.InvokeAsync<T>(method, args);
             return result;
         }
 
         private async ValueTask AwaitConnectionWithCancellationToken()
         {
-            if (IsConnected) return; // 如果已经连接，则直接返回。
+            if (IsConnected()) return; // 如果已经连接，则直接返回。
             await _connectLock.WaitAsync(); // 请求访问。
 
             try
@@ -65,7 +82,7 @@ namespace AOT.Network
                 {
                     _conn = NewHubConnection();
                     await _conn.ConnectAsync();
-                    if (IsConnected) return; // 检查是否已经连接。
+                    if (IsConnected()) return; // 检查是否已经连接。
                 }
 
                 if (IsWaitingState(_conn.State)) // 如果是等待状态，则等待。
@@ -83,7 +100,7 @@ namespace AOT.Network
                         return;
                     }
 
-                    if (IsConnected) return; // 再次检查是否已经连接。
+                    if (IsConnected()) return; // 再次检查是否已经连接。
                 }
 
                 // 重连机制
@@ -95,7 +112,7 @@ namespace AOT.Network
                     {
                         // 重连机制
                         await Reconnection();
-                        if (IsConnected) return; // 连接成功，退出。
+                        if (IsConnected()) return; // 连接成功，退出。
                     }
                     catch (Exception e)
                     {
@@ -120,7 +137,7 @@ namespace AOT.Network
 
         private async ValueTask AwaitConnection()
         {
-            if (IsConnected) return; // 如果已经连接，则直接返回。
+            if (IsConnected()) return; // 如果已经连接，则直接返回。
             await _connectLock.WaitAsync(); // 请求访问。
             try
             {
@@ -128,13 +145,13 @@ namespace AOT.Network
                 {
                     _conn = NewHubConnection();
                     await _conn.ConnectAsync();
-                    if (IsConnected) return; // 检查是否已经连接。
+                    if (IsConnected()) return; // 检查是否已经连接。
                 }
 
                 if (IsWaitingState(_conn.State)) // 如果是等待状态，则等待。
                 {
                     await Task.Delay(WaitingSecs * 1000); // 等待状态的timeout
-                    if (IsConnected) return; // 再次检查是否已经连接。
+                    if (IsConnected()) return; // 再次检查是否已经连接。
                 }
 
 
@@ -147,7 +164,7 @@ namespace AOT.Network
                     {
                         // 重连机制
                         await Reconnection();
-                        if (IsConnected) return; // 连接成功，退出。
+                        if (IsConnected()) return; // 连接成功，退出。
                     }
                     catch (Exception e)
                     {

@@ -13,31 +13,20 @@ namespace AOT.Network
 {
     public interface ISignalRClient
     {
-        SignalRClient.States State { get; }
+        SignalRConnectionHandler.States State { get; }
         SignalRCaller Caller { get; }
         void Connect();
     }
 
     /// <summary>
-    /// 客户端实例, 提供唯一状态<see cref="States"/>, Unity机制里实现app切换的时候自动重连,但不能保证重连成功
+    /// 客户端实例, 提供唯一状态<see cref="SignalRConnectionHandler.States"/>, Unity机制里实现app切换的时候自动重连,但不能保证重连成功
     /// </summary>
     public class SignalRClient : MonoBehaviour, ISignalRClient
     {
-        public enum States
-        {
-            Disconnected,
-            Connected,
-            Await,
-        }
         private SignalRConnection? _connection;
 
-        public States State => _connection switch
-        {
-            null or { State: ConnectionStates.CloseInitiated or ConnectionStates.Closed or ConnectionStates.Initial } =>
-                States.Disconnected,
-            { State: ConnectionStates.Connected } => States.Connected,
-            _ => States.Await
-        };
+        public SignalRConnectionHandler.States State=> _connection?.Status ?? SignalRConnectionHandler.States.Disconnected;
+
         [SerializeField] private Image _blockingPanel;
         [SerializeField] private string _serverUrl;
         [SerializeField] private float debounceTime = 1.0f; // 防抖动时间（秒）
@@ -45,6 +34,7 @@ namespace AOT.Network
         private SignalRCaller _caller;
         private bool IsDebouncing() => (DateTime.UtcNow - lastConnectionAttempt).TotalSeconds < debounceTime;
         private void UpdateDebounce() => lastConnectionAttempt = DateTime.UtcNow;
+        public string ServerUrl => _serverUrl;
 
         public SignalRCaller Caller
         {
@@ -67,7 +57,7 @@ namespace AOT.Network
         public void Init()
         {
             _caller = new SignalRCaller(this);
-            _connection = new SignalRConnection(_serverUrl);
+            _connection = new SignalRConnection(this);
             _connection.OnServerCall += ServerCall;
             Blocking(false);
         }
@@ -78,7 +68,7 @@ namespace AOT.Network
         private async void ConnectWithDebouncing(Action<bool> connectAction =null)
         {
             if (IsDebouncing()) return;
-            if (_connection is { IsAwait: true }) return;
+            if (_connection is { Status: SignalRConnectionHandler.States.Await }) return;
             var isConnected = await ConnectAsync();
             connectAction?.Invoke(isConnected);
             UpdateDebounce();
@@ -105,27 +95,16 @@ namespace AOT.Network
         public async void Disconnect()
         {
             if (IsDebouncing()) return;
-            if (_connection is
-                {
-                    State: not (ConnectionStates.Closed
-                    or ConnectionStates.CloseInitiated)
-                })
-            {
+            if (_connection is { Status: not SignalRConnectionHandler.States.Disconnected }) 
                 await _connection.DisconnectAsync();
-            }
             UpdateDebounce();
         }
 
         public async Task<string> InvokeAsync(string methodName, params object[] args)
         {
-            if (_connection is not
-                {
-                    State: not (ConnectionStates.Closed
-                    or ConnectionStates.CloseInitiated)
-                }) return null;
-            var bag = DataBag.SerializeWithName(methodName, args);
             try
             {
+                var bag = DataBag.SerializeWithName(methodName, args);
                 return await _connection.InvokeAsync("SignalRCall", bag);
             }
             catch (Exception e)
@@ -144,12 +123,12 @@ namespace AOT.Network
             if (!App.IsLoggedIn) return;
             switch (focus)
             {
-                case true when State == States.Disconnected:
+                case true when State == SignalRConnectionHandler.States.Disconnected:
                 {
                     Connect(null);
                     break;
                 }
-                case false when State == States.Connected:
+                case false when State == SignalRConnectionHandler.States.Connected:
                 {
                     Disconnect();
                     break;

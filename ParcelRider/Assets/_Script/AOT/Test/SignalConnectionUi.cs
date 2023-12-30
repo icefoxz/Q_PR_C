@@ -12,25 +12,22 @@ public class SignalConnectionUi : MonoBehaviour
     [SerializeField]private Image img_connected;
     [SerializeField]private Image img_await;
     [SerializeField]private Text text_status;
-    private Dictionary<Image, SignalRClient.States> _stateMap;
+    private Dictionary<Image, SignalRConnectionHandler.States> _stateMap;
 
     private void Start()
     {
-        _stateMap = new Dictionary<Image, SignalRClient.States>
+        _stateMap = new Dictionary<Image, SignalRConnectionHandler.States>
         {
-            { img_disconnected, SignalRClient.States.Disconnected },
-            { img_connected, SignalRClient.States.Connected },
-            { img_await, SignalRClient.States.Await },
+            { img_disconnected, SignalRConnectionHandler.States.Disconnected },
+            { img_connected, SignalRConnectionHandler.States.Connected },
+            { img_await, SignalRConnectionHandler.States.Await },
         };
     }
 
     private void UpdateStatus()
     {
         var state = _client.State;
-        foreach (var pair in _stateMap)
-        {
-            pair.Key.gameObject.SetActive(pair.Value == state);
-        }
+        foreach (var pair in _stateMap) pair.Key.gameObject.SetActive(pair.Value == state);
         text_status.text = state.ToString();
     }
 

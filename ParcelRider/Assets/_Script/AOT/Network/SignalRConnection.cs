@@ -13,20 +13,18 @@ namespace AOT.Network
     {
         public const string ServerCall = "ServerCall";
 
-        public ConnectionStates? State => _connHandler.State;
-        public bool IsAwait => _connHandler.IsAwait;
-
+        public SignalRConnectionHandler.States Status => _connHandler.Status;
         public event Action<string> OnServerCall;
         private SignalRConnectionHandler _connHandler;
 
-        public SignalRConnection(string url)
+        public SignalRConnection(SignalRClient client)
         {
             _connHandler = new SignalRConnectionHandler(InstanceHub, h => h.StartClose(), OnDebug);
             return;
 
             HubConnection InstanceHub()
             {
-                var hub = new HubConnection(new Uri(url + "?access_token=" + ApiCaller.AccessToken), new JsonProtocol(new JsonDotNetEncoder(Json.Settings)));
+                var hub = new HubConnection(new Uri(client.ServerUrl + "?access_token=" + ApiCaller.AccessToken), new JsonProtocol(new JsonDotNetEncoder(Json.Settings)));
                 hub.On<string>(ServerCall, msg => OnServerCall?.Invoke(msg));
                 hub.OnError += OnError;
                 return hub;

@@ -30,25 +30,25 @@ namespace AOT.Network
             Invoke(SignalREvents.Req_Do_Vers, successAction, errorMessage, orderIds);
 
         //重新登录和请求机制
-        private async void Invoke(string method,
+        private void Invoke(string method,
             Action<DataBag> successAction,
             string errorMessage,
             params object[] args)
         {
-            if (_signalRClient.State == SignalRClient.States.Disconnected)
-            {
-                var retrySecs = 2;
-                do
-                {
-                    var isConnected = await _signalRClient.ConnectAsync();
-                    if (isConnected) break;
-                    var retry = await ReqRetryWindow.Await("Connection lost.");
-                    if (!retry) return;
-                    await Task.Delay(TimeSpan.FromSeconds(retrySecs));
-                    retrySecs++;
+            //if (_signalRClient.State == SignalRConnectionHandler.States.Disconnected)
+            //{
+            //    var retrySecs = 2;
+            //    do
+            //    {
+            //        var isConnected = await _signalRClient.ConnectAsync();
+            //        if (isConnected) break;
+            //        var retry = await ReqRetryWindow.Await("Connection lost.");
+            //        if (!retry) return;
+            //        await Task.Delay(TimeSpan.FromSeconds(retrySecs));
+            //        retrySecs++;
 
-                } while (_signalRClient.State != SignalRClient.States.Connected);
-            }
+            //    } while (_signalRClient.State != SignalRConnectionHandler.States.Connected);
+            //}
             RetryCaller.Start(call: 
                 () => _signalRClient.InvokeAsync(method, args),
                 successAction: result =>
@@ -59,7 +59,7 @@ namespace AOT.Network
                 a =>
                 {
 #if UNITY_EDITOR
-                    Debug.LogError($"<color=cyan>{a.arg}<-color>\n<color=red>Server response error! {a.err}</color>");
+                    Debug.LogError($"<color=cyan>{a.arg}</color>\n<color=red>Server response error! {a.err}</color>");
 #endif
                     return ReqRetryWindow.Await(errorMessage ?? a.arg);
                 });
