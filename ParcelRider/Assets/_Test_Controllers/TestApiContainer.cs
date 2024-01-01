@@ -127,19 +127,24 @@ public class TestApiContainer : MonoBehaviour
         var riderOrderService = App.GetController<RiderOrderController>();
         RegTester(nameof(riderOrderService.Do_State_Update), args =>
         {
-            var order = (string)args[0];
+            var order = (DeliverOrderModel)args[0];
             var stateId = (int)args[1];
-            var message = ActiveOrderSo.DoStateUpdate(order, stateId);
-            return new object[] { message };
+            var (bag, statedID) = ActiveOrderSo.DoStateUpdate(order, stateId);
+            return new object[] { bag, statedID };
         },riderOrderService);
+        RegTester(nameof(riderOrderService.Get_SubStates), _ =>
+        {
+            var obj = string.Empty;
+            return new object[] { obj };
+        }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_AssignRider), args =>
         {
             var order = (DeliverOrderModel)args[0];
-            var newOrder = RiderLoginServiceSo.SetRiderInfo(order);
-            var data = DataBag.Deserialize(newOrder);
+            var orderWithRider = RiderLoginServiceSo.SetRiderInfo(order);
+            var data = DataBag.Deserialize(orderWithRider);
             var newData = data.Get<DeliverOrderModel>(0);
-            var (isSuccess, status, ordId) = ActiveOrderSo.OrderAssigned(newData);
-            return new object[] { isSuccess, status, ordId };
+            var (isSuccess, bag) = ActiveOrderSo.OrderAssigned(newData);
+            return new object[] { isSuccess, bag};
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_Get_Unassigned),  _=>
         {

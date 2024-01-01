@@ -23,20 +23,29 @@ namespace AOT.Controllers
 
         public void Get_SubStates()
         {
-            if (App.IsTestMode) return;
-            ApiPanel.Rider_GetSubStates(b =>
+            Call(args => args[0], arg =>
             {
-                var subStates = b.Get<DoSubState[]>(0);
-                AppModel.SetSubStates(subStates);
-            }, msg => MessageWindow.Set("Error", "Error in updating data!"));
+                var obj = arg;
+            }, () =>
+            {
+                ApiPanel.Rider_GetSubStates(b =>
+                {
+                    var subStates = b.Get<DoSubState[]>(0);
+                    AppModel.SetSubStates(subStates);
+                }, msg => MessageWindow.Set("Error", "Error in updating data!"));
+            });
         }
 
         public void Do_State_Update(int stateId)
         {
             var order = AppModel.CurrentOrder;
-            Call(new object[] {order, stateId},args => args[0], arg =>
+            Call(new object[] {order, stateId},args => ((string)args[0], (int)args[1]), arg =>
             {
-
+                var (bag, id) = arg;
+                var o = DataBag.Deserialize(bag);
+                var newO = o.Get<DeliveryOrder>(0);
+                Resolve_OrderCollections(newO);
+                Do_Current_Set(newO.Id);
             }, () =>
             {
                 var o = AppModel.CurrentOrder;
@@ -130,12 +139,14 @@ namespace AOT.Controllers
         public void Do_AssignRider()
         {
             var order = App.Models.CurrentOrder;
-            Call(new object[] { order },args => ((bool)args[0], (int)args[1], (long)args[2]), arg =>
+            Call(new object[] { order },args => ((bool)args[0], (string)args[1]), arg =>
             {
-                var (success, status, oId) = arg;
+                var (success, bag) = arg;
+                var o = DataBag.Deserialize(bag);
+                var newO = o.Get<DeliveryOrder>(0);
                 if (!success) return;
-                order.Status = status;
-                Do_Current_Set(oId);
+                Resolve_OrderCollections(newO);
+                Do_Current_Set(newO.Id);
                 return;
             }, () =>
             {
