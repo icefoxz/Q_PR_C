@@ -26,6 +26,8 @@ namespace AOT.Controllers
             Call(args => args[0], arg =>
             {
                 var obj = arg;
+                var bag = (DoSubState[])obj;
+                AppModel.SetSubStates(bag);
             }, () =>
             {
                 ApiPanel.Rider_GetSubStates(b =>

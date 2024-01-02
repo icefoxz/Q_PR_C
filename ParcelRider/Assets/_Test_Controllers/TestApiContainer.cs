@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections;
+using System.Linq;
 using AOT.Controllers;
 using AOT.Core;
 using AOT.Test;
@@ -134,8 +135,7 @@ public class TestApiContainer : MonoBehaviour
         },riderOrderService);
         RegTester(nameof(riderOrderService.Get_SubStates), _ =>
         {
-            var obj = string.Empty;
-            return new object[] { obj };
+            return new object[] { DoStateMap.GetAllSubStates().ToArray() };
         }, riderOrderService);
         RegTester(nameof(riderOrderService.Do_AssignRider), args =>
         {
