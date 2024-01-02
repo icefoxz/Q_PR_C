@@ -8,6 +8,7 @@ using AOT.Utl;
 using OrderHelperLib.Dtos.DeliveryOrders;
 using Sirenix.OdinInspector;
 using UnityEngine.Serialization;
+using DoStateMap = OrderHelperLib.Contracts.DoStateMap;
 using Random = System.Random;
 
 [CreateAssetMenu(fileName = "OrderSimSo", menuName ="TestServices/OrderSimSo")]
@@ -16,24 +17,19 @@ public class OrderSimSo : ScriptableObject
     [FormerlySerializedAs("_activeModel")][SerializeField] private OrderField _field;
     
     public string GetOrders() => _field.GetOrders();
-    public string GetHistories() => _field.GetHistory();
     public DeliverOrderModel GetOrder(long orderId) => _field.GetOrderFromList(orderId);
     public void SetNewOrder(DeliverOrderModel order) => _field.SetNewOrderToList(order);
     public void CancelOrder(long orderId) => _field.CancelOrderToList(orderId);
     public (bool isSuccess, string message) PaymentRiderCollect() => _field.RiderCollectPay();
     public (bool isSuccess, string message) PaymentCreditDeduction() => _field.CreditDeductPay();
-    public void SetPayment(PaymentMethods payM) => _field.SetPayment(payM);
-    public (string order, int state) DoStateUpdate(string order, int stateId) => _field.DoState_Update(order, stateId);
+    public (string order, string state) DoStateUpdate(DeliverOrderModel order, string stateId) => _field.DoState_Update(order, stateId);
 
     //Update order status
-    public (bool isSuccess, int status, long ordId) OrderAssigned(DeliverOrderModel order) => _field.OrderAssignedResponse(order);
-    public (bool isSuccess, int status, long ordId) ItemPicked(long orderId) => _field.ItemPickedResponse(orderId);
-    public (bool isSuccess, int status, long oId) ItemCollected(long orderId) => _field.ItemCollectedResponse(orderId);
-    public (bool isSuccess, int status, long ordId) DeliveryComplete(long orderId) => _field.DeliveryCompleteResponse(orderId);
+    public (bool isSuccess, string order) OrderAssigned(DeliverOrderModel order) => _field.OrderAssignedResponse(order);
 
     [Serializable] private class OrderField
     {
-                public int Count;
+        public int Count;
         public long CurrentId;
         public List<Model_Do> _preset;
         public string GetOrders()
@@ -130,13 +126,6 @@ public class OrderSimSo : ScriptableObject
             _preset.Remove(order);
             CurrentId = -1;
         }
-        public void SetPayment(PaymentMethods payM)
-        {
-            var order = GetOrder(CurrentId);
-            //var index = _preset.IndexOf(order);
-            //var mo = _preset[index];
-            order.PaymentInfo.Method = payM.ToString();
-        }
 
         private Model_Do GetOrder(long currentId)
         {
@@ -144,55 +133,34 @@ public class OrderSimSo : ScriptableObject
             return order;
         }
 
-        #region Update Order Status
-        public (bool isSuccess, int status, long ordId) OrderAssignedResponse(DeliverOrderModel model)
+        public (bool isSuccess, string order) OrderAssignedResponse(DeliverOrderModel model)
         {
-            var order = model.Map<DeliverOrderModel, Model_Do>();
-            var getOrder = GetOrder(order.Id);
-            var index = _preset.IndexOf(getOrder);
-            _preset[index].RiderId = order.RiderId;
-            _preset[index].Rider = order.Rider;
+            var order = model.JMap<DeliverOrderModel, Model_Do>();
+            var o = GetOrder(order.Id);
             var assigned = (int)DeliveryOrderStatus.Assigned;
-            _preset[index].Status = assigned;
-            return (true, _preset[index].Status, order.Id);
+            var state = DoStateMap.GetState(DoSubState.AssignState);
+            o.RiderId = order.RiderId;
+            o.Rider = order.Rider;
+            o.Status = assigned;
+            o.SubState = state.StateId;
+            var histories = o.StateHistory.ToList();
+            histories.Add(new Info_StageSegment{SubState = state.StateId, Timestamp = DateTime.Now});
+            o.StateHistory = histories.ToArray();
+            var bag = DataBag.Serialize(o);
+            return (true, bag);
         }
 
-        internal (bool isSuccess, int status, long ordId) ItemPickedResponse(long orderId)
+        public (string order, string state) DoState_Update(DeliverOrderModel order, string stateId)
         {
-            var order = GetOrder(orderId);
-            var index = _preset.IndexOf(GetOrder(orderId));
-            var assigned = (int)DeliveryOrderStatus.Delivering;
-            _preset[index].Status = assigned;
-            return (true, _preset[index].Status, order.Id);
-        }
-
-        internal (bool isSuccess, int status, long oId) ItemCollectedResponse(long orderId)
-        {
-            var order = GetOrder(orderId);
-            var index = _preset.IndexOf(GetOrder(orderId));
-            var assigned = (int)DeliveryOrderStatus.Completed;
-            _preset[index].Status = assigned;
-            return (true, _preset[index].Status, order.Id);
-        }
-
-        internal (bool isSuccess, int status, long ordId) DeliveryCompleteResponse(long orderId)
-        {
-            var order = GetOrder(orderId);
-            var index = _preset.IndexOf(GetOrder(orderId));
-            var assigned = (int)DeliveryOrderStatus.Closed;
-            _preset[index].Status = assigned;
-            return (true, _preset[index].Status, order.Id);
-        }
-        #endregion
-
-        public (string order, int state) DoState_Update(string order, int stateId)
-        {
-            return (order, stateId);
-        }
-
-        public string GetHistory()
-        {
-            return DataBag.Serialize(_preset);
+            var o = GetOrder(order.Id);
+            var state = DoStateMap.GetState(stateId);
+            o.SubState = state.StateId;
+            o.Status = state.Status;
+            var histories = o.StateHistory.ToList();
+            histories.Add(new Info_StageSegment{SubState =  stateId, Timestamp = DateTime.Now});
+            o.StateHistory = histories.ToArray();
+            var bag = DataBag.Serialize(o);
+            return (bag, stateId);
         }
 
         public DeliverOrderModel GetOrderFromList(long orderId)

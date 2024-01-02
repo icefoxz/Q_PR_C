@@ -18,7 +18,7 @@ public class Model_Do
     public Model_Rider Rider;
     public Info_Payment PaymentInfo;
     public int Status;
-    public int SubState;
+    public string SubState;
     public Info_StageSegment[] StateHistory;
 
     public Model_Do FromDto(DeliverOrderModel m)
@@ -106,7 +106,7 @@ public class Info_Payment
 [Serializable]
 public class Info_StageSegment
 {
-    public int SubState;
+    public string SubState;
     public DateTime Timestamp;
     public string ImageUrl;
     public string Remark;
