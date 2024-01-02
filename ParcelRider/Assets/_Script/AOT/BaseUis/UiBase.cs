@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using AOT.Views;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -32,6 +33,8 @@ namespace AOT.BaseUis
         /// 当ui隐藏触发器
         /// </summary>
         protected virtual void OnUiHide() { }
+
+        public event UnityAction OnDestroyEvent;
         public void Show() => Display(true);
         public void Hide() => Display(false);
         public void Display(bool display)

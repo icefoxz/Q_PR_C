@@ -264,7 +264,7 @@ namespace AOT.Utl
                 bag => { successAction?.Invoke(bag.Get<DeliverOrderModel>(0)); }, failedAction);
         }
 
-        public static void CancelDeliveryOrder(long orderId, int subState,
+        public static void CancelDeliveryOrder(long orderId, string subState,
             Action<bool, DataBag, string> callbackAction)
         {
             CallBag(User_Do_Cancel, DataBag.Serialize(orderId, subState),
@@ -277,7 +277,7 @@ namespace AOT.Utl
         public static void Rider_GetSubStates(Action<DataBag> successAction, Action<string> failedAction) =>
             CallBag(Rider_Get_SubStates, successAction, failedAction);
 
-        public static void Rider_UpdateState(long orderId, int subState, Action<DataBag> successAction,
+        public static void Rider_UpdateState(long orderId, string subState, Action<DataBag> successAction,
             Action<string> failedAction) => CallBag(EventString.Rider_Do_StateUpdate,
             DataBag.Serialize(orderId, subState), successAction, failedAction);
 

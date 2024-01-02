@@ -22,8 +22,8 @@ namespace AOT.Network
             var orderId = bag.Get<long>(0);
             var version = bag.Get<int>(1);
             var status = bag.Get<int>(2);
-            var subState = bag.Get<int>(3);
-            var updatedState = status.ConvertToDoStatus();
+            var subState = bag.Get<string>(3);
+            var updatedState = subState.ConvertToDoStatus();
             var model = App.Models;
             var order = model.AllOrders.FirstOrDefault(o => o.Id == orderId);
             var isOrderNotFoundOrVersionNotMatch = order == null || order.Version != version;

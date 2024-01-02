@@ -31,7 +31,7 @@ namespace AOT.Controllers
             }, msg => MessageWindow.Set("Error", "Error in updating data!"));
         }
 
-        public void Do_State_Update(int stateId)
+        public void Do_State_Update(string stateId)
         {
             var order = AppModel.CurrentOrder;
             Call(new object[] {order, stateId},args => args[0], arg =>

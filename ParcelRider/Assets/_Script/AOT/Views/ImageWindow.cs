@@ -13,6 +13,7 @@ namespace AOT.Views
 
         public ImageWindow(IView v, bool display = false) : base(v, display)
         {
+            Instance = this;
             img_image = v.Get<Image>("img_image");
             btn_x = v.Get<Button>("btn_x");
             btn_close = v.Get<Button>("btn_close");
@@ -23,7 +24,14 @@ namespace AOT.Views
         public static void Set(Sprite sprite)
         {
             img_image.sprite = sprite;
+            img_image.gameObject.SetActive(true);
             Instance.Show();
+        }
+
+        protected override void OnUiHide()
+        {
+            img_image.gameObject.SetActive(false);
+            base.OnUiHide();
         }
     }
 }

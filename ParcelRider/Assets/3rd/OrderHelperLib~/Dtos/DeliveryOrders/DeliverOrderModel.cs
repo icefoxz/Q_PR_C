@@ -27,7 +27,7 @@ public record DeliverOrderModel : LongDto
     //订单状态, 正数 = 进行中, 负数 = 已完成
     public int Status { get; set; }
     //订单子状态
-    public int SubState { get; set; }
+    public string SubState { get; set; }
     //订单状态进程, 用于记录订单的状态变化
     public StateSegmentModel[] StateHistory { get; set; }
 
@@ -42,10 +42,10 @@ public record DeliverOrderModel : LongDto
 /// </summary>
 public record StateSegmentModel
 {
-    public int SubState { get; set; }
+    public string SubState { get; set; }
     public DateTime Timestamp { get; set; }
-    public string? ImageUrl { get; set; }
-    public string? Remark { get; set; }
+    public string Type { get; set; }
+    public string? Data { get; set; }
 
     public StateSegmentModel()
     {

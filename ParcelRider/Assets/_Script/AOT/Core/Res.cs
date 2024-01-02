@@ -79,5 +79,6 @@ namespace AOT.Core
 
         public AsyncOperationHandle<GameObject> InstantiateAsyncHandler(string key) =>
             Addressables.InstantiateAsync(key);
+
     }
 }

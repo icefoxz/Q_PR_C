@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AOT.Core;
 using AOT.Utl;
-using Best.SignalR;
-using OrderHelperLib;
 using OrderHelperLib.Contracts;
 using UnityEngine;
 using UnityEngine.UI;
@@ -121,6 +118,7 @@ namespace AOT.Network
         {
             if (!Application.isPlaying)return;
             if (!App.IsLoggedIn) return;
+            if (App.IsTestMode) return;
             switch (focus)
             {
                 case true when State == SignalRConnectionHandler.States.Disconnected:

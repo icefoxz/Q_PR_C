@@ -6,10 +6,12 @@ using AOT.Controllers;
 using AOT.Core;
 using AOT.DataModel;
 using AOT.Extensions;
+using AOT.Utl;
 using AOT.Views;
 using OrderHelperLib.Contracts;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Visual.Pages.Rider
 {
@@ -25,8 +27,8 @@ namespace Visual.Pages.Rider
         private Button btn_exception { get; }
         private Button btn_close { get; }
         private long OrderId { get; set; }
-        private List<Sprite> images { get; set; } = new List<Sprite>();
-        private ImageController ImageController => App.GetController<ImageController>();
+        private List<Sprite> Images { get; set; } = new List<Sprite>();
+        private static ImageController ImageController => App.GetController<ImageController>();
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
         public RiderOrderViewPage(IView v,Action onPossibleExceptionAction ,Rider_UiManager uiManager) : base(v)
@@ -38,8 +40,8 @@ namespace Visual.Pages.Rider
             view_tab = new View_tab(v.Get<View>("view_tab"));
             ViewImages = new View_images(v: v.Get<View>("view_images"),
                 onImageSelectedAction: ImageSelected_PromptImageWindow,
-                onGalleryAction: () => ImageController.OpenGallery(OnPictureTaken),
-                onCameraAction: () => ImageController.OpenCamera(OnPictureTaken));
+                onGalleryAction: () => ImageController.OpenGallery(OnPictureTaken, (s, e) => MessageWindow.Set("Gallery", s)),
+                onCameraAction: () => ImageController.OpenCamera(OnPictureTaken, (s, e) => MessageWindow.Set("Camera", s)));
             view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions"), OnStateChange);
             btn_exception = v.Get<Button>("btn_exception");
             btn_exception.OnClickAdd(onPossibleExceptionAction);
@@ -49,7 +51,7 @@ namespace Visual.Pages.Rider
             App.MessagingManager.RegEvent(EventString.Order_Current_Set, _ => ShowCurrentOrder());
         }
 
-        private void OnStateChange(int stateId)
+        private void OnStateChange(string stateId)
         {
             var current = App.Models.CurrentOrder;
             if (current.State == DeliveryOrderStatus.Created)
@@ -63,13 +65,12 @@ namespace Visual.Pages.Rider
         }
 
 
-        private void OnPictureTaken(Texture2D texture)
+        private void OnPictureTaken(Sprite sp)
         {
-            images.Add(Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero));
-            UpdateImages();
+            Images.Insert(0, sp);
+            ViewImages.UpdateImages(Images);
         }
-        private void UpdateImages() => ViewImages.Set(images.ToArray());
-        private void ImageSelected_PromptImageWindow(int index) => ImageWindow.Set(images[index]);
+        private void ImageSelected_PromptImageWindow(Sprite sp) => ImageWindow.Set(sp);
 
         private void ShowCurrentOrder()
         {
@@ -83,7 +84,12 @@ namespace Visual.Pages.Rider
             text_orderId.text = order.Id.ToString();
             view_tab.Set(order);
             view_packageInfo.Set(payment.Charge, deliver.Distance, item.Weight, item.Size());
-            ViewImages.SetActive(order.State != DeliveryOrderStatus.Created && order.State.IsInProgress());
+            ViewImages.Set(order);
+            var imgUrls = order.StateHistory
+                .Where(s => s.Type.ToStateSegment() == StateSegments.Type.Images)
+                .SelectMany(s => Json.Deserialize<string[]>(s.Data) ?? Array.Empty<string>())
+                .ToArray();
+            foreach (var url in imgUrls) ImageController.Req_Image(url, OnPictureTaken); //加载图片
             UpdateState();
             Show();
 
@@ -98,6 +104,7 @@ namespace Visual.Pages.Rider
                     view_riderOptions.SetState(Array.Empty<DoSubState>());
                     return;
                 }
+
                 text_state.text = state.GetStatus + $"({state.Status})\n" + state.StateName + $"({order.SubState})";
                 var status = order.State;
                 var possibleStates = DoStateMap.GetPossibleStates(TransitionRoles.Rider, order.SubState);
@@ -220,10 +227,10 @@ namespace Visual.Pages.Rider
         private class View_riderOptions : UiBase
         {
             private ListView_Trans<Prefab_option> OptionList { get; }
-            private event Action<int> OnStateSelected;
+            private event Action<string> OnStateSelected;
 
             public View_riderOptions(IView v,
-                Action<int> onStateSelected, bool display = true) : base(v, display)
+                Action<string> onStateSelected, bool display = true) : base(v, display)
             {
                 OnStateSelected = onStateSelected;
                 OptionList = new ListView_Trans<Prefab_option>(v, "prefab_option");
@@ -236,7 +243,7 @@ namespace Visual.Pages.Rider
                 {
                     var ui = OptionList.Instance(v => new Prefab_option(v));
                     var option = state.StateName;
-                    if (state.StateId == 100) //rider assigned
+                    if (state.StateId == DoSubState.AssignState) //rider assigned
                         option = "Take order.";
                     ui.Set(option, () => OnStateSelected?.Invoke(state.StateId));
                 }
@@ -286,10 +293,10 @@ namespace Visual.Pages.Rider
             private ListView_Scroll<Prefab_image> ImageListView { get; }
             private Button btn_camera { get; }
             private Button btn_gallery { get; }
-            private event Action<int> OnImageSelected;
+            private event Action<Sprite> OnImageSelected;
 
             public View_images(IView v, 
-                Action<int> onImageSelectedAction, 
+                Action<Sprite> onImageSelectedAction, 
                 Action onGalleryAction,
                 Action onCameraAction) : base(v)
             {
@@ -301,16 +308,16 @@ namespace Visual.Pages.Rider
                 ImageListView = new ListView_Scroll<Prefab_image>(v, "prefab_image", "scroll_image");
             }
 
-            public void Set(Sprite[] images)
+            public void UpdateImages(IList<Sprite> images)
             {
-                ImageListView.ScrollRect.enabled = images.Length > 0;
+                ImageListView.ScrollRect.enabled = images.Count > 0;
                 ImageListView.ClearList(ui => ui.Destroy());
-                for (var i = 0; i < images.Length; i++)
+                for (var i = 0; i < images.Count; i++)
                 {
                     var index = i;
                     var sprite = images[i];
                     ImageListView.Instance(v =>
-                        new Prefab_image(v, sprite, () => OnImageSelected?.Invoke(index)));
+                        new Prefab_image(v, sprite, () => OnImageSelected?.Invoke(sprite)));
                 }
             }
 
@@ -328,11 +335,13 @@ namespace Visual.Pages.Rider
                 }
             }
 
-            public void SetActive(bool active)
+            private void SetActive(bool active)
             {
                 btn_camera.interactable = active;
                 btn_gallery.interactable = active;
             }
+
+            public void Set(DeliveryOrder order) => SetActive(order.State != DeliveryOrderStatus.Created && order.State.IsInProgress());
         }
     }
 }

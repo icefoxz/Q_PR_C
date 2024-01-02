@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace AOT.BaseUis
 {
@@ -7,6 +8,7 @@ namespace AOT.BaseUis
     /// </summary>
     public interface IUiBase
     {
+        event UnityAction OnDestroyEvent;
         void Show();
         void Hide();
         void ResetUi();
@@ -20,6 +22,7 @@ namespace AOT.BaseUis
     /// </summary>
     public abstract class BaseUi : MonoBehaviour, IUiBase
     {
+        public event UnityAction OnDestroyEvent;
         public virtual void Show() => Display(true, this);
         public virtual void Hide() => Display(false, this);
 
@@ -34,11 +37,12 @@ namespace AOT.BaseUis
         /// <typeparam name="T"></typeparam>
         /// <param name="display"></param>
         /// <param name="objs"></param>
-        protected void Display<T>(bool display, params T[] objs) where T : Component
+        public void Display<T>(bool display, params T[] objs) where T : Component
         {
             foreach (var o in objs) o.gameObject.SetActive(display);
         }
         protected void DestroyObj(Component com) => Destroy(com.gameObject);
         public abstract void ResetUi();
+        private void OnDestroy() => OnDestroyEvent?.Invoke();
     }
 }

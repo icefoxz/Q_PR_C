@@ -20,18 +20,12 @@ public class TestPicture : MonoBehaviour
 
     public void TakePicture()
     {
-        ImageController.OpenCamera(texture2D =>
-        {
-            _image.sprite = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), Vector2.zero);
-        });
+        ImageController.OpenCamera(sp => _image.sprite = sp, (s, e) => Debug.LogException(e));
     }
 
     public void TakePictureFromGallery()
     {
-        ImageController.OpenGallery(texture2D =>
-        {
-            _image.sprite = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), Vector2.zero);
-        });
+        ImageController.OpenGallery(sp => _image.sprite = sp, (s, e) => Debug.LogException(e));
     }
 
     public async void UploadImage()

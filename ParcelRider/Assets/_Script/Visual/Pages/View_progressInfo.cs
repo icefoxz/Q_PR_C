@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AOT.BaseUis;
 using AOT.Controllers;
 using AOT.Core;
+using AOT.Utl;
 using AOT.Views;
 using OrderHelperLib.Contracts;
 using OrderHelperLib.Dtos.DeliveryOrders;
@@ -31,23 +31,46 @@ namespace Visual.Pages
             var history = order.StateHistory ?? Array.Empty<StateSegmentModel>();
             var subStates = DoStateMap.GetAllSubStates();
             var logs = history.Join(subStates, h => h.SubState, s => s.StateId,
-                    (h, s) => new { history = h, state = s })
-                .Select(a => (a.history.Timestamp, $"{a.state.StateName} {a.history.Remark}"))
+                    (h, s) => (h, s))
+                .Select(ResolveHistoryData)
                 .ToList();
 
             LogListView.ClearList(l => l.Destroy());
             logs.ForEach(arg =>
             {
-                var (time, message) = arg;
+                var (type, time, message) = arg;
+                string[] images = null;
+                if (type == StateSegments.Type.Images)//如果是图片,并且没有图片,就不生成ui
+                {
+                    images = Json.Deserialize<string[]>(message);
+                    if (images == null || images.Length == 0) return;
+                }
+
                 LogListView.Instance(v =>
                 {
                     var ui = new Prefab_deliverLog(v);
-                    ui.SetMessage(time.ToLocalTime().ToString("hh:mm tt d/M/yy"), ResolveCharsLimit(message, textLimit));
+                    var timeText = time.ToLocalTime().ToString("hh:mm tt d/M/yy");
+                    if (type == StateSegments.Type.Images)
+                        ui.SetImages(timeText, images);
+                    else 
+                        ui.SetMessage(timeText, ResolveCharsLimit(message, textLimit));
                     return ui;
                 });
             });
             SetVerticalToBtmAfterSecs();
+            return;
+
+            (StateSegments.Type type, DateTime Timestamp, string data) ResolveHistoryData(
+                (StateSegmentModel h, DoSubState a) arg)
+            {
+                var (h, a) = arg;
+                var type = h.Type.ToStateSegment();
+                return type != StateSegments.Type.Images
+                    ? (type, h.Timestamp, $"{a.StateName} {h.Data}")
+                    : (type, h.Timestamp, h.Data);
+            }
         }
+
 
         protected override void OnUiShow()
         {
@@ -96,7 +119,7 @@ namespace Visual.Pages
                 view_picture.Hide();
             }
 
-            public void SetImages(string time, string imgUrl)
+            public void SetImages(string time, string[] imgUrls)
             {
                 //rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, 100);
                 //PicListView.ClearList(ui => ui.Destroy());
@@ -109,30 +132,55 @@ namespace Visual.Pages
                 RectTransform.sizeDelta = new Vector2(RectTransform.sizeDelta.x,
                     view_picture.RectTransform.rect.height);
                 text_time.text = time;
-                view_picture.SetImage(imgUrl);
+                view_picture.SetImages(imgUrls);
                 text_message.gameObject.SetActive(false);
             }
 
             private class View_picture : UiBase
             {
-                private Image img_pic { get; }
-                private Button btn_pic { get; }
-
+                private ListView_Scroll<Prefab_pic> PicListView { get; }
                 public View_picture(IView v, bool display = true) : base(v,
                     display)
                 {
-                    img_pic = v.Get<Image>("img_pic");
-                    btn_pic = v.Get<Button>("btn_pic");
+                    PicListView = new ListView_Scroll<Prefab_pic>(v, "prefab_pic", "scroll_pic");
                 }
 
-                public void SetImage(string url)
+                public void SetImages(string[] urls)
                 {
-                    var imgCo = App.GetController<ImageController>();
-                    imgCo.Req_Image(url, sp => img_pic.sprite = sp);
-                    btn_pic.onClick.RemoveAllListeners();
-                    btn_pic.onClick.AddListener(() => ImageWindow.Set(img_pic.sprite));
+                    PicListView.ClearList(ui => ui.Destroy());
+                    foreach (var url in urls)
+                    {
+                        var ui = PicListView.Instance(v => new Prefab_pic(v));
+                        ui.SetImage(url);
+                    }
                     Show();
                 }
+
+
+                private class Prefab_pic : UiBase
+                {
+                    private Image img_pic { get; }
+                    private Button btn_pic { get; }
+
+                    public Prefab_pic(IView v, bool display = true) : base(v, display)
+                    {
+                        img_pic = v.Get<Image>("img_pic");
+                        btn_pic = v.Get<Button>("btn_pic");
+                    }
+
+                    public void SetImage(string url)
+                    {
+                        var imgCo = App.GetController<ImageController>();
+                        imgCo.Req_Image(url, s =>
+                        {
+                            if (GameObject) img_pic.sprite = s; //这样写为了确保图片加载完后, 可能prefab已经被销毁了
+                        });
+                        btn_pic.onClick.RemoveAllListeners();
+                        btn_pic.onClick.AddListener(() => ImageWindow.Set(img_pic.sprite));
+                        Show();
+                    }
+                }
+
             }
         }
     }
