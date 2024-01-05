@@ -64,7 +64,7 @@ namespace AOT.BaseUis
         public View Prefab { get; }
         public Transform Content { get; }
 
-        public ListView_Trans(IView v, View prefab, Transform content, bool hideChildrenViews = true, bool display = true) : base(v, display)
+        public ListView_Trans(IView v, View prefab, Transform content, bool display = true, bool hideChildrenViews = true) : base(v, display)
         {
             Prefab = prefab;
             Content = content;
@@ -127,15 +127,15 @@ namespace AOT.BaseUis
             }
         }
 
-        public ListView_Scroll(View prefab, ScrollRect scrollRect, IView v, bool hideChildrenViews = true,
-            bool display = true) : base(v, prefab, scrollRect.content, display)
+        public ListView_Scroll(View prefab, ScrollRect scrollRect, IView v, bool display = true,
+            bool hideChildrenViews = true) : base(v, prefab, scrollRect.content, display)
         {
             _scrollRect = scrollRect;
             if (hideChildrenViews) HideChildren();
         }
 
-        public ListView_Scroll(IView v, string prefabName, string scrollRectName, bool hideChildrenViews = true,
-            bool display = true) : this(
+        public ListView_Scroll(IView v, string prefabName, string scrollRectName, bool display = true,
+            bool hideChildrenViews = true) : this(
             v.Get<View>(prefabName),
             v.Get<ScrollRect>(scrollRectName), v, hideChildrenViews, display)
         {

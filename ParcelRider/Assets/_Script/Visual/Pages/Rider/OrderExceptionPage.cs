@@ -17,7 +17,7 @@ namespace Visual.Pages.Rider
         private Button btn_close { get; }
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public OrderExceptionPage(IView v, Rider_UiManager uiManager) :
+        public OrderExceptionPage(IView v) :
             base(v)
         {
             btn_close = v.Get<Button>("btn_close");

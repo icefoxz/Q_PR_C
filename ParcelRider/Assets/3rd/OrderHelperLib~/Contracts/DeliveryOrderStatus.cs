@@ -1,4 +1,5 @@
-﻿using OrderHelperLib.Contracts;
+﻿using Newtonsoft.Json;
+using OrderHelperLib.Contracts;
 
 namespace OrderHelperLib.Contracts;
 
@@ -40,7 +41,7 @@ public class DoSubState
     public string StateId { get; set; }
     public string StateName { get; set; }
     public int Status { get; set; }
-    public DeliveryOrderStatus GetStatus => (DeliveryOrderStatus)Status;
+    [JsonIgnore]public DeliveryOrderStatus GetStatus => (DeliveryOrderStatus)Status;
 
     /// <summary>
     /// 上个状态, 如果为null, 则表示是不能从上个状态执行
@@ -83,12 +84,17 @@ public class DoSubState
 }
 
 /// <summary>
-/// 订单状态
+/// 订单状态<br/>
+/// 注意!<br/>
+/// Tag.Type = <see cref="TagType"/><br/>
+/// Tag.Name = StateId<br/>
+/// Tag.Description = StateName<br/>
+/// tag.Value = Serialized DoSubState<br/>
 /// </summary>
 public class DoStateMap
 {
     /// <summary>
-    /// 作为数据库中Tag的Type
+    /// 作为数据库中Tag的Type<be/>
     /// </summary>
     public const string TagType = "DoSubState";
 

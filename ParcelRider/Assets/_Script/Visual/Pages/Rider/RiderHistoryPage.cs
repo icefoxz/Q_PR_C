@@ -10,8 +10,8 @@ namespace Visual.Pages.Rider
     {
         protected override string SubscribeDoUpdateEventName => EventString.Orders_History_Update;
 
-        public RiderHistoryPage(IView v, Action<long> onOrderSelectedAction, Rider_UiManager uiManager,
-            bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
+        public RiderHistoryPage(IView v, Action<long> onOrderSelectedAction,
+            bool display = false) : base(v, onOrderSelectedAction, display)
         {
             //App.RegEvent(EventString.Orders_Assigned_Update, _ => OnOrderListUpdate());
         }

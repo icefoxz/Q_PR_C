@@ -24,6 +24,7 @@ namespace AOT.Views
         public static void Set(Sprite sprite)
         {
             img_image.sprite = sprite;
+            ResizeImageToScreen(sprite, img_image);
             img_image.gameObject.SetActive(true);
             Instance.Show();
         }
@@ -32,6 +33,31 @@ namespace AOT.Views
         {
             img_image.gameObject.SetActive(false);
             base.OnUiHide();
+        }
+
+        private static void ResizeImageToScreen(Sprite sprite,Image image)
+        {
+            var spriteAspectRatio = sprite.rect.width / sprite.rect.height;
+            var screenAspectRatio = (float)Screen.width / Screen.height;
+
+            Vector2 newSize;
+
+            if (spriteAspectRatio > screenAspectRatio)
+            {
+                // 精灵的宽度将填满屏幕宽度
+                float width = Screen.width;
+                var height = width / spriteAspectRatio;
+                newSize = new Vector2(width, height);
+            }
+            else
+            {
+                // 精灵的高度将填满屏幕高度
+                float height = Screen.height;
+                var width = height * spriteAspectRatio;
+                newSize = new Vector2(width, height);
+            }
+
+            image.rectTransform.sizeDelta = newSize;
         }
     }
 }

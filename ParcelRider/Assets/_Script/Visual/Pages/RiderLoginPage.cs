@@ -12,7 +12,7 @@ namespace Visual.Pages
         private View_loginSect view_loginSect { get; }
         private RiderLoginController RiderLoginController => App.GetController<RiderLoginController>();
         private event Action OnLoggedInEvent;
-        public RiderLoginPage(IView v, Action onLoggedInAction, UiManagerBase uiManager) : base(v)
+        public RiderLoginPage(IView v, Action onLoggedInAction) : base(v)
         {
             OnLoggedInEvent += onLoggedInAction;
             OnLoggedInEvent += Hide;

@@ -66,6 +66,23 @@ namespace AOT.Controllers
         //处理单个order的update, 并且更新到相应的列表中
         private void Resolve_OrderCollections(DeliveryOrder order) => AppModel.Resolve_Order(order, isRider: true);
 
+        public void Do_ReqUpload(string[] imageUrls,Action<string> resultAction,Action<string> failedAction)
+        {
+            var orderId = AppModel.CurrentOrder.Id;
+            var imgController = App.GetController<ImageController>();
+            var tuples = imgController.GetTextures(imageUrls);
+            Call(a=>a,a=>{}, () =>
+            {
+                ApiPanel.Rider_DoTask_UploadImages(orderId, tuples, (o) =>
+                {
+                    var order = o.order;
+                    resultAction(o.url);
+                    imgController.ClearCache(o.url);
+                    Resolve_OrderCollections(new DeliveryOrder(order));
+                }, failedAction);
+            });
+        }
+
         public void Do_Get_Unassigned(int pageIndex = -1, Action<bool> resultAction = null)
         {
             pageIndex = ResolvePageIndex(AppModel.GetDoPageModel(AppModels.PageOrders.Unassigned), pageIndex);

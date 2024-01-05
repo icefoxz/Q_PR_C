@@ -29,9 +29,7 @@ namespace Visual.Pages
         public void Set(DeliverOrderModel order, int textLimit = 55)
         {
             var history = order.StateHistory ?? Array.Empty<StateSegmentModel>();
-            var subStates = DoStateMap.GetAllSubStates();
-            var logs = history.Join(subStates, h => h.SubState, s => s.StateId,
-                    (h, s) => (h, s))
+            var logs = history
                 .Select(ResolveHistoryData)
                 .ToList();
 
@@ -61,12 +59,12 @@ namespace Visual.Pages
             return;
 
             (StateSegments.Type type, DateTime Timestamp, string data) ResolveHistoryData(
-                (StateSegmentModel h, DoSubState a) arg)
+                StateSegmentModel h)
             {
-                var (h, a) = arg;
+                
                 var type = h.Type.ToStateSegment();
                 return type != StateSegments.Type.Images
-                    ? (type, h.Timestamp, $"{a.StateName} {h.Data}")
+                    ? (type, h.Timestamp, $"{h.StateName} {h.Data}")
                     : (type, h.Timestamp, h.Data);
             }
         }
@@ -171,7 +169,7 @@ namespace Visual.Pages
                     public void SetImage(string url)
                     {
                         var imgCo = App.GetController<ImageController>();
-                        imgCo.Req_Image(url, s =>
+                        imgCo.Req_Image(url, (u,s) =>
                         {
                             if (GameObject) img_pic.sprite = s; //这样写为了确保图片加载完后, 可能prefab已经被销毁了
                         });

@@ -10,8 +10,8 @@ namespace Visual.Pages.Rider
     {
         protected override string SubscribeDoUpdateEventName => EventString.Orders_Unassigned_Update;
 
-        public RiderJobListPage(IView v, Action<long> onOrderSelectedAction, Rider_UiManager uiManager,
-            bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
+        public RiderJobListPage(IView v, Action<long> onOrderSelectedAction,
+            bool display = false) : base(v, onOrderSelectedAction, display)
         {
         }
 

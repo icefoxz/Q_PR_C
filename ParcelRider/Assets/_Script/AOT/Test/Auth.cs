@@ -2,6 +2,6 @@ namespace AOT.Test
 {
     public class Auth
     {
-        public const string GoogleApiKey = "AIzaSyAaKnJtZ3GaxLAv1YPcxdM9u1QVCBKao1E";
+        public const string GoogleApiKey = "AIzaSyBWe53R7CUVkQav4gRdkThqI5-Ic0yRb98";
     }
 }

@@ -12,8 +12,7 @@ namespace Visual.Pages.Rider
         private Button btn_jobList { get; }
 
         public RiderHomePage(IView v, Action<long> onOrderSelectedAction, Action onJobListAction,
-            Rider_UiManager uiManager,
-            bool display = false) : base(v, onOrderSelectedAction, uiManager, display)
+            bool display = false) : base(v, onOrderSelectedAction, display)
         {
             btn_jobList = v.Get<Button>("btn_jobList");
             btn_jobList.OnClickAdd(onJobListAction.Invoke);

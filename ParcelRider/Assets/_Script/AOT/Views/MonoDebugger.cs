@@ -26,5 +26,6 @@ namespace AOT.Views
         {
             Debug.Log("OnEnable");
         }
+
     }
 }

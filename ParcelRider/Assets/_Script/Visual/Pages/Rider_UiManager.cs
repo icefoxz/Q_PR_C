@@ -72,16 +72,15 @@ namespace Visual.Pages
                 onHistoryPageAction: () => ActivityPageSwitch(ActivityPages.HistoryPage));
             RiderHomePage = new RiderHomePage(_riderHomePage, 
                 OrderCurrentSelected,
-                () => ActivityPageSwitch(ActivityPages.UnassignedPage),
-                this);
+                () => ActivityPageSwitch(ActivityPages.UnassignedPage));
 
             RiderHistoryPage = new RiderHistoryPage(_orderHistoryPage,
-                onOrderSelectedAction: OrderCurrentSelected, this);
-            RiderJobListPage = new RiderJobListPage(_orderListPage, OrderCurrentSelected, this);
-            RiderLoginPage = new RiderLoginPage(_riderLoginPage, onLoggedInAction: LoggedIn_InitHomePage, this);
+                onOrderSelectedAction: OrderCurrentSelected);
+            RiderJobListPage = new RiderJobListPage(_orderListPage, OrderCurrentSelected);
+            RiderLoginPage = new RiderLoginPage(_riderLoginPage, onLoggedInAction: LoggedIn_InitHomePage);
             //OrderViewPage = new OrderViewPage(_orderViewPage, this);
-            OrderExceptionPage = new OrderExceptionPage(_orderExceptionPage, this);
-            RiderOrderViewPage = new RiderOrderViewPage(_orderPage, OrderExceptionPage.DisplayPossibleExceptions, this);
+            OrderExceptionPage = new OrderExceptionPage(_orderExceptionPage);
+            RiderOrderViewPage = new RiderOrderViewPage(_orderPage, OrderExceptionPage.DisplayPossibleExceptions);
             if(startUi) RiderLoginPage.Show();
         }
 

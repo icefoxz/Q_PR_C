@@ -20,12 +20,12 @@ public class TestPicture : MonoBehaviour
 
     public void TakePicture()
     {
-        ImageController.OpenCamera(sp => _image.sprite = sp, (s, e) => Debug.LogException(e));
+        ImageController.OpenCamera((url,sp)=> _image.sprite = sp, (s, e) => Debug.LogException(e));
     }
 
     public void TakePictureFromGallery()
     {
-        ImageController.OpenGallery(sp => _image.sprite = sp, (s, e) => Debug.LogException(e));
+        ImageController.OpenGallery((url, sp) => _image.sprite = sp, (s, e) => Debug.LogException(e));
     }
 
     public async void UploadImage()

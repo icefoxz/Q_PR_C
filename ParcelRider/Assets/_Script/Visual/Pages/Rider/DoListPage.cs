@@ -17,7 +17,7 @@ namespace Visual.Pages.Rider
         protected abstract string SubscribeDoUpdateEventName { get; }
         private View_doList view_doList { get; }
 
-        protected RiderOrderListPage(IView v, Action<long> onOrderSelectedAction, Rider_UiManager uiManager, bool display = false)
+        protected RiderOrderListPage(IView v, Action<long> onOrderSelectedAction, bool display = false)
             : base(v, display)
         {
             view_doList = new View_doList(v.Get<View>("view_doList"), onOrderSelectedAction);

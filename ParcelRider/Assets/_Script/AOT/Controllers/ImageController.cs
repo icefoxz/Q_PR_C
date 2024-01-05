@@ -1,27 +1,26 @@
 ﻿using System;
 using System.Collections;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using AOT.Core;
 using AOT.Test;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Android;
-using UnityEngine.Networking;
 
 namespace AOT.Controllers
 {
     public class ImageController : ControllerBase
     {
         private const string JavaGalleryCameraHelperClass = "com.icefoxz.letsmove.GalleryCameraHelper";
-        private Action<Sprite> _onPictureTaken;
+        private Action<string,Sprite> _onPictureTaken;
         private MonoService MonoService { get; }
-        private SpriteResManager SpriteResManager { get; }
+        private SpriteResHandler SpriteResHandler { get; }
 
         public ImageController(MonoService monoService)
         {
             MonoService = monoService;
             MonoService.OnPictureTaken.AddListener(OnImagePathReceived);//这里接收了底层当获取到图片路径后触发
-            SpriteResManager = new SpriteResManager(50); //50mb
+            SpriteResHandler = new SpriteResHandler(50); //50mb
         }
 
         /// <summary>
@@ -29,10 +28,10 @@ namespace AOT.Controllers
         /// </summary>
         /// <param name="url"></param>
         /// <param name="callbackAction"></param>
-        public void Req_Image(string url, Action<Sprite> callbackAction)
+        public void Req_Image(string url, Action<string, Sprite> callbackAction)
         {
             // 使用MonoService启动协程请求
-            MonoService.StartCoroutine(GetImageFromResource(url, callbackAction).ToCoroutine());
+            MonoService.StartCoroutine(GetImageFromResource(url, sp => callbackAction(url, sp)).ToCoroutine());
         }
 
 
@@ -52,11 +51,24 @@ namespace AOT.Controllers
         //加载图片
         private async UniTask GetImageFromResource(string url, Action<Sprite> callbackAction)
         {
-            var sp = await SpriteResManager.GetSpriteAsync(url);
-            callbackAction?.Invoke(sp);
+            try
+            {
+                var sp = await SpriteResHandler.GetSpriteAsync(url);
+                callbackAction?.Invoke(sp);
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Load image error!", MonoService);
+#if UNITY_EDITOR
+                Debug.LogException(e, MonoService);
+#endif
+                callbackAction?.Invoke(null);
+            }
         }
 
-        public void OpenCamera(Action<Sprite> onPictureTakenAction, Action<string, Exception> onErrorAction)
+        public (string url, Texture2D)[] GetTextures(string[] urls) => SpriteResHandler.GetTextures(urls);
+
+        public void OpenCamera(Action<string, Sprite> onPictureTakenAction, Action<string, Exception> onErrorAction)
         {
             _onPictureTaken = onPictureTakenAction;
             if (Application.platform == RuntimePlatform.Android)
@@ -83,7 +95,7 @@ namespace AOT.Controllers
             }
         }
 
-        public void OpenGallery(Action<Sprite> onPictureTakenAction, Action<string, Exception> onErrorAction)
+        public void OpenGallery(Action<string,Sprite> onPictureTakenAction, Action<string, Exception> onErrorAction)
         {
             _onPictureTaken = onPictureTakenAction;
             if (Application.platform == RuntimePlatform.Android)
@@ -116,12 +128,13 @@ namespace AOT.Controllers
             //尝试加载图片
             if (string.IsNullOrEmpty(imagePath))
             {
-                _onPictureTaken?.Invoke(null);
+                _onPictureTaken?.Invoke(imagePath,null);
                 return;
             }
             var path = "file://" + imagePath;
-            var sp = await SpriteResManager.GetSpriteAsync(path);
-            _onPictureTaken.Invoke(sp);
+            var sp = await SpriteResHandler.GetSpriteAsync(path);
+            _onPictureTaken.Invoke(path, sp);
+
         }
 
         //private IEnumerator LoadImageFromPath(string imagePath)
@@ -160,5 +173,7 @@ namespace AOT.Controllers
                 yield return null;
             }
         }
+
+        public void ClearCache(string url) => SpriteResHandler.Remove(url);
     }
 }

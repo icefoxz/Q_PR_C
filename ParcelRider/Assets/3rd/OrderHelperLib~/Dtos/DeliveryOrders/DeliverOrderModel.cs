@@ -42,6 +42,7 @@ public record DeliverOrderModel : LongDto
 /// </summary>
 public record StateSegmentModel
 {
+    public string StateName { get; set; }
     public string SubState { get; set; }
     public DateTime Timestamp { get; set; }
     public string Type { get; set; }

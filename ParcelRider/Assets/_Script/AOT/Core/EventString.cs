@@ -20,5 +20,7 @@
         public const string Orders_History_Update = "Orders_History_Update";
         public const string Orders_Unassigned_Update = "Orders_Unassigned_Update";
         public const string Rider_Do_StateUpdate = "Rider_Do_StateUpdate";
+        public const string Rider_Do_GetUpdateImagesToken = "Rider_Do_GetUpdateImagesToken";
+        public const string Rider_Image_Do = "Rider_Image_Do";
     }
 }

@@ -11,35 +11,37 @@ using AOT.Views;
 using OrderHelperLib.Contracts;
 using UnityEngine;
 using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 namespace Visual.Pages.Rider
 {
     public class RiderOrderViewPage : PageUiBase
     {
+        private const int PicLimit = 5;
         private Text text_orderId { get; }
         private Text text_state { get; }
         private View_states view_states { get; }
         private View_tab view_tab { get; }
         private View_packageInfo view_packageInfo { get; }
         private View_riderOptions view_riderOptions { get; }
-        private View_images ViewImages { get; }
+        private View_images view_images { get; }
+        private View_picUpload view_picUpload { get; }
+
         private Button btn_exception { get; }
         private Button btn_close { get; }
-        private long OrderId { get; set; }
-        private List<Sprite> Images { get; set; } = new List<Sprite>();
+        private List<(string url, Sprite sprite)> Images { get; set; } = new List<(string, Sprite)>();
         private static ImageController ImageController => App.GetController<ImageController>();
         private RiderOrderController RiderOrderController => App.GetController<RiderOrderController>();
 
-        public RiderOrderViewPage(IView v,Action onPossibleExceptionAction ,Rider_UiManager uiManager) : base(v)
+        public RiderOrderViewPage(IView v, Action onPossibleExceptionAction) : base(v)
         {
             text_orderId = v.Get<Text>("text_orderId");
             text_state = v.Get<Text>("text_state");
             view_packageInfo = new View_packageInfo(v.Get<View>("view_packageInfo"));
             view_states = new View_states(v.Get<View>("view_states"));
             view_tab = new View_tab(v.Get<View>("view_tab"));
-            ViewImages = new View_images(v: v.Get<View>("view_images"),
-                onImageSelectedAction: ImageSelected_PromptImageWindow,
+            view_picUpload = new View_picUpload(v.Get<View>("view_picUpload"), onReqUploadAction: ReqUploadAction);
+            view_images = new View_images(v: v.Get<View>("view_images"),
+                onPrefabClick:()=> view_picUpload.Set(Images.Select(i=>i.sprite).ToArray()),
                 onGalleryAction: () => ImageController.OpenGallery(OnPictureTaken, (s, e) => MessageWindow.Set("Gallery", s)),
                 onCameraAction: () => ImageController.OpenCamera(OnPictureTaken, (s, e) => MessageWindow.Set("Camera", s)));
             view_riderOptions = new View_riderOptions(v.Get<View>("view_riderOptions"), OnStateChange);
@@ -49,6 +51,20 @@ namespace Visual.Pages.Rider
             btn_close.OnClickAdd(Hide);
 
             App.MessagingManager.RegEvent(EventString.Order_Current_Set, _ => ShowCurrentOrder());
+        }
+
+        private void ReqUploadAction()
+        {
+            RiderOrderController.Do_ReqUpload(Images.Select(i => i.url).ToArray(), ClearImageCache,
+                err => MessageWindow.Set("Image", err));
+            return;
+
+            void ClearImageCache(string url)
+            {
+                var image = Images.FirstOrDefault(i => i.url == url);
+                if (image == default) return;
+                Images.Remove(image);
+            }
         }
 
         private void OnStateChange(string stateId)
@@ -64,32 +80,32 @@ namespace Visual.Pages.Rider
                 () => RiderOrderController.Do_State_Update(stateId));
         }
 
-
-        private void OnPictureTaken(Sprite sp)
+        private void OnPictureTaken(string url, Sprite sp)
         {
-            Images.Insert(0, sp);
-            ViewImages.UpdateImages(Images);
+            var sameImg = Images.FirstOrDefault(i => i.url == url);
+            if (sameImg != default) Images.Remove(sameImg);
+            Images.Insert(0, (url, sp));
+            view_images.UpdateImages(Images.Select(i => i.sprite).ToArray());
         }
-        private void ImageSelected_PromptImageWindow(Sprite sp) => ImageWindow.Set(sp);
 
         private void ShowCurrentOrder()
         {
             var order = App.Models.CurrentOrder;
             //throw new Exception("No order set to current!");
             if (order == null) return;
-            OrderId = order.Id;
             var payment = order.PaymentInfo;
             var deliver = order.DeliveryInfo;
             var item = order.ItemInfo;
             text_orderId.text = order.Id.ToString();
             view_tab.Set(order);
             view_packageInfo.Set(payment.Charge, deliver.Distance, item.Weight, item.Size());
-            ViewImages.Set(order);
-            var imgUrls = order.StateHistory
-                .Where(s => s.Type.ToStateSegment() == StateSegments.Type.Images)
-                .SelectMany(s => Json.Deserialize<string[]>(s.Data) ?? Array.Empty<string>())
-                .ToArray();
-            foreach (var url in imgUrls) ImageController.Req_Image(url, OnPictureTaken); //加载图片
+            view_images.Set(order, Images);
+
+            //var imgUrls = order.StateHistory
+            //    .Where(s => s.Type.ToStateSegment() == StateSegments.Type.Images)
+            //    .SelectMany(s => Json.Deserialize<string[]>(s.Data) ?? Array.Empty<string>())
+            //    .ToArray();
+
             UpdateState();
             Show();
 
@@ -176,6 +192,7 @@ namespace Visual.Pages.Rider
                     element_contactTo.Set(receiver.Name, receiver.PhoneNumber, deliver.EndLocation.Address);
                 }
             }
+
         }
 
         private class View_states : UiBase
@@ -293,14 +310,14 @@ namespace Visual.Pages.Rider
             private ListView_Scroll<Prefab_image> ImageListView { get; }
             private Button btn_camera { get; }
             private Button btn_gallery { get; }
-            private event Action<Sprite> OnImageSelected;
+            private event Action OnImageSelected;
 
             public View_images(IView v, 
-                Action<Sprite> onImageSelectedAction, 
+                Action onPrefabClick, 
                 Action onGalleryAction,
                 Action onCameraAction) : base(v)
             {
-                OnImageSelected = onImageSelectedAction;
+                OnImageSelected = onPrefabClick;
                 btn_camera = v.Get<Button>("btn_camera");
                 btn_camera.OnClickAdd(onCameraAction);
                 btn_gallery = v.Get<Button>("btn_gallery");
@@ -317,8 +334,21 @@ namespace Visual.Pages.Rider
                     var index = i;
                     var sprite = images[i];
                     ImageListView.Instance(v =>
-                        new Prefab_image(v, sprite, () => OnImageSelected?.Invoke(sprite)));
+                        new Prefab_image(v, sprite, () => OnImageSelected?.Invoke()));
                 }
+            }
+
+            private void SetActive(bool active)
+            {
+                btn_camera.interactable = active;
+                btn_gallery.interactable = active;
+            }
+
+            public void Set(DeliveryOrder order, List<(string url, Sprite sprite)> images)
+            {
+                SetActive(order.State != DeliveryOrderStatus.Created &&
+                                      order.State.IsInProgress() &&
+                                      images.Count != PicLimit);
             }
 
             private class Prefab_image : UiBase
@@ -334,14 +364,55 @@ namespace Visual.Pages.Rider
                     btn_image.OnClickAdd(onclickAction);
                 }
             }
+        }
 
-            private void SetActive(bool active)
+        private class View_picUpload : UiBase
+        {
+            private ListView_Scroll<Prefab_pic> PicListView { get; }
+            private Button btn_upload { get; }
+            private Button btn_close { get; }
+            private Image img_uploadDisable { get; }
+
+            public View_picUpload(IView v, Action onReqUploadAction, bool display = false) : base(v, display)
             {
-                btn_camera.interactable = active;
-                btn_gallery.interactable = active;
+                PicListView = new ListView_Scroll<Prefab_pic>(v, "prefab_pic", "scroll_pic", true, display);
+                btn_upload = v.Get<Button>("btn_upload");
+                btn_close = v.Get<Button>("btn_close");
+                img_uploadDisable = v.Get<Image>("img_uploadDisable");
+                btn_upload.OnClickAdd(onReqUploadAction);
+                btn_close.OnClickAdd(Hide);
             }
 
-            public void Set(DeliveryOrder order) => SetActive(order.State != DeliveryOrderStatus.Created && order.State.IsInProgress());
+            public void Set(IList<Sprite> images)
+            {
+                img_uploadDisable.gameObject.SetActive(images.Count == 0);
+                PicListView.ClearList(ui => ui.Destroy());
+                
+                foreach (var img in images)
+                {
+                    var ui = PicListView.Instance(v => new Prefab_pic(v));
+                    var sp = img;
+                    ui.Set(img, () => ImageWindow.Set(sp));
+                }
+                Show();
+            }
+
+            private class Prefab_pic : UiBase
+            {
+                private Image img_pic { get; }
+                private Button btn_click { get; }
+                public Prefab_pic(IView v, bool display = true) : base(v, display)
+                {
+                    img_pic = v.Get<Image>("img_pic");
+                    btn_click = v.Get<Button>("btn_click");
+                }
+
+                public void Set(Sprite sp, Action onclickAction)
+                {
+                    img_pic.sprite = sp;
+                    btn_click.OnClickAdd(onclickAction);
+                }
+            }
         }
     }
 }

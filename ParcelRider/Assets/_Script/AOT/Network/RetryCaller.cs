@@ -9,42 +9,32 @@ namespace AOT.Network
     /// </summary>
     public class RetryCaller
     {
-        //public static async void Start(Func<Task> call,
-        //    Action successAction,
-        //    Func<string, Task<(bool success, object notThing)>> onErrRetry)
-        //{
-        //    await InvokeAwaitRetry(InvokeAsync, onErrRetry);
-        //    return;
-        //
-        //    async Task<(bool, string)> InvokeAsync()
-        //    {
-        //        try
-        //        {
-        //            await call.Invoke();
-        //            successAction?.Invoke();
-        //            return (true, string.Empty);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            return (false, e.ToString());
-        //        }
-        //    }
-        //}
+        private const string ResultNull = "Result = null";
 
-        static async Task InvokeAwaitRetry<T>(Func<Task<(bool, string, T)>> task,
+        static async Task<T> InvokeAwaitRetry<T>(Func<Task<(bool, string, T)>> task,
             Func<(string err, T arg), Task<bool>> onErrRetry)
         {
             var retry = 0;
             do
             {
                 var (isSuccess, errorMessage, arg) = await task.Invoke();
-                if (isSuccess) return;
+                if (isSuccess) return arg;
                 var isRetry = await onErrRetry((errorMessage, arg)); // 且重试机制返回true, 则继续重试
-                if (!isRetry) return;
+                if (!isRetry) return arg;
 #if UNITY_EDITOR
                 Debug.Log($"retryAwait loop = {++retry}");
 #endif
             } while (true);
+        }
+
+        public static async Task<TResult> StartAsync<TResult>(Func<Task<TResult>> call,
+            Func<(string err, TResult arg), Task<bool>> onErrRetry)
+        {
+            return await InvokeAwaitRetry(async () =>
+            {
+                var result = await call();
+                return result.Equals(default) ? (false, ResultNull, default(TResult)) : (true, string.Empty, result);
+            }, onErrRetry);
         }
 
         /// <summary>
@@ -71,7 +61,7 @@ namespace AOT.Network
                         return (true, string.Empty, result);
                     }
 
-                    return (false, "Result = null", default);
+                    return (false, ResultNull, default);
                 }
                 catch (Exception e)
                 {

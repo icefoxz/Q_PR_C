@@ -46,6 +46,7 @@ namespace AOT.Core
         }
 
         public static bool IsLoggedIn { get; private set; }
+        public static string ImageServerUrl { get; private set; }
 
         public static void Run(Res res,
             MonoService monoService,
@@ -126,10 +127,23 @@ namespace AOT.Core
         public static void SetMap(double lat, double lng, UnityAction<(double lat, double lng)> onGeoCallback) =>
             MapCoordinates.StartMap(lat, lng, onGeoCallback);
 
-        public static void SetSignalServerUrl(string url)
+        public static void SetServerUrls(string signalRUrl,string imageUrl)
         {
-            _signalRClient.SetServerUrl(url);
-            Debug.Log($"SetSignalServerUrl: {url.Color(Color.LightPink)}");
+            SetImageServerUrl();
+            SetSignalServerUrl();
+            return;
+
+            void SetImageServerUrl()
+            {
+                ImageServerUrl = imageUrl;
+                Debug.Log($"SetImageServerUrl: {imageUrl.Color(Color.LightPink)}");
+            }
+
+            void SetSignalServerUrl()
+            {
+                _signalRClient.SetServerUrl(signalRUrl);
+                Debug.Log($"SetSignalServerUrl: {signalRUrl.Color(Color.LightPink)}");
+            }
         }
     }
 }

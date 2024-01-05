@@ -31,19 +31,13 @@ namespace AOT.Utl
         public static async Task<(bool isSuccess, string content, HttpStatusCode code)> SendStringContentAsync(Uri uri, HttpMethod method,
             string content = null, string token = null)
         {
-            var httpContent = content != null ? new StringContent(content, Encoding.UTF8, "application/json") : null;
+            var httpContent = content != null ? GetContent(content) : null;
             return await SendAsync(uri, method, httpContent, token);
         }
-        public static async Task<(bool isSuccess, string content, HttpStatusCode code)> SendAsync(Uri uri, HttpMethod method,
-            HttpContent content = null, string token = null)
+        public static async Task<(bool isSuccess, string content, HttpStatusCode code)> SendAsync(Uri uri, HttpMethod method, HttpContent content = null ,string token = null)
         {
-            //var query = queryParams is { Length: > 0 }
-            //    ? "?" + string.Join("&",
-            //        queryParams.Select(qp => $"{Uri.EscapeDataString(qp.Item1)}={Uri.EscapeDataString(qp.Item2)}"))
-            //    : string.Empty;
-            //var url = $"{baseUrl}{query}";
             using var request = new HttpRequestMessage(method, uri);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(JsonMediaType));
 
             if (!string.IsNullOrEmpty(token))
             {

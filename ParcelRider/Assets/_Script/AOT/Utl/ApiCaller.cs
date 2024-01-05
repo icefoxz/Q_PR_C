@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -85,18 +86,33 @@ namespace AOT.Utl
             }
         }
 
-        //public async void Call<T>(string method, object content,
-        //    Action<T> callbackAction,
-        //    Action<string> failedCallbackAction,
-        //    bool isNeedAccessToken = true,
-        //    params (string, string)[] queryParams) where T : class
-        //{
-        //    var json = content == null ? string.Empty : Json.Serialize(content);
-        //    var result =
-        //        await Http.SendStringContentAsync(ServerUrl + method, HttpMethod.Post, json,
-        //            isNeedAccessToken ? AccessToken : null, queryParams);
-        //    ResolveResult(callbackAction, failedCallbackAction, result);
-        //}
+        public async Task<string> CallJsonAsync(string method, object content, bool isNeedAccessToken = true, params (string, string)[] queryParams)
+        {
+            var json = content == null ? string.Empty : Json.Serialize(content);
+            var contentStr = await CallStringAsync(method, json, isNeedAccessToken, queryParams);
+            return contentStr;
+        }
+
+        public async Task<string> CallStringAsync(string method, string content, bool isNeedAccessToken = true, params (string, string)[] queryParams)
+        {
+            var requestUri = Http.GetUri(ServerUrl, method, queryParams);
+
+            var result = await Http.SendStringContentAsync(requestUri, HttpMethod.Post, content, isNeedAccessToken ? AccessToken : null);
+            var(isSuccess, contentStr, code) = result;
+            return contentStr;
+        }
+
+        public async Task<string> CallStreamAsync(string method, Stream stream,
+            bool isNeedAccessToken = true,
+            params (string, string)[] queryParams)
+        {
+            var content = stream == null ? null : new StreamContent(stream);
+            var requestUri = Http.GetUri(ServerUrl, method, queryParams);
+
+            var result = await Http.SendAsync(requestUri, HttpMethod.Post, content , isNeedAccessToken ? AccessToken : null);
+            var(isSuccess, contentStr, code) = result;
+            return contentStr;
+        }
 
 
         public void CallBag(string method, string dataBag,
